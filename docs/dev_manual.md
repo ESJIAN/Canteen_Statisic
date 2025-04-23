@@ -1,0 +1,58 @@
+### 根目录
+
+- **`.gitignore`**: 指定需要 Git 忽略的文件和文件夹。
+- **[LICENSE](vscode-file://vscode-app/d:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)**: 项目的许可证文件，说明项目的使用权限。
+- **`README.md`**: 项目的说明文档，通常包含项目简介、安装方法和使用说明。
+- **`requirements.txt`**: 列出项目所需的 Python 依赖包。
+- **`config/`**: 配置文件目录。
+    - **`config.ini`**: 项目的配置文件，存储配置信息。
+
+### 文档目录
+
+- **`docs/`**: 项目文档目录。
+    - **`dev_manual.md`**: 开发手册，面向开发者的技术文档。
+    - **`user_manual.md`**: 用户手册，面向终端用户的使用说明。
+
+### 日志目录
+
+- **`logs/`**: 存储运行时生成的日志文件。
+    - **`app.log`**: 应用程序的日志文件。
+
+### 脚本目录
+
+- **`scripts/`**: 存储项目相关的脚本。
+    - **`install.sh`**: 安装脚本，用于安装项目依赖或初始化环境。
+    - **`run.sh`**: 运行脚本，用于启动项目。
+
+### 源代码目录
+
+- **`src/`**: 项目的主要源代码目录。
+    - **`main.py`**: 项目的主入口文件。
+    - **`core/`**: 核心功能模块。
+        - **`config_manager.py`**: 配置管理模块。
+        - **`data_importer.py`**: 数据导入模块。
+        - **`data_processor.py`**: 数据处理模块。
+        - **`excel_handler.py`**: Excel 文件处理模块。
+        - **`nlp_utils.py`**: 自然语言处理工具模块。
+        - **`pdf_handler.py`**: PDF 文件处理模块。
+        - **`report_generator.py`**: 报告生成模块。
+        - **`rule_engine.py`**: 规则引擎模块。
+        - **`text_handler.py`**: 文本处理模块。
+        - **`user_manager.py`**: 用户管理模块。
+        - **`models/`**: 数据模型目录。
+            - **`food_item.py`**: 食品项数据模型。
+    - **`gui/`**: 图形用户界面模块。
+        - **`data_import_dialog.py`**: 数据导入对话框。
+        - **`data_process_dialog.py`**: 数据处理对话框。
+        - **`main_window.py`**: 主窗口逻辑。
+        - **`report_generate_dialog.py`**: 报告生成对话框。
+        - **`resources/`**: GUI 资源文件目录。
+            - **`main_window.ui`**: 主窗口的 UI 文件。
+        - **`utils/`**: GUI 工具模块。
+            - **`ui_utils.py`**: GUI 工具函数。
+    - **`tests/`**: 测试代码目录。
+        - **`test_data_processor.py`**: 针对 `data_processor` 的测试。
+        - **`test_data_importer.py`**: 针对 `data_importer` 的测试。
+    - **`utils/`**: 通用工具模块。
+        - **`logger.py`**: 日志工具模块。
+        - **`exception.py`**: 异常处理模块。
