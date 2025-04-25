@@ -21,6 +21,10 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFormLayout, QGridLay
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
     QWidget)
 
+from utils.ui_utils import get_current_date
+
+
+
 class Ui_Form(object):
     def setupUi(self, Form):
         if not Form.objectName():
@@ -158,6 +162,7 @@ class Ui_Form(object):
         self.buttonGroup.addButton(self.pushButton)
         self.pushButton.setObjectName(u"pushButton")
         self.pushButton.setGeometry(QRect(220, 40, 75, 24))
+        self.pushButton.clicked.connect(self.show_current_date)
         self.pushButton_2 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_2)
         self.pushButton_2.setObjectName(u"pushButton_2")
@@ -299,13 +304,29 @@ class Ui_Form(object):
     # retranslateUi
     
     
+    def show_current_date(self):
+        """
+        显示当前日期
+        """
+        # 获取当前日期
+        current_date = get_current_date()
+        # 设置QLineEdit的文本为当前日期
+        self.date_2.setText(current_date)
+        # 设置QLineEdit为可写
+        self.date_2.setReadOnly(False)
+    
+    
 if __name__ == "__main__":
     import sys
     # 创建一个QApplication对象
     app = QApplication(sys.argv) 
+    # 创建一个QWidget对象
     Form = QWidget()
+    # 创建Ui_Form对象
     ui = Ui_Form()
+    # 调用setupUi方法设置UI界面
     ui.setupUi(Form)
+    # 设置窗口标题
     Form.show()
     sys.exit(app.exec_())
 
