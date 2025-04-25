@@ -50,7 +50,11 @@
             - **`main_window.ui`**: 主窗口的 UI 文件。
         - **`utils/`**: GUI 工具模块。
             - **`ui_utils.py`**: GUI 工具函数。
-    - **`tests/`**: 测试代码目录。
+    - **`tests/`**: 测试目录。
+        - **`resources/`**
+        
+        - **`test_config_manager.py`**: 针对 `config_manager` 的测试。
+        - **`test_excel_handler.py`**: 针对 `excel_handler` 的测试。
         - **`test_data_processor.py`**: 针对 `data_processor` 的测试。
         - **`test_data_importer.py`**: 针对 `data_importer` 的测试。
     - **`utils/`**: 通用工具模块。
