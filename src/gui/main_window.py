@@ -333,7 +333,7 @@ class Ui_Form(object):
         }
 
         # 调用 manual_temp_storage 函数获取输入框内容
-        temp_data = manual_temp_storage(input_fields)
+        temp_data = manual_temp_storage(self,input_fields) # 传入self参数
 
         # 打印暂存数据（可以替换为其他逻辑，如保存到文件或数据库）
         print("暂存数据:", temp_data)
