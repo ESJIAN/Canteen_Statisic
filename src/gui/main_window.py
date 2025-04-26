@@ -8,6 +8,9 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
+import sys
+import os
+
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
@@ -21,10 +24,15 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFormLayout, QGridLay
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
     QWidget)
 
-from .utils.ui_utils import get_current_date, manual_temp_storage
-#from ..core.excel_handler import store_single_entry_to_excel
-#from src.core.excel_handler import store_single_entry_to_excel
-from ..core.excel_handler import store_single_entry_to_excel
+# 获取当前文件的绝对路径
+current_file_path = os.path.abspath(__file__)
+# 获取项目根目录
+project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..'))
+# 将项目根目录添加到 sys.path
+sys.path.insert(0, project_root)
+
+from src.gui.utils.ui_utils import get_current_date, manual_temp_storage
+from src.core.excel_handler import store_single_entry_to_excel
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -309,6 +317,8 @@ class Ui_Form(object):
     def show_current_date(self):
         """
         显示当前日期
+        :param: self
+        :return: None
         """
         # 获取当前日期
         current_date = get_current_date()
@@ -320,6 +330,8 @@ class Ui_Form(object):
     def temp_store_inputs(self):
         """
         暂存所有输入框内的信息
+        :param: self
+        :return: None
         """
         # 定义输入框的字典
         input_fields = {
@@ -343,7 +355,6 @@ class Ui_Form(object):
 
 
 if __name__ == "__main__":
-    import sys
     # 创建一个QApplication对象
     app = QApplication(sys.argv) 
     # 创建一个QWidget对象
