@@ -10,7 +10,7 @@ TOTAL_FIELD_NUMBER = 8  # 总字段所具有的TAG数
 
 from datetime import datetime
 from email.mime import application
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QApplication, QWidget  
 
 from error_window import Ui_Form
 
@@ -29,10 +29,12 @@ def get_current_date():
 def show_error_window():
     """
     显示错误窗口
+    :param: None
+    :return: None
     """
-    app = application.instance()  # 检查是否已有 QApplication 实例
+    app = QApplication.instance()  # 检查是否已有 QApplication 实例
     if not app:
-        app = application([])  # 如果没有，则创建一个新的实例
+        app = QApplication([])  # 如果没有，则创建一个新的实例
 
     Form = QWidget()
     ui = Ui_Form()
@@ -70,3 +72,8 @@ def manual_temp_storage(input_fields):
 
 # Summary：
 # 1. 抽象的看所有widget都是一个个的对象，都是有属性和方法的，属性就是它的状态，方法就是它能做的事情。
+
+
+# TODO：
+# - [ ] 实现报错弹窗功能 
+#   - [ ] 修复报错弹框的闪现问题
