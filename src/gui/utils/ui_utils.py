@@ -5,10 +5,17 @@
 # @File    : ui_utils.py
 # @Software: VsCode
 
-
+TOTAL_FIELD_NUMBER = 8  # 总字段所具有的TAG数
 
 
 from datetime import datetime
+from email.mime import application
+from PySide6.QtWidgets import QWidget
+
+from error_window import Ui_Form
+
+
+
 
 def get_current_date():
     """
@@ -19,6 +26,19 @@ def get_current_date():
     return datetime.now().strftime("%Y-%m-%d")
 
 
+def show_error_window():
+    """
+    显示错误窗口
+    """
+    app = application.instance()  # 检查是否已有 QApplication 实例
+    if not app:
+        app = application([])  # 如果没有，则创建一个新的实例
+
+    Form = QWidget()
+    ui = Ui_Form()
+    ui.setupUi(Form)
+    Form.show()
+    app.exec()  # 启动事件循环
 
 
 
@@ -28,13 +48,24 @@ def manual_temp_storage(input_fields):
     :param input_fields: 输入框的字典或列表，键为字段名，值为对应的 QLineEdit 对象
     :return: 包含所有输入框内容的字典
     """
+    
+    exsit_tag_number=0 
     temp_storage = {}
-    for field_name, input_field in input_fields.items():
-        if input_field.text():  # 检查输入框是否有内容
-            temp_storage[field_name] = input_field.text()
-    return temp_storage
-    
-    
+    try:
+        for field_name, input_field in input_fields.items():
+            if input_field.text():  # 检查输入框是否有内容
+                exsit_tag_number+=1 # 统计有内容的输入框数量
+                temp_storage[field_name] = input_field.text()
+        if exsit_tag_number==TOTAL_FIELD_NUMBER:
+            return temp_storage
+        else:
+            print("Error: Not all fields are filled.")
+            show_error_window()
+            
+            return None
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
     
 
 # Summary：
