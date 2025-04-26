@@ -34,24 +34,32 @@ def show_error_window(self):
     """
 
     
-    if hasattr(self, 'Form') and self.Form.isVisible():
+    if hasattr(self, 'Form') and self.PopWindowApplicationForm.isVisible():
         return  # 如果弹窗已经存在且可见，则不重复创建
 
-    # 检验self是否有名为app
-    self.app = QApplication.instance()
-    # 为self追加创建一个app属性,继承自QApplication
-    if not self.app:
-        self.app = QApplication([])
+    # 检验self是否有名为app的属性
+    self.PopWindowApplication = QApplication.instance()
+    if not self.PopWindowApplication:
+        # 若没有为self追加创建一个app属性,继承自QApplication
+        self.PopWindowApplication = QApplication([])
         # 为self追加创建一个Form属性,继承自QWidget
-        self.Form = QWidget()
+        self.PopWindowApplicationForm = QWidget()
         # 为self追加一个ui属性,继承自TagNumShortage
-        self.ui = TagNumShortage()
-        # 
-        self.ui.setupUi(self.Form)
+        self.PopWindowApplicationUi = TagNumShortage()
+        #
+        self.PopWindowApplicationUi.setupUi(self.PopWindowApplicationForm)
         
-        self.Form.show()
+        self.PopWindowApplicationForm.show()
     else:
-        print("Error: QApplication instance already exists.")
+        # 为self追加创建一个Form属性,继承自QWidget
+        self.PopWindowApplicationForm = QWidget()
+        # 为self追加一个ui属性,继承自TagNumShortage
+        self.PopWindowApplicationUi = TagNumShortage()
+        #
+        self.PopWindowApplicationUi.setupUi(self.PopWindowApplicationForm)
+        
+        self.PopWindowApplicationForm.show()
+
 
 def manual_temp_storage(self,input_fields):
     """
