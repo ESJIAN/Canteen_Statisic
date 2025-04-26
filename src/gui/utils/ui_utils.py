@@ -13,6 +13,8 @@ from datetime import datetime
 def get_current_date():
     """
     获取系统当前日期，格式为 YYYY-MM-DD
+    :param: None
+    :return: 当前日期的字符串，格式为 YYYY-MM-DD
     """
     return datetime.now().strftime("%Y-%m-%d")
 
