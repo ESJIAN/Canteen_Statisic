@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFormLayout, QGridLay
     QWidget)
 
 from utils.ui_utils import get_current_date, manual_temp_storage
-
+from ..core.excel_handler import store_single_entry_to_excel
 
 
 class Ui_Form(object):
@@ -333,11 +333,14 @@ class Ui_Form(object):
         }
 
         # 调用 manual_temp_storage 函数获取输入框内容
-        temp_data = manual_temp_storage(self,input_fields) # 传入self参数
+        manual_input_data = manual_temp_storage(self,input_fields) # 传入self参数
 
         # 打印暂存数据（可以替换为其他逻辑，如保存到文件或数据库）
-        print("暂存数据:", temp_data)
-    
+        print("暂存数据:", manual_input_data)
+        # 调用 store_single_entry_to_excel 函数存储数据到Excel文件
+        store_single_entry_to_excel(manual_input_data, "temp_manual_input_data.xlsx")
+
+
 if __name__ == "__main__":
     import sys
     # 创建一个QApplication对象
