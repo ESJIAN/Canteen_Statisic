@@ -1,0 +1,1 @@
+- 在 `Settings.json`中添加了"git.path": "D:\\Git\\cmd\\git.exe"项目以解决Git 插件无法嗅探到git命令包的问题

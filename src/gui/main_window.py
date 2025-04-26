@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFormLayout, QGridLay
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
     QWidget)
 
-from utils.ui_utils import get_current_date
+from utils.ui_utils import get_current_date, manual_temp_storage
 
 
 
@@ -154,6 +154,7 @@ class Ui_Form(object):
         self.buttonGroup.addButton(self.pushButton_7)
         self.pushButton_7.setObjectName(u"pushButton_7")
         self.pushButton_7.setGeometry(QRect(220, 100, 75, 24))
+        self.pushButton_7.clicked.connect(self.temp_store_inputs)
         self.pushButton_5 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_5)
         self.pushButton_5.setObjectName(u"pushButton_5")
@@ -315,6 +316,27 @@ class Ui_Form(object):
         # 设置QLineEdit为可写
         self.date_2.setReadOnly(False)
     
+    def temp_store_inputs(self):
+        """
+        暂存所有输入框内的信息
+        """
+        # 定义输入框的字典
+        input_fields = {
+            "date": self.date_2,
+            "foodType": self.foodType_2,
+            "name": self.name_2,
+            "info": self.info_2,
+            "amount": self.amount_2,
+            "quantity": self.LineEdit,
+            "unit_price": self.LineEdit_2,
+            "unit": self.LineEdit_3,
+        }
+
+        # 调用 manual_temp_storage 函数获取输入框内容
+        temp_data = manual_temp_storage(input_fields)
+
+        # 打印暂存数据（可以替换为其他逻辑，如保存到文件或数据库）
+        print("暂存数据:", temp_data)
     
 if __name__ == "__main__":
     import sys
