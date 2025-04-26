@@ -12,7 +12,7 @@ from datetime import datetime
 from email.mime import application
 from PySide6.QtWidgets import QApplication, QWidget  
 
-from error_window import TagNumShortage # Learning：子模块的导入相对路径的起算点是主模块
+from ..error_window import TagNumShortage # Learning：子模块的导入相对路径的起算点是主模块
 
 
 

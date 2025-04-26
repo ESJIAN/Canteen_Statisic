@@ -21,9 +21,10 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFormLayout, QGridLay
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
     QWidget)
 
-from utils.ui_utils import get_current_date, manual_temp_storage
+from .utils.ui_utils import get_current_date, manual_temp_storage
+#from ..core.excel_handler import store_single_entry_to_excel
+#from src.core.excel_handler import store_single_entry_to_excel
 from ..core.excel_handler import store_single_entry_to_excel
-
 
 class Ui_Form(object):
     def setupUi(self, Form):
