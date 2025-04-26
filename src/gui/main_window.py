@@ -350,5 +350,5 @@ if __name__ == "__main__":
     ui.setupUi(Form)
     # 设置窗口标题
     Form.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 

@@ -12,7 +12,7 @@ from datetime import datetime
 from email.mime import application
 from PySide6.QtWidgets import QApplication, QWidget  
 
-from error_window import Ui_Form
+from error_window import TagNumShortage # Learning：子模块的导入相对路径的起算点是主模块
 
 
 
@@ -32,17 +32,26 @@ def show_error_window(self):
     :param: None
     :return: None
     """
-    self.app = QApplication.instance()  # 检查是否已有 QApplication 实例
+
+    
+    if hasattr(self, 'Form') and self.Form.isVisible():
+        return  # 如果弹窗已经存在且可见，则不重复创建
+
+    # 检验self是否有名为app
+    self.app = QApplication.instance()
+    # 为self追加创建一个app属性,继承自QApplication
     if not self.app:
-        self.app = QApplication([])  # 如果没有，则创建一个新的实例
-
-    self.Form = QWidget()
-    self.ui = Ui_Form()
-    self.ui.setupUi(self.Form)
-    self.Form.show()
-    self.app.exec()  # Fixed1：若不加入self参数该独立事件的循环会导致窗口关闭后，程序无法继续执行，造成窗口闪现现象。
-
-
+        self.app = QApplication([])
+        # 为self追加创建一个Form属性,继承自QWidget
+        self.Form = QWidget()
+        # 为self追加一个ui属性,继承自TagNumShortage
+        self.ui = TagNumShortage()
+        # 
+        self.ui.setupUi(self.Form)
+        
+        self.Form.show()
+    else:
+        print("Error: QApplication instance already exists.")
 
 def manual_temp_storage(self,input_fields):
     """
@@ -61,9 +70,8 @@ def manual_temp_storage(self,input_fields):
         if exsit_tag_number==TOTAL_FIELD_NUMBER:
             return temp_storage
         else:
-            print("Error: Not all fields are filled.")
+            print("Warning: Not all fields are filled.")
             show_error_window(self)
-            
             return None
     except Exception as e:
         print(f"Error: {e}")

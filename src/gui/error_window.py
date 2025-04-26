@@ -18,7 +18,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QPushButton, QSizePolicy,
     QSpacerItem, QTextEdit, QVBoxLayout, QWidget)
 
-class Ui_Form(object):
+class TagNumShortage(object):
     def setupUi(self, Form):
         if not Form.objectName():
             Form.setObjectName(u"Form")
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
     Form = QWidget()
-    ui = Ui_Form()
+    ui = TagNumShortage()
     ui.setupUi(Form)
     Form.show()
     sys.exit(app.exec())
