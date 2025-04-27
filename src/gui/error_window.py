@@ -20,6 +20,14 @@ from PySide6.QtWidgets import (QApplication, QHBoxLayout, QPushButton, QSizePoli
 
 class TagNumShortage(object):
     def setupUi(self, Form):
+        """
+        Sets up the user interface for the given form.
+        This method initializes and arranges the widgets and layouts for the form.
+        It includes a text edit widget, a push button, and appropriate layout
+        configurations. The push button is connected to the form's close function.
+        Args:
+            Form (QWidget): The parent widget or form to set up the UI for.
+        """
         if not Form.objectName():
             Form.setObjectName(u"Form")
         Form.resize(206, 165)

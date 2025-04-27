@@ -8,6 +8,7 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
+import pandas as pd  # 用于读取 Excel 文件
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
@@ -15,14 +16,15 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QHeaderView, QSizePolicy,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
-class excel_check_window(object):
+class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写进去
     def setupUi(self, Form):
         if not Form.objectName():
             Form.setObjectName(u"Form")
-        Form.resize(400, 299)
+        Form.resize(600, 400)  # 调整窗口大小
         self.horizontalLayout = QHBoxLayout(Form)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.verticalLayout = QVBoxLayout()
@@ -31,29 +33,95 @@ class excel_check_window(object):
         self.tableWidget.setObjectName(u"tableWidget")
 
         self.verticalLayout.addWidget(self.tableWidget)
-
-
         self.horizontalLayout.addLayout(self.verticalLayout)
 
-
         self.retranslateUi(Form)
-
         QMetaObject.connectSlotsByName(Form)
-    # setupUi
+
+        # 添加 Ctrl+S 快捷键保存逻辑
+        self.save_shortcut = QShortcut(QKeySequence("Ctrl+S"), Form)
+        self.save_shortcut.activated.connect(self.save_table_data)
+
+    # 添加载入表格数据的逻辑
+    def load_table_data(self, file_path):
+        """
+        从 Excel 文件中加载数据到 QTableWidget
+        :param file_path: Excel 文件路径
+        """
+        try:
+            # 使用 pandas 读取 Excel 文件
+            data = pd.read_excel(file_path)
+
+            # 设置表格行列数
+            self.tableWidget.setRowCount(data.shape[0])  # 行数
+            self.tableWidget.setColumnCount(data.shape[1])  # 列数
+            self.tableWidget.setHorizontalHeaderLabels(data.columns)  # 设置表头
+
+            # 填充表格数据
+            for row in range(data.shape[0]):
+                for col in range(data.shape[1]):
+                    item = QTableWidgetItem(str(data.iloc[row, col]))
+                    self.tableWidget.setItem(row, col, item)
+
+            print("表格数据加载成功！")
+        except Exception as e:
+            print(f"加载表格数据时出错: {e}")
 
     def retranslateUi(self, Form):
-        Form.setWindowTitle(QCoreApplication.translate("Form", u"Form", None))
-    # retranslateUi
+        Form.setWindowTitle(QCoreApplication.translate("Form", u"Excel 数据查看", None))
+
+ # 添加保存表格数据的逻辑
+    def save_table_data(self):
+        """
+        将 QTableWidget 中的数据保存到 Excel 文件
+        """
+        try:
+            # 获取表格数据
+            row_count = self.tableWidget.rowCount()
+            col_count = self.tableWidget.columnCount()
+            data = {}
+
+            # 获取表头
+            headers = [self.tableWidget.horizontalHeaderItem(col).text() for col in range(col_count)]
+
+            # 获取每列数据
+            for col in range(col_count):
+                column_data = []
+                for row in range(row_count):
+                    item = self.tableWidget.item(row, col)
+                    column_data.append(item.text() if item else "")
+                data[headers[col]] = column_data
+
+            # 转换为 DataFrame 并保存到 Excel
+            df = pd.DataFrame(data)
+            save_path = ".\\src\\data\\output\\saved_table_data.xlsx"  # 保存路径
+            df.to_excel(save_path, index=False)
+            print(f"表格数据已成功保存到 {save_path}")
+        except Exception as e:
+            print(f"保存表格数据时出错: {e}")
+
 
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
     Form = QWidget()
-    ui = excel_check_window()
+    ui = ExcelCheckWindow()
     ui.setupUi(Form)
+
+    # 加载 Excel 文件数据
+    excel_file_path = ".\\src\\data\\input\\manual\\temp_manual_input_data.xlsx"  # Learning1:相对目录的起算位置
+    ui.load_table_data(excel_file_path)
+    # 展示窗口
     Form.show()
     sys.exit(app.exec())
 
+# Learning:
+# 1. 文件路径的相对路径起算地址不是本文件,而是项目根目录
+# 2. 实现加载表格到显示窗口的这个过程,一定是先把表格加载的动作解决再是弹出窗口
+#    用
+# 3. 类定义时候不能把 self 参数写进去
 
 # TODO:
-# - [ ] 在顶级脚本运行模式中完成表格读取操作 
+# - [x] 在以顶级脚本运行模式下实现打开测试表格 
+# - [x] 实现打开表格时数据的保存功能
+# - [x] 实现在主窗口中弹出表格展示窗口

@@ -182,3 +182,264 @@ def show_error_window(self):
 **    **Form**.**setModal**(**True**)**  **# 设置为模态对话框**
 
 **    **Form**.**exec**(**)**  **# 阻塞当前逻辑，直到窗口关闭
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## check_window.py
+
+
+
+
+为该组件增加 `Ctrl+S` 快捷键保存表格数据到 Excel 文件的逻辑：
+
+
+步骤：先编写槽函数，在编写信号事件，再把槽函数和信号事件连接起来
+
+
+注意：如果该程序是作为主程序的一个弹窗实现的话
+
+
+---
+
+### 修改后的代码
+
+**import** **pandas** **as** **pd**  **# 用于读取和保存 Excel 文件**
+
+**from** **PySide6**.**QtCore** **import** **QCoreApplication**, **Qt**
+
+**from** **PySide6**.**QtGui** **import** **QKeySequence**
+
+**from** **PySide6**.**QtWidgets** **import** **(**QApplication**, **QHBoxLayout**, **QHeaderView**, **QSizePolicy**,**
+
+**    **QTableWidget**, **QTableWidgetItem**, **QVBoxLayout**, **QWidget**, QShortcut**)
+
+**class** **excel_check_window**(**object**)**:**
+
+**    **def** **setupUi**(**self**, **Form**)**:
+
+**        **if** **not** **Form**.objectName**(**)**:
+
+**            **Form**.setObjectName**(**u**"Form"**)**
+
+**        **Form**.resize**(**600**, **400**)**  **# 调整窗口大小
+
+**        **self**.**horizontalLayout** **=** **QHBoxLayout**(**Form**)**
+
+**        **self**.**horizontalLayout**.**setObjectName**(**u**"horizontalLayout"**)
+
+**        **self**.**verticalLayout** **=** **QVBoxLayout**(**)
+
+**        **self**.**verticalLayout**.**setObjectName**(**u**"verticalLayout"**)
+
+**        **self**.**tableWidget** **=** **QTableWidget**(**Form**)**
+
+**        **self**.**tableWidget**.**setObjectName**(**u**"tableWidget"**)
+
+**        **self**.**verticalLayout**.**addWidget**(**self**.**tableWidget**)**
+
+**        **self**.**horizontalLayout**.**addLayout**(**self**.**verticalLayout**)**
+
+**        **self**.**retranslateUi**(**Form**)**
+
+**        QMetaObject.connectSlotsByName**(**Form**)
+
+**        **# 添加 Ctrl+S 快捷键保存逻辑
+
+**        **self**.**save_shortcut** **=** QShortcut**(**QKeySequence**(**"Ctrl+S"**)**, **Form**)**
+
+**        **self**.**save_shortcut**.activated.connect**(**self**.**save_table_data**)
+
+**    **# 添加载入表格数据的逻辑
+
+**    **def** **load_table_data**(**self**, **file_path**)**:
+
+**        **"""
+
+**        从 Excel 文件中加载数据到 QTableWidget**
+
+**        :param file_path: Excel 文件路径**
+
+**        """**
+
+**        **try**:**
+
+**            **# 使用 pandas 读取 Excel 文件
+
+**            **data** **=** **pd**.**read_excel**(**file_path**)**
+
+**            **# 设置表格行列数
+
+**            **self**.**tableWidget**.**setRowCount**(**data**.**shape**[**0**]**)**  **# 行数
+
+**            **self**.**tableWidget**.**setColumnCount**(**data**.**shape**[**1**]**)**  **# 列数
+
+**            **self**.**tableWidget**.**setHorizontalHeaderLabels**(**data**.**columns**)**  **# 设置表头**
+
+**            **# 填充表格数据
+
+**            **for** **row** **in** **range**(**data**.**shape**[**0**]**)**:**
+
+**                **for** **col** **in** **range**(**data**.**shape**[**1**]**)**:**
+
+**                    **item** **=** **QTableWidgetItem**(**str**(**data**.**iloc**[**row**, **col**]**)**)**
+
+**                    **self**.**tableWidget**.**setItem**(**row**, **col**, **item**)**
+
+**            **print**(**"表格数据加载成功！"**)**
+
+**        **except** **Exception** **as** **e**:**
+
+**            **print**(**f**"加载表格数据时出错: **{**e**}**"**)
+
+**    **# 添加保存表格数据的逻辑
+
+**    **def** **save_table_data**(**self**)**:
+
+**        **"""
+
+**        将 QTableWidget 中的数据保存到 Excel 文件**
+
+**        """**
+
+**        **try**:**
+
+**            **# 获取表格数据
+
+**            **row_count** **=** **self**.**tableWidget**.**rowCount**(**)
+
+**            **col_count** **=** **self**.**tableWidget**.**columnCount**(**)
+
+**            **data** **=** **{**}**
+
+**            **# 获取表头
+
+**            **headers** **=** **[**self**.**tableWidget**.**horizontalHeaderItem**(**col**)**.**text**(**)** **for** **col** **in** **range**(**col_count**)**]
+
+**            **# 获取每列数据
+
+**            **for** **col** **in** **range**(**col_count**)**:
+
+**                **column_data** **=** **[**]**
+
+**                **for** **row** **in** **range**(**row_count**)**:
+
+**                    **item** **=** **self**.**tableWidget**.**item**(**row**, **col**)**
+
+**                    **column_data**.**append**(**item**.**text**(**)** **if** **item** **else** **""**)**
+
+**                **data**[**headers**[**col**]**]** **=** **column_data
+
+**            **# 转换为 DataFrame 并保存到 Excel
+
+**            **df** **=** **pd**.**DataFrame**(**data**)**
+
+**            **save_path** **=** **".**\\**src**\\**data**\\**output**\\**saved_table_data.xlsx"**  **# 保存路径
+
+**            **df**.**to_excel**(**save_path**, **index**=**False**)**
+
+**            **print**(**f**"表格数据已成功保存到 **{**save_path**}**"**)
+
+**        **except** **Exception** **as** **e**:**
+
+**            **print**(**f**"保存表格数据时出错: **{**e**}**"**)
+
+**    **def** **retranslateUi**(**self**, **Form**)**:
+
+**        **Form**.setWindowTitle**(**QCoreApplication**.**translate**(**"Form"**, **u**"Excel 数据查看"**, **None**)**)
+
+**if** **__name__** **==** **"__main__"**:
+
+**    **import** **sys
+
+**    **app** **=** **QApplication**(**sys**.**argv**)**
+
+**    **Form** **=** **QWidget**(**)
+
+**    **ui** **=** **excel_check_window**(**)
+
+**    **ui**.**setupUi**(**Form**)**
+
+**    **# 示例：加载 Excel 文件数据
+
+**    **excel_file_path** **=** **".**\\**src**\\**data**\\**input**\\**manual**\\**temp_manual_input_data.xlsx"**  **# Learning1:相对目录的起算位置
+
+**    **ui**.**load_table_data**(**excel_file_path**)**
+
+**    **Form**.**show**(**)
+
+**    **sys**.**exit**(**app**.**exec**(**)**)**
+
+**# Learning:**
+
+**# 1. 文件路径的相对路径起算地址不是本文件,而是项目根目录**
+
+**# **
+
+**# **TODO**:**
+
+**# - [ ] 在以顶级脚本运行模式下实现打开测试表格**
+
+---
+
+### 新增功能说明
+
+1. **`Ctrl+S` 快捷键** ：
+
+* 使用 `QShortcut` 创建快捷键 `Ctrl+S`，并绑定到 `save_table_data` 方法。
+* 当用户按下 `Ctrl+S` 时，表格数据会被保存到指定的 Excel 文件中。
+
+1. **保存表格数据的逻辑** ：
+
+* 遍历 [QTableWidget](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 的所有单元格，提取数据并存储到一个字典中。
+* 使用 Pandas 将字典转换为 `DataFrame`，然后保存为 Excel 文件。
+
+1. **保存路径** ：
+
+* 数据会保存到 `src\data\output\saved_table_data.xlsx` 文件中。
+* 你可以根据需要修改保存路径。
+
+---
+
+### 示例运行
+
+1. 运行程序后，加载 Excel 文件数据到表格。
+2. 按下 `Ctrl+S`，表格中的数据会保存到 `saved_table_data.xlsx` 文件中。
+3. 如果保存成功，控制台会打印：
+
+   **表格数据已成功保存到 .\src\data\output\saved_table_data.xlsx**
+
+---
+
+### 注意事项
+
+1. **依赖安装** ：
+
+* 确保已安装 [pandas](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 和 `openpyxl`：
+
+  **pip** **install** **pandas** **openpyxl**
+
+1. **文件路径** ：
+
+* 确保保存路径的目录存在。如果目录不存在，可以在保存前动态创建：
+
+  **import** **os**
+
+  **os**.**makedirs**(**os**.**path**.**dirname**(**save_path**)**, **exist_ok**=**True**)**
+
+1. **表格数据完整性** ：
+
+* 如果某些单元格为空，保存时会用空字符串代替。

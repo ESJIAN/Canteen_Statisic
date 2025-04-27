@@ -32,17 +32,17 @@ project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..')
 sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
 from src.gui.utils.ui_utils import get_current_date, manual_temp_storage # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.gui.utils.ui_utils import show_check_window
 from src.core.excel_handler import store_single_entry_to_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
- 
 
 
 TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xlsx"
 
 
-
-
-
 class Ui_Form(object):
+ 
+
+
     def setupUi(self, Form):
         if not Form.objectName():
             Form.setObjectName(u"Form")
@@ -181,10 +181,11 @@ class Ui_Form(object):
         self.pushButton.setObjectName(u"pushButton")
         self.pushButton.setGeometry(QRect(220, 40, 75, 24))
         self.pushButton.clicked.connect(self.show_current_date)
-        self.pushButton_2 = QPushButton(self.groupBox_3)
+        self.pushButton_2 = QPushButton(self.groupBox_3) # Learing2：第一步创建按钮
         self.buttonGroup.addButton(self.pushButton_2)
-        self.pushButton_2.setObjectName(u"pushButton_2")
-        self.pushButton_2.setGeometry(QRect(220, 140, 75, 24))
+        self.pushButton_2.setObjectName(u"pushButton_2") # 设置按钮的ObjectName
+        self.pushButton_2.setGeometry(QRect(220, 140, 75, 24)) # 设置按钮的几何位置 
+        self.pushButton_2.clicked.connect(self.check_manual_input_data)# Learning3：第三步绑定按钮
         self.groupBox_5 = QGroupBox(self.groupBox_3)
         self.groupBox_5.setObjectName(u"groupBox_5")
         self.groupBox_5.setGeometry(QRect(10, 290, 291, 81))
@@ -361,7 +362,24 @@ class Ui_Form(object):
         # 调用 store_single_entry_to_excel 函数存储数据到Excel文件
         store_single_entry_to_excel(manual_input_data, TEMP_SINGLE_STORAGE_EXCEL_PATH)
 
+    def check_manual_input_data(self): # Learning3:传参参数名与某个全局变量同名，造成全局变量值无法被获取
+        """
+        弹窗且以EXCEL表格的形式检查手动输入的数据
+        :param: self,excel_path
+        :return: None
+        """
 
+        show_check_window(self,TEMP_SINGLE_STORAGE_EXCEL_PATH) 
+
+        
+        
+
+        
+
+        
+
+
+        
 
 if __name__ == "__main__":
 
@@ -378,6 +396,13 @@ if __name__ == "__main__":
     sys.exit(app.exec())
 
 
+
 # Learning:
 # 1. 相对导入的情况一共分为四种,只有导入同级别目录和导入子包这两种情况以主脚本模式运行没有问题
 #    但相对导入父包这情况就会遇上问题,所以为此我手动改成了绝对导入模式,此Bug知识点见doc/learning/python 8.4 节
+# 2. 实现点击按钮响应事件的步骤主要有三个：1.创建按钮 2.写槽函数 3. 将按钮信号与槽函数绑定
+#    这个逻辑是基于事件驱动的哲学
+# 3. 对于函数内部来讲，如果产生形参名与实参名撞名的情况，则在函数内访问该变量，实际上实在访问
+#    传入的形参名，如果形参未传入则返回的是布尔值 False
+
+# TODO：
