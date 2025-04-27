@@ -34,6 +34,14 @@ sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解�
 from src.gui.utils.ui_utils import get_current_date, manual_temp_storage # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.core.excel_handler import store_single_entry_to_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
  
+
+
+TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xlsx"
+
+
+
+
+
 class Ui_Form(object):
     def setupUi(self, Form):
         if not Form.objectName():
@@ -289,9 +297,9 @@ class Ui_Form(object):
         self.name.setText(QCoreApplication.translate("Form", u"\u54c1\u540d", None))
         self.info.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None))
         self.amount.setText(QCoreApplication.translate("Form", u"\u91d1\u989d", None))
-        self.Label.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None))
+        self.Label.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None)) # Learning2: unicode 编码,详情见 unicode.md 
         self.Label_2.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))
-        self.Label_3.setText(QCoreApplication.translate("Form", u"\u8ba1\u91cf\u5355\u4f4d", None))
+        self.Label_3.setText(QCoreApplication.translate("Form", u"\u5355\u4f4d", None))
         self.pushButton_6.setText(QCoreApplication.translate("Form", u"\u4fee\u8ba2\u63d0\u4ea4", None))
         self.pushButton_7.setText(QCoreApplication.translate("Form", u"\u6682\u5b58\u8be5\u6761", None))
         self.pushButton_5.setText(QCoreApplication.translate("Form", u"\u63d0\u4ea4\u6570\u636e", None))
@@ -335,14 +343,14 @@ class Ui_Form(object):
         """
         # 定义输入框的字典
         input_fields = {
-            "date": self.date_2,
-            "foodType": self.foodType_2,
-            "name": self.name_2,
-            "info": self.info_2,
-            "amount": self.amount_2,
-            "quantity": self.LineEdit,
-            "unit_price": self.LineEdit_2,
-            "unit": self.LineEdit_3,
+            "日期": self.date_2,
+            "类别": self.foodType_2,
+            "品名": self.name_2,
+            "备注": self.info_2,
+            "金额": self.amount_2,
+            "数量": self.LineEdit,
+            "单价": self.LineEdit_2,
+            "单位": self.LineEdit_3,
         }
 
         # 调用 manual_temp_storage 函数获取输入框内容
@@ -351,10 +359,12 @@ class Ui_Form(object):
         # 打印暂存数据（可以替换为其他逻辑，如保存到文件或数据库）
         print("暂存数据:", manual_input_data)
         # 调用 store_single_entry_to_excel 函数存储数据到Excel文件
-        store_single_entry_to_excel(manual_input_data, "temp_manual_input_data.xlsx")
+        store_single_entry_to_excel(manual_input_data, TEMP_SINGLE_STORAGE_EXCEL_PATH)
+
 
 
 if __name__ == "__main__":
+
     # 创建一个QApplication对象
     app = QApplication(sys.argv) 
     # 创建一个QWidget对象
