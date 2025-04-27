@@ -25,15 +25,15 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFormLayout, QGridLay
     QWidget)
 
 # 获取当前文件的绝对路径
-current_file_path = os.path.abspath(__file__)
+current_file_path = os.path.abspath(__file__) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 # 获取项目根目录
-project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..'))
+project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..')) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 # 将项目根目录添加到 sys.path
-sys.path.insert(0, project_root)
+sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
-from src.gui.utils.ui_utils import get_current_date, manual_temp_storage
-from src.core.excel_handler import store_single_entry_to_excel
-
+from src.gui.utils.ui_utils import get_current_date, manual_temp_storage # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.core.excel_handler import store_single_entry_to_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+ 
 class Ui_Form(object):
     def setupUi(self, Form):
         if not Form.objectName():
@@ -365,5 +365,9 @@ if __name__ == "__main__":
     ui.setupUi(Form)
     # 设置窗口标题
     Form.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
+
+# Learning:
+# 1. 相对导入的情况一共分为四种,只有导入同级别目录和导入子包这两种情况以主脚本模式运行没有问题
+#    但相对导入父包这情况就会遇上问题,所以为此我手动改成了绝对导入模式,此Bug知识点见doc/learning/python 8.4 节

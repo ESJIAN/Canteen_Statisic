@@ -14,7 +14,7 @@ def store_single_entry_to_excel(data, file_path):
     :param file_path: 存储的文件路径
     :return: None
     """
-    
+    # 
     if not isinstance(data, (dict, list)):
         raise ValueError("数据必须是字典或列表")
     
