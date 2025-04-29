@@ -12,9 +12,9 @@ from datetime import datetime
 from email.mime import application
 from PySide6.QtWidgets import QApplication, QWidget  
 
-from src.gui.error_window import TagNumShortage # Learning1：子模块的导入相对路径的起算点是主模块
+from src.gui.error_window import TagNumShortage    # Learning1：子模块的导入相对路径的起算点是主模块
 from src.gui.check_window import ExcelCheckWindow  # Learning2:顶级脚本设定绝对倒入配置后不需要在子模块中重设
-
+from src.gui.data_save_dialog import data_save_success
 
 
 
@@ -34,14 +34,26 @@ def manual_temp_storage(self,input_fields):
     :return: 包含所有输入框内容的字典
     """
     
-    exsit_tag_number=0 
-    temp_storage = {}
+    exsit_tag_number=0  # 统计有内容的输入框数量
+    temp_storage = {}   # 存储输入框内容的字典
+
     try:
         for field_name, input_field in input_fields.items():
             if input_field.text():  # 检查输入框是否有内容
                 exsit_tag_number+=1 # 统计有内容的输入框数量
                 temp_storage[field_name] = input_field.text()
         if exsit_tag_number==TOTAL_FIELD_NUMBER:
+            data_save_success(self)  # 显示保存成功的消息提示弹窗
+
+            self.date_2.setText("")  # Learning4：对QLineEdit组件使用setText()方法重置输入框内容
+            self.foodType_2.setText("")
+            self.name_2.setText("")
+            self.info_2.setText("")
+            self.amount_2.setText("")
+            self.LineEdit.setText("")
+            self.LineEdit_2.setText("")
+            self.LineEdit_3.setText("")
+
             return temp_storage
         else:
             print("Warning: Not all fields are filled.")
@@ -102,7 +114,7 @@ def show_check_window(self,file_path):
     # 为self追加一个ui属性,继承自excel_check_window
     self.PopWindowApplicationUi = ExcelCheckWindow()
     # 将 ui 属性与 form 属性 
-    self.PopWindowApplicationUi.setupUi(self.PopWindowApplicationForm)
+    self.PopWindowApplicationUi.set_up_Ui(self.PopWindowApplicationForm)
     
     self.PopWindowApplicationUi.load_table_data(file_path)
 
@@ -125,9 +137,12 @@ def show_check_window(self,file_path):
 #    变量的传递分为单个文件内，和跨文件两种方式去传递
 # 3. 在存在主窗口的时候，在创建子窗口时，不要创建新的QApplication实例，而是使用已经存在的实例。因为QApplication只能有一个实例，创建多个实例会导致错误。
 #    来源：Fixed2的修复
+# 4. 如果直接是self.date_2 = ""，self.date_2不再指向原来的 QLineEdit 对象，而是被重新赋值为一个字符串 ""
 # TODO：
 # - [x] 2025.4.46 实现报错弹窗功能 
 #   - [x] 修复报错弹框的闪现问题
 # - [x] 2025.4.27 实现调用check_window.py以展示表格操作弹窗
 #   - [x] 修复 RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
 #   - [x] 修复 Excel 展示弹窗，仅弹窗但是不显示内容的问题——原因见main_window.py的Learning3
+# - [x] 2025.4.29 实现暂存重置输入框功能
+# - [ ] 2025.4.29 实现自动提交逻辑

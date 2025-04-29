@@ -31,8 +31,8 @@ project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..')
 # 将项目根目录添加到 sys.path
 sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
-from src.gui.utils.ui_utils import get_current_date, manual_temp_storage # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
-from src.gui.utils.ui_utils import show_check_window
+from src.gui.utils.detail_ui_button_utils import get_current_date, manual_temp_storage # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.gui.utils.detail_ui_button_utils import show_check_window
 from src.core.excel_handler import store_single_entry_to_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
 
@@ -323,6 +323,11 @@ class Ui_Form(object):
     # retranslateUi
     
     
+    """
+    下面是一些按钮的槽函数，但是核心的功能实现在detail_ui_button_utils.py中
+    """
+
+
     def show_current_date(self):
         """
         显示当前日期
@@ -361,6 +366,7 @@ class Ui_Form(object):
         print("暂存数据:", manual_input_data)
         # 调用 store_single_entry_to_excel 函数存储数据到Excel文件
         store_single_entry_to_excel(manual_input_data, TEMP_SINGLE_STORAGE_EXCEL_PATH)
+        
 
     def check_manual_input_data(self): # Learning3:传参参数名与某个全局变量同名，造成全局变量值无法被获取
         """
@@ -371,7 +377,13 @@ class Ui_Form(object):
 
         show_check_window(self,TEMP_SINGLE_STORAGE_EXCEL_PATH) 
 
-        
+    def commit_data(self):
+        """
+        提交数据
+        :param: self
+        :return: None
+        """
+
         
 
         
@@ -406,3 +418,4 @@ if __name__ == "__main__":
 #    传入的形参名，如果形参未传入则返回的是布尔值 False
 
 # TODO：
+# [ ] 实现

@@ -20,8 +20,17 @@ from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QHeaderView, QSizePolicy,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
+
+from src.gui.data_save_dialog import data_save_success
+
 class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写进去
-    def setupUi(self, Form):
+
+    def set_up_Ui(self, Form):
+        """
+        表格窗口初始化
+        :param Form: QWidget对象
+        :return: None
+        """
         if not Form.objectName():
             Form.setObjectName(u"Form")
         Form.resize(600, 400)  # 调整窗口大小
@@ -74,6 +83,8 @@ class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写
     def save_table_data(self):
         """
         将 QTableWidget 中的数据保存到 Excel 文件
+        :param: self
+        :return: None
         """
         try:
             # 获取表格数据
@@ -94,9 +105,12 @@ class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写
 
             # 转换为 DataFrame 并保存到 Excel
             df = pd.DataFrame(data)
-            save_path = ".\\src\\data\\output\\saved_table_data.xlsx"  # 保存路径
+            from src.gui.main_window import TEMP_SINGLE_STORAGE_EXCEL_PATH # Learning4:延迟导入
+            save_path = TEMP_SINGLE_STORAGE_EXCEL_PATH  # 保存路径
             df.to_excel(save_path, index=False)
             print(f"表格数据已成功保存到 {save_path}")
+            data_save_success(self)
+
         except Exception as e:
             print(f"保存表格数据时出错: {e}")
 
@@ -106,7 +120,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     Form = QWidget()
     ui = ExcelCheckWindow()
-    ui.setupUi(Form)
+    ui.set_up_Ui(Form)
 
     # 加载 Excel 文件数据
     excel_file_path = ".\\src\\data\\input\\manual\\temp_manual_input_data.xlsx"  # Learning1:相对目录的起算位置
@@ -120,8 +134,11 @@ if __name__ == "__main__":
 # 2. 实现加载表格到显示窗口的这个过程,一定是先把表格加载的动作解决再是弹出窗口
 #    用
 # 3. 类定义时候不能把 self 参数写进去
+# 4. 子模块能够导入顶级模块的变量,但是顶级模块不能导入子模块的变量,但是需要延迟导入
+#    否则会发生循环导入模块的错误
 
 # TODO:
 # - [x] 在以顶级脚本运行模式下实现打开测试表格 
 # - [x] 实现打开表格时数据的保存功能
 # - [x] 实现在主窗口中弹出表格展示窗口
+# - [ ] 增加保存弹窗消息提醒功能
