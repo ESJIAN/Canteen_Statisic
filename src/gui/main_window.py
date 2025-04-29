@@ -374,8 +374,8 @@ class Ui_Form(object):
         :param: self,excel_path
         :return: None
         """
-
         show_check_window(self,TEMP_SINGLE_STORAGE_EXCEL_PATH) 
+
 
     def commit_data(self):
         """
@@ -418,4 +418,5 @@ if __name__ == "__main__":
 #    传入的形参名，如果形参未传入则返回的是布尔值 False
 
 # TODO：
-# [ ] 实现
+# [ ] 2025.4.30 实现暂存栏暂存条目数的动态更新
+# [ ] 2025.4.30 实现信息栏正在编辑第几项的跳转逻辑
