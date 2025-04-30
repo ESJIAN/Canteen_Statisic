@@ -40,6 +40,9 @@
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <widget class="QTabWidget" name="tabWidget_2">
+           <property name="currentIndex">
+            <number>0</number>
+           </property>
            <widget class="QWidget" name="tab_3">
             <attribute name="title">
              <string>Tab 1</string>
@@ -105,7 +108,10 @@
                  <item row="3" column="1">
                   <widget class="QLineEdit" name="name_2"/>
                  </item>
-                 <item row="5" column="0">
+                 <item row="4" column="1">
+                  <widget class="QLineEdit" name="info_2"/>
+                 </item>
+                 <item row="4" column="0">
                   <widget class="QLabel" name="info">
                    <property name="text">
                     <string>备注</string>
@@ -113,9 +119,9 @@
                   </widget>
                  </item>
                  <item row="5" column="1">
-                  <widget class="QLineEdit" name="info_2"/>
+                  <widget class="QLineEdit" name="amount_2"/>
                  </item>
-                 <item row="6" column="0">
+                 <item row="5" column="0">
                   <widget class="QLabel" name="amount">
                    <property name="text">
                     <string>金额</string>
@@ -123,9 +129,9 @@
                   </widget>
                  </item>
                  <item row="6" column="1">
-                  <widget class="QLineEdit" name="amount_2"/>
+                  <widget class="QLineEdit" name="LineEdit"/>
                  </item>
-                 <item row="7" column="0">
+                 <item row="6" column="0">
                   <widget class="QLabel" name="Label">
                    <property name="text">
                     <string>数量</string>
@@ -133,9 +139,9 @@
                   </widget>
                  </item>
                  <item row="7" column="1">
-                  <widget class="QLineEdit" name="LineEdit"/>
+                  <widget class="QLineEdit" name="LineEdit_2"/>
                  </item>
-                 <item row="8" column="0">
+                 <item row="7" column="0">
                   <widget class="QLabel" name="Label_2">
                    <property name="text">
                     <string>单价</string>
@@ -143,9 +149,9 @@
                   </widget>
                  </item>
                  <item row="8" column="1">
-                  <widget class="QLineEdit" name="LineEdit_2"/>
+                  <widget class="QLineEdit" name="LineEdit_3"/>
                  </item>
-                 <item row="9" column="0">
+                 <item row="8" column="0">
                   <widget class="QLabel" name="Label_3">
                    <property name="text">
                     <string>单位</string>
@@ -153,7 +159,14 @@
                   </widget>
                  </item>
                  <item row="9" column="1">
-                  <widget class="QLineEdit" name="LineEdit_3"/>
+                  <widget class="QLineEdit" name="LineEdit_4"/>
+                 </item>
+                 <item row="9" column="0">
+                  <widget class="QLabel" name="info_3">
+                   <property name="text">
+                    <string>公司</string>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>
@@ -275,12 +288,16 @@
                   <item>
                    <widget class="QLabel" name="label_3">
                     <property name="text">
-                     <string>暂存</string>
+                     <string>已暂存</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPlainTextEdit" name="plainTextEdit"/>
+                   <widget class="QLabel" name="label_5">
+                    <property name="text">
+                     <string>TextLabel</string>
+                    </property>
+                   </widget>
                   </item>
                   <item>
                    <widget class="QLabel" name="label_4">

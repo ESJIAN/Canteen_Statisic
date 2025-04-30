@@ -37,11 +37,9 @@ from src.core.excel_handler import store_single_entry_to_excel # Fixed1:将项�
 
 
 TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xlsx"
-
+TEMP_STORAGED_NUMBER_LISTS = 0
 
 class Ui_Form(object):
- 
-
 
     def setupUi(self, Form):
         if not Form.objectName():
@@ -237,15 +235,16 @@ class Ui_Form(object):
 
         self.horizontalLayout.addWidget(self.label_3)
 
-        self.plainTextEdit = QPlainTextEdit(self.widget_5)
-        self.plainTextEdit.setObjectName(u"plainTextEdit")
+        self.storageNum = QLabel(self.widget_5)
+        self.storageNum.setObjectName(u"plainTextEdit")
 
-        self.horizontalLayout.addWidget(self.plainTextEdit)
+        self.horizontalLayout.addWidget(self.storageNum)
 
         self.label_4 = QLabel(self.widget_5)
         self.label_4.setObjectName(u"label_4")
 
         self.horizontalLayout.addWidget(self.label_4)
+
 
 
         self.horizontalLayout_3.addWidget(self.widget_5)
@@ -336,7 +335,8 @@ class Ui_Form(object):
         self.groupBox_5.setTitle(QCoreApplication.translate("Form", u"\u4fe1\u606f\u680f", None))
         self.label.setText(QCoreApplication.translate("Form", u"\u6b63\u5728\u7f16\u8f91\u7b2c", None))
         self.label_2.setText(QCoreApplication.translate("Form", u"\u9879", None))
-        self.label_3.setText(QCoreApplication.translate("Form", u"\u6682\u5b58", None))
+        self.label_3.setText(QCoreApplication.translate("Form", "已暂存", None))
+        self.storageNum.setText(QCoreApplication.translate("Form",str(TEMP_STORAGED_NUMBER_LISTS), None))
         self.label_4.setText(QCoreApplication.translate("Form", u"\u9879", None))
         self.groupBox_4.setTitle(QCoreApplication.translate("Form", u"PDF\u5bfc\u5165", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("Form", u"\u5bfc\u5165\u9884\u89c8", None))

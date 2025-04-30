@@ -5,7 +5,7 @@
 # @File    : ui_utils.py
 # @Software: VsCode
 
-TOTAL_FIELD_NUMBER = 8  # 总字段所具有的TAG数
+TOTAL_FIELD_NUMBER = 9  # 总字段所具有的TAG数
 
 import sys
 from datetime import datetime
@@ -16,6 +16,7 @@ from src.gui.error_window import TagNumShortage    # Learning1：子模块的导
 from src.gui.check_window import ExcelCheckWindow  # Learning2:顶级脚本设定绝对倒入配置后不需要在子模块中重设
 from src.gui.data_save_dialog import data_save_success
 
+import __main__ # Learning5:__main__模块的引用，访问主模块变量
 
 
 def get_current_date():
@@ -45,19 +46,27 @@ def manual_temp_storage(self,input_fields):
         if exsit_tag_number==TOTAL_FIELD_NUMBER:
             data_save_success(self)  # 显示保存成功的消息提示弹窗
 
-            self.date_2.setText("")  # Learning4：对QLineEdit组件使用setText()方法重置输入框内容
-            self.foodType_2.setText("")
-            self.name_2.setText("")
-            self.info_2.setText("")
-            self.amount_2.setText("")
-            self.LineEdit.setText("")
-            self.LineEdit_2.setText("")
-            self.LineEdit_3.setText("")
+            self.line1Right.setText("")  # Learning4：对QLineEdit组件使用setText()方法重置输入框内容
+            self.line2Right.setText("")
+            self.line3Right.setText("")
+            self.line4Right.setText("")
+            self.line5Right.setText("")
+            self.line6Right.setText("")
+            self.line7Right.setText("")
+            self.line8Right.setText("")
+            self.line9Right.setText("")
 
+            __main__.TEMP_STORAGED_NUMBER_LISTS +=1 # Learning5：形式参数传参进来的变量
+            try:
+                self.spinBox.setValue(__main__.TEMP_STORAGED_NUMBER_LISTS)  # 重置SpinBox的值为0
+                self.storageNum.setText(str(__main__.TEMP_STORAGED_NUMBER_LISTS))  # 更新存储数量的标签文本
+            except Exception as e:
+                print(f"Error: {e}")
+                return None
             return temp_storage
         else:
             print("Warning: Not all fields are filled.")
-            show_error_window(self)
+            show_error_window(self) # 显示错误窗口
             return None
     except Exception as e:
         print(f"Error: {e}")
@@ -145,4 +154,6 @@ def show_check_window(self,file_path):
 #   - [x] 修复 RuntimeError: Please destroy the QApplication singleton before creating a new QApplication instance.
 #   - [x] 修复 Excel 展示弹窗，仅弹窗但是不显示内容的问题——原因见main_window.py的Learning3
 # - [x] 2025.4.29 实现暂存重置输入框功能
-# - [ ] 2025.4.29 实现自动提交逻辑
+# - [x] 2025.4.30 实当前编辑条目的更新、实现暂存条目数量的更新
+#   - [x] 修复保存条目数量更新时，一直重复更新第一个的问题
+# - [ ] 2025.4.30 实现自动提交逻辑
