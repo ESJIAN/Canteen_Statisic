@@ -38,6 +38,7 @@ from src.core.excel_handler import clear_temp_excel, store_single_entry_to_excel
 
 TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xlsx" # 暂存表格路径
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
+TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
 class Ui_Form(object):
 
@@ -426,7 +427,7 @@ class Ui_Form(object):
         :return: None
         """
         # 调用 temp_list_rollback 函数实现条目回滚
-        temp_list_rollback()
+        temp_list_rollback(self)
 
         
 

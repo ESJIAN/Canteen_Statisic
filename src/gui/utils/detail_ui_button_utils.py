@@ -10,14 +10,15 @@ TOTAL_FIELD_NUMBER = 9  # 总字段所具有的TAG数
 import sys
 from datetime import datetime
 from email.mime import application
-from PySide6.QtWidgets import QApplication, QWidget  
+from PySide6.QtWidgets import QApplication, QWidget
+import pandas as pd  
 
-from src.gui.error_window import TagNumShortage    # Learning1：子模块的导入相对路径的起算点是主模块
-from src.gui.check_window import ExcelCheckWindow  # Learning2:顶级脚本设定绝对倒入配置后不需要在子模块中重设
+from src.gui.error_window import TagNumShortage                 # Learning1：子模块的导入相对路径的起算点是主模块
+from src.gui.check_window import ExcelCheckWindow               # Learning2:顶级脚本设定绝对倒入配置后不需要在子模块中重设
 from src.gui.data_save_dialog import data_save_success
-from src.core.excel_handler import store_single_entry_to_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.core.excel_handler import store_single_entry_to_excel  # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
-import __main__ # Learning5:__main__模块的引用，访问主模块变量
+import __main__                                                 # Learning5:__main__模块的引用，访问主模块变量
 
 
 def get_current_date():
@@ -35,19 +36,21 @@ def manual_temp_storage(self,input_fields):
     :param input_fields: 输入框的字典或列表，键为字段名，值为对应的 QLineEdit 对象
     :return: 包含所有输入框内容的字典
     """
-    
-    exsit_tag_number=0  # 统计有内容的输入框数量
-    temp_storage = {}   # 存储输入框内容的字典
+
+    __main__.TEMP_LIST_ROLLBACK_SIGNAL = False  # Learning3：信号量，标记是否需要回滚
+    exsit_tag_number = 0                        # 统计有内容的输入框数量
+
+    temp_storage = {}                           # 存储输入框内容的字典
 
     try:
         for field_name, input_field in input_fields.items():
-            if input_field.text():  # 检查输入框是否有内容
-                exsit_tag_number+=1 # 统计有内容的输入框数量
+            if input_field.text():              # 检查输入框是否有内容
+                exsit_tag_number+=1             # 统计有内容的输入框数量
                 temp_storage[field_name] = input_field.text()
         if exsit_tag_number==TOTAL_FIELD_NUMBER:
-            data_save_success(self)  # 显示保存成功的消息提示弹窗
+            data_save_success(self)             # 显示保存成功的消息提示弹窗
 
-            self.line1Right.setText("")  # Learning4：对QLineEdit组件使用setText()方法重置输入框内容
+            self.line1Right.setText("")         # Learning4：对QLineEdit组件使用setText()方法重置输入框内容
             self.line2Right.setText("")
             self.line3Right.setText("")
             self.line4Right.setText("")
@@ -138,35 +141,40 @@ def show_check_window(self,file_path):
     self.PopWindowApplicationForm.show()
     
 
-def temp_list_rollback():
+def temp_list_rollback(self):
     """
     实现点击信息栏正在编辑xx项目上下箭头时,条目回滚
     :param: self
     :return: None
     """
 
-    if __main__.TEMP_STORAGED_NUMBER_LISTS>0:
-        __main__.TEMP_STORAGED_NUMBER_LISTS-=1
+   
+
+    if self.spinBox.value()>0 & __main__.TEMP_LIST_ROLLBACK_SIGNAL == True:
         try:
-            # 读取临存表格
             temp_storage = pd.read_excel(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
-            # 获取当前条目数据
-            current_entry = temp_storage.iloc[__main__.TEMP_STORAGED_NUMBER_LISTS]
-            # 更新输入框内容
-            self.line1Right.setText(str(current_entry['line1Right']))
-            self.line2Right.setText(str(current_entry['line2Right']))
-            self.line3Right.setText(str(current_entry['line3Right']))
-            self.line4Right.setText(str(current_entry['line4Right']))
-            self.line5Right.setText(str(current_entry['line5Right']))
-            self.line6Right.setText(str(current_entry['line6Right']))
-            self.line7Right.setText(str(current_entry['line7Right']))
-            self.line8Right.setText(str(current_entry['line8Right']))
-            self.line9Right.setText(str(current_entry['line9Right']))
-            # 更新SpinBox的值
-            self.spinBox.setValue(__main__.TEMP_STORAGED_NUMBER_LISTS)  # 重置SpinBox的值为0
+            index = self.spinBox.value()
+            # 检查索引是否在范围内
+            if 0 <= index < len(temp_storage):
+                current_entry = temp_storage.iloc[index]
+                # 更新输入框内容
+                self.line1Right.setText(str(current_entry['日期']))
+                self.line2Right.setText(str(current_entry['类别']))
+                self.line3Right.setText(str(current_entry['品名']))
+                self.line4Right.setText(str(current_entry['备注']))
+                self.line5Right.setText(str(current_entry['金额']))
+                self.line6Right.setText(str(current_entry['数量']))
+                self.line7Right.setText(str(current_entry['单价']))
+                self.line8Right.setText(str(current_entry['单位']))
+                self.line9Right.setText(str(current_entry['公司']))
+                # 更新SpinBox的值
+                self.spinBox.setValue(__main__.TEMP_STORAGED_NUMBER_LISTS)  # 重置SpinBox的值为0
         except Exception as e:
-            print(f"Error: {e}")
-            return None
+                    print(f"Error: {e}")
+                    return None
+    else:
+        __main__.TEMP_LIST_ROLLBACK_SIGNAL = True
+        
 
 
 # Summary：
@@ -191,5 +199,7 @@ def temp_list_rollback():
 # - [x] 2025.4.30 实当前编辑条目的更新、实现暂存条目数量的更新
 #   - [x] 修复保存条目数量更新时，一直重复更新第一个的问题
 # - [ ] 2025.4.30 实现暂存条目回滚功能
-# 
+#   - [ ] 修复条目回滚箭头引起的条目索引变动与实际存储条目造成的索引变动皆触发索引窗口更新的问题
+#     - [x] 修复Error: local variable 'exsit_tag_number' referenced before assignment
+#     - [ ] 修复点击箭头界面无索引更新现象的问题
 # - [ ] 2025.4.30 实现自动提交逻辑
