@@ -78,85 +78,107 @@ class Ui_Form(object):
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.formLayout = QFormLayout()
         self.formLayout.setObjectName(u"formLayout")
-        self.date = QLabel(self.groupBox)
-        self.date.setObjectName(u"date")
 
-        self.formLayout.setWidget(1, QFormLayout.ItemRole.LabelRole, self.date)
+        # Learning4：标签-输入框组的开始
+        self.line1Left = QLabel(self.groupBox)
+        self.line1Left.setObjectName(u"date")
 
-        self.date_2 = QLineEdit(self.groupBox)
-        self.date_2.setObjectName(u"date_2")
+        self.formLayout.setWidget(1, QFormLayout.ItemRole.LabelRole, self.line1Left)
 
-        self.formLayout.setWidget(1, QFormLayout.ItemRole.FieldRole, self.date_2)
+        self.line1Right = QLineEdit(self.groupBox)
+        self.line1Right.setObjectName(u"date_2")
 
-        self.foodType = QLabel(self.groupBox)
-        self.foodType.setObjectName(u"foodType")
+        self.formLayout.setWidget(1, QFormLayout.ItemRole.FieldRole, self.line1Right)
+        # Learning4：标签-输入框组的结束
 
-        self.formLayout.setWidget(2, QFormLayout.ItemRole.LabelRole, self.foodType)
+        # 
+        self.line2Left = QLabel(self.groupBox)
+        self.line2Left.setObjectName(u"foodType")
 
-        self.foodType_2 = QLineEdit(self.groupBox)
-        self.foodType_2.setObjectName(u"foodType_2")
+        self.formLayout.setWidget(2, QFormLayout.ItemRole.LabelRole, self.line2Left)
 
-        self.formLayout.setWidget(2, QFormLayout.ItemRole.FieldRole, self.foodType_2)
+        self.line2Right = QLineEdit(self.groupBox)
+        self.line2Right.setObjectName(u"foodType_2")
 
-        self.name = QLabel(self.groupBox)
-        self.name.setObjectName(u"name")
+        self.formLayout.setWidget(2, QFormLayout.ItemRole.FieldRole, self.line2Right)
 
-        self.formLayout.setWidget(3, QFormLayout.ItemRole.LabelRole, self.name)
+        # 
+        self.line3Left = QLabel(self.groupBox)
+        self.line3Left.setObjectName(u"name")
 
-        self.name_2 = QLineEdit(self.groupBox)
-        self.name_2.setObjectName(u"name_2")
+        self.formLayout.setWidget(3, QFormLayout.ItemRole.LabelRole, self.line3Left)
 
-        self.formLayout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.name_2)
+        self.line3Right = QLineEdit(self.groupBox)
+        self.line3Right.setObjectName(u"name_2")
 
-        self.info = QLabel(self.groupBox)
-        self.info.setObjectName(u"info")
+        self.formLayout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.line3Right)
 
-        self.formLayout.setWidget(5, QFormLayout.ItemRole.LabelRole, self.info)
+        # 
+        self.line4Right = QLabel(self.groupBox)
+        self.line4Right.setObjectName(u"info")
 
-        self.info_2 = QLineEdit(self.groupBox)
-        self.info_2.setObjectName(u"info_2")
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.LabelRole, self.line4Right)
 
-        self.formLayout.setWidget(5, QFormLayout.ItemRole.FieldRole, self.info_2)
+        self.line4Left = QLineEdit(self.groupBox)
+        self.line4Left.setObjectName(u"info_2")
 
-        self.amount = QLabel(self.groupBox)
-        self.amount.setObjectName(u"amount")
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.FieldRole, self.line4Left)
 
-        self.formLayout.setWidget(6, QFormLayout.ItemRole.LabelRole, self.amount)
+        # 
+        self.line5Left = QLabel(self.groupBox)
+        self.line5Left.setObjectName(u"amount")
 
-        self.amount_2 = QLineEdit(self.groupBox)
-        self.amount_2.setObjectName(u"amount_2")
+        self.formLayout.setWidget(5, QFormLayout.ItemRole.LabelRole, self.line5Left)
 
-        self.formLayout.setWidget(6, QFormLayout.ItemRole.FieldRole, self.amount_2)
+        self.line5Right = QLineEdit(self.groupBox)
+        self.line5Right.setObjectName(u"amount_2")
 
-        self.Label = QLabel(self.groupBox)
-        self.Label.setObjectName(u"Label")
+        self.formLayout.setWidget(5, QFormLayout.ItemRole.FieldRole, self.line5Right)
 
-        self.formLayout.setWidget(7, QFormLayout.ItemRole.LabelRole, self.Label)
+        # 
+        self.line6Left = QLabel(self.groupBox)
+        self.line6Left.setObjectName(u"Label")
 
-        self.LineEdit = QLineEdit(self.groupBox)
-        self.LineEdit.setObjectName(u"LineEdit")
+        self.formLayout.setWidget(6, QFormLayout.ItemRole.LabelRole, self.line6Left)
 
-        self.formLayout.setWidget(7, QFormLayout.ItemRole.FieldRole, self.LineEdit)
+        self.line6Right = QLineEdit(self.groupBox)
+        self.line6Right.setObjectName(u"LineEdit")
 
-        self.Label_2 = QLabel(self.groupBox)
-        self.Label_2.setObjectName(u"Label_2")
+        self.formLayout.setWidget(6, QFormLayout.ItemRole.FieldRole, self.line6Right)
 
-        self.formLayout.setWidget(8, QFormLayout.ItemRole.LabelRole, self.Label_2)
+        # 
+        self.line7Left = QLabel(self.groupBox)
+        self.line7Left.setObjectName(u"Label_2")
 
-        self.LineEdit_2 = QLineEdit(self.groupBox)
-        self.LineEdit_2.setObjectName(u"LineEdit_2")
+        self.formLayout.setWidget(7, QFormLayout.ItemRole.LabelRole, self.line7Left)
 
-        self.formLayout.setWidget(8, QFormLayout.ItemRole.FieldRole, self.LineEdit_2)
+        self.line7Right = QLineEdit(self.groupBox)
+        self.line7Right.setObjectName(u"LineEdit_2")
 
-        self.Label_3 = QLabel(self.groupBox)
-        self.Label_3.setObjectName(u"Label_3")
+        self.formLayout.setWidget(7, QFormLayout.ItemRole.FieldRole, self.line7Right)
 
-        self.formLayout.setWidget(9, QFormLayout.ItemRole.LabelRole, self.Label_3)
+        # 
+        self.line8Left = QLabel(self.groupBox)
+        self.line8Left.setObjectName(u"Label_3")
 
-        self.LineEdit_3 = QLineEdit(self.groupBox)
-        self.LineEdit_3.setObjectName(u"LineEdit_3")
+        self.formLayout.setWidget(8, QFormLayout.ItemRole.LabelRole, self.line8Left)
 
-        self.formLayout.setWidget(9, QFormLayout.ItemRole.FieldRole, self.LineEdit_3)
+        self.line9Right = QLineEdit(self.groupBox)
+        self.line9Right.setObjectName(u"LineEdit_3")
+
+        self.formLayout.setWidget(8, QFormLayout.ItemRole.FieldRole, self.line9Right)
+
+        # 
+        self.line9Left = QLabel(self.groupBox)
+        self.line9Left.setObjectName(u"info_3")
+
+        self.formLayout.setWidget(9, QFormLayout.ItemRole.LabelRole, self.line9Left) # Learning5：使用QFormLayout.ItemRole.LabelRole 来设置标签
+
+        self.line9Right = QLineEdit(self.groupBox)
+        self.line9Right.setObjectName(u"info_4")    
+
+        self.formLayout.setWidget(9, QFormLayout.ItemRole.FieldRole, self.line9Right) # Learning5：使用QFormLayout.ItemRole.FieldRole 来设置输入框
+
 
 
         self.verticalLayout.addLayout(self.formLayout)
@@ -289,18 +311,23 @@ class Ui_Form(object):
     # setupUi
 
     def retranslateUi(self, Form):
+        """
+        Sets the text and titles of the UI elements to their respective translations.
+        This method is automatically generated and is used to support internationalization.
+        """
         Form.setWindowTitle(QCoreApplication.translate("Form", u"\u98df\u54c1\u7ba1\u7406\u7cfb\u7edf", None))
         self.groupBox_3.setTitle(QCoreApplication.translate("Form", u"\u624b\u52a8\u5bfc\u5165", None))
         self.groupBox.setTitle(QCoreApplication.translate("Form", u"\u5f55\u5165\u4fe1\u606f", None))
-        self.date.setText(QCoreApplication.translate("Form", u"\u65e5\u671f", None))
-        self.date_2.setText("")
-        self.foodType.setText(QCoreApplication.translate("Form", u"\u7c7b\u522b", None))
-        self.name.setText(QCoreApplication.translate("Form", u"\u54c1\u540d", None))
-        self.info.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None))
-        self.amount.setText(QCoreApplication.translate("Form", u"\u91d1\u989d", None))
-        self.Label.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None)) # Learning2: unicode 编码,详情见 unicode.md 
-        self.Label_2.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))
-        self.Label_3.setText(QCoreApplication.translate("Form", u"\u5355\u4f4d", None))
+        self.line1Left.setText(QCoreApplication.translate("Form", u"\u65e5\u671f", None))
+        self.line1Right.setText("")
+        self.line2Left.setText(QCoreApplication.translate("Form", u"\u7c7b\u522b", None))
+        self.line3Left.setText(QCoreApplication.translate("Form", u"\u54c1\u540d", None))
+        self.line4Right.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None))
+        self.line5Left.setText(QCoreApplication.translate("Form", u"\u91d1\u989d", None))
+        self.line6Left.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None)) # Learning2: unicode 编码,详情见 unicode.md 
+        self.line7Left.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))
+        self.line8Left.setText(QCoreApplication.translate("Form", u"\u5355\u4f4d", None))
+        self.line9Left.setText(QCoreApplication.translate("Form", u"\u516c\u53f8", None)) 
         self.pushButton_6.setText(QCoreApplication.translate("Form", u"\u4fee\u8ba2\u63d0\u4ea4", None))
         self.pushButton_7.setText(QCoreApplication.translate("Form", u"\u6682\u5b58\u8be5\u6761", None))
         self.pushButton_5.setText(QCoreApplication.translate("Form", u"\u63d0\u4ea4\u6570\u636e", None))
@@ -337,9 +364,9 @@ class Ui_Form(object):
         # 获取当前日期
         current_date = get_current_date()
         # 设置QLineEdit的文本为当前日期
-        self.date_2.setText(current_date)
+        self.line1Right.setText(current_date)
         # 设置QLineEdit为可写
-        self.date_2.setReadOnly(False)
+        self.line1Right.setReadOnly(False)
     
     def temp_store_inputs(self):
         """
@@ -349,14 +376,15 @@ class Ui_Form(object):
         """
         # 定义输入框的字典
         input_fields = {
-            "日期": self.date_2,
-            "类别": self.foodType_2,
-            "品名": self.name_2,
-            "备注": self.info_2,
-            "金额": self.amount_2,
-            "数量": self.LineEdit,
-            "单价": self.LineEdit_2,
-            "单位": self.LineEdit_3,
+            "日期": self.line1Right,
+            "类别": self.line2Right,
+            "品名": self.line3Right,
+            "备注": self.line4Left,
+            "金额": self.line5Right,
+            "数量": self.line6Right,
+            "单价": self.line7Right,
+            "单位": self.line9Right,
+            "公司":self.line9Left,
         }
 
         # 调用 manual_temp_storage 函数获取输入框内容
