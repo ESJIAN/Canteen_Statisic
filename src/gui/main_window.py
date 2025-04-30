@@ -114,15 +114,15 @@ class Ui_Form(object):
         self.formLayout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.line3Right)
 
         # 
-        self.line4Right = QLabel(self.groupBox)
-        self.line4Right.setObjectName(u"info")
+        self.line4Light = QLabel(self.groupBox)
+        self.line4Light.setObjectName(u"info")
 
-        self.formLayout.setWidget(4, QFormLayout.ItemRole.LabelRole, self.line4Right)
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.LabelRole, self.line4Light)
 
-        self.line4Left = QLineEdit(self.groupBox)
-        self.line4Left.setObjectName(u"info_2")
+        self.line4Right = QLineEdit(self.groupBox)
+        self.line4Right.setObjectName(u"info_2")
 
-        self.formLayout.setWidget(4, QFormLayout.ItemRole.FieldRole, self.line4Left)
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.FieldRole, self.line4Right)
 
         # 
         self.line5Left = QLabel(self.groupBox)
@@ -163,10 +163,10 @@ class Ui_Form(object):
 
         self.formLayout.setWidget(8, QFormLayout.ItemRole.LabelRole, self.line8Left)
 
-        self.line9Right = QLineEdit(self.groupBox)
-        self.line9Right.setObjectName(u"LineEdit_3")
+        self.line8Right = QLineEdit(self.groupBox)
+        self.line8Right.setObjectName(u"LineEdit_3")
 
-        self.formLayout.setWidget(8, QFormLayout.ItemRole.FieldRole, self.line9Right)
+        self.formLayout.setWidget(8, QFormLayout.ItemRole.FieldRole, self.line8Right)
 
         # 
         self.line9Left = QLabel(self.groupBox)
@@ -322,7 +322,7 @@ class Ui_Form(object):
         self.line1Right.setText("")
         self.line2Left.setText(QCoreApplication.translate("Form", u"\u7c7b\u522b", None))
         self.line3Left.setText(QCoreApplication.translate("Form", u"\u54c1\u540d", None))
-        self.line4Right.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None))
+        self.line4Light.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None))
         self.line5Left.setText(QCoreApplication.translate("Form", u"\u91d1\u989d", None))
         self.line6Left.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None)) # Learning2: unicode 编码,详情见 unicode.md 
         self.line7Left.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))
@@ -379,12 +379,12 @@ class Ui_Form(object):
             "日期": self.line1Right,
             "类别": self.line2Right,
             "品名": self.line3Right,
-            "备注": self.line4Left,
+            "备注": self.line4Right,
             "金额": self.line5Right,
             "数量": self.line6Right,
             "单价": self.line7Right,
-            "单位": self.line9Right,
-            "公司":self.line9Left,
+            "单位": self.line8Right,
+            "公司": self.line9Right,
         }
 
         # 调用 manual_temp_storage 函数获取输入框内容
@@ -444,7 +444,7 @@ if __name__ == "__main__":
 #    这个逻辑是基于事件驱动的哲学
 # 3. 对于函数内部来讲，如果产生形参名与实参名撞名的情况，则在函数内访问该变量，实际上实在访问
 #    传入的形参名，如果形参未传入则返回的是布尔值 False
-
+# 4. Qtcreator 生成的ui代码块默认张这样的格式：
 # TODO：
 # [ ] 2025.4.30 实现暂存栏暂存条目数的动态更新
 # [ ] 2025.4.30 实现信息栏正在编辑第几项的跳转逻辑
