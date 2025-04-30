@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QApplication, QWidget
 from src.gui.error_window import TagNumShortage    # Learning1：子模块的导入相对路径的起算点是主模块
 from src.gui.check_window import ExcelCheckWindow  # Learning2:顶级脚本设定绝对倒入配置后不需要在子模块中重设
 from src.gui.data_save_dialog import data_save_success
+from src.core.excel_handler import store_single_entry_to_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
 import __main__ # Learning5:__main__模块的引用，访问主模块变量
 
@@ -59,10 +60,16 @@ def manual_temp_storage(self,input_fields):
             __main__.TEMP_STORAGED_NUMBER_LISTS +=1 # Learning5：形式参数传参进来的变量
             try:
                 self.spinBox.setValue(__main__.TEMP_STORAGED_NUMBER_LISTS)  # 重置SpinBox的值为0
-                self.storageNum.setText(str(__main__.TEMP_STORAGED_NUMBER_LISTS))  # 更新存储数量的标签文本
+                self.storageNum.setText(str(__main__.TEMP_STORAGED_NUMBER_LISTS-1))  # 更新存储数量的标签文本
             except Exception as e:
                 print(f"Error: {e}")
                 return None
+            
+            # 打印暂存数据（可以替换为其他逻辑，如保存到文件或数据库）
+            print("暂存数据:", temp_storage)
+            # 调用 store_single_entry_to_excel 函数存储数据到Excel文件
+            store_single_entry_to_excel(temp_storage, __main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+
             return temp_storage
         else:
             print("Warning: Not all fields are filled.")
@@ -131,8 +138,35 @@ def show_check_window(self,file_path):
     self.PopWindowApplicationForm.show()
     
 
+def temp_list_rollback():
+    """
+    实现点击信息栏正在编辑xx项目上下箭头时,条目回滚
+    :param: self
+    :return: None
+    """
 
-    
+    if __main__.TEMP_STORAGED_NUMBER_LISTS>0:
+        __main__.TEMP_STORAGED_NUMBER_LISTS-=1
+        try:
+            # 读取临存表格
+            temp_storage = pd.read_excel(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+            # 获取当前条目数据
+            current_entry = temp_storage.iloc[__main__.TEMP_STORAGED_NUMBER_LISTS]
+            # 更新输入框内容
+            self.line1Right.setText(str(current_entry['line1Right']))
+            self.line2Right.setText(str(current_entry['line2Right']))
+            self.line3Right.setText(str(current_entry['line3Right']))
+            self.line4Right.setText(str(current_entry['line4Right']))
+            self.line5Right.setText(str(current_entry['line5Right']))
+            self.line6Right.setText(str(current_entry['line6Right']))
+            self.line7Right.setText(str(current_entry['line7Right']))
+            self.line8Right.setText(str(current_entry['line8Right']))
+            self.line9Right.setText(str(current_entry['line9Right']))
+            # 更新SpinBox的值
+            self.spinBox.setValue(__main__.TEMP_STORAGED_NUMBER_LISTS)  # 重置SpinBox的值为0
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
 
 
 # Summary：
@@ -156,4 +190,6 @@ def show_check_window(self,file_path):
 # - [x] 2025.4.29 实现暂存重置输入框功能
 # - [x] 2025.4.30 实当前编辑条目的更新、实现暂存条目数量的更新
 #   - [x] 修复保存条目数量更新时，一直重复更新第一个的问题
+# - [ ] 2025.4.30 实现暂存条目回滚功能
+# 
 # - [ ] 2025.4.30 实现自动提交逻辑

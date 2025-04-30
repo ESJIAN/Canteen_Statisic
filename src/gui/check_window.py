@@ -20,11 +20,12 @@ from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QHeaderView, QSizePolicy,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
-
 from src.gui.data_save_dialog import data_save_success
 
 class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写进去
-
+    """
+    Excel 数据查看弹窗类
+    """
     def set_up_Ui(self, Form):
         """
         表格窗口初始化
@@ -72,9 +73,9 @@ class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写
                     item = QTableWidgetItem(str(data.iloc[row, col]))
                     self.tableWidget.setItem(row, col, item)
 
-            print("表格数据加载成功！")
+            print("Notice:表格数据加载成功！")
         except Exception as e:
-            print(f"加载表格数据时出错: {e}")
+            print(f"Error:加载表格数据时出错,报错信息为{e}")
 
     def retranslateUi(self, Form):
         Form.setWindowTitle(QCoreApplication.translate("Form", u"Excel 数据查看", None))
@@ -108,11 +109,11 @@ class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写
             from src.gui.main_window import TEMP_SINGLE_STORAGE_EXCEL_PATH # Learning4:延迟导入
             save_path = TEMP_SINGLE_STORAGE_EXCEL_PATH  # 保存路径
             df.to_excel(save_path, index=False)
-            print(f"表格数据已成功保存到 {save_path}")
+            print(f"Notice:表格数据已成功保存到 {save_path}")
             data_save_success(self)
 
         except Exception as e:
-            print(f"保存表格数据时出错: {e}")
+            print(f"Error:保存表格数据时出错: {e}")
 
 
 if __name__ == "__main__":

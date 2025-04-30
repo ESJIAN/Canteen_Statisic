@@ -31,13 +31,13 @@ project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..')
 # 将项目根目录添加到 sys.path
 sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
-from src.gui.utils.detail_ui_button_utils import get_current_date, manual_temp_storage # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.gui.utils.detail_ui_button_utils import get_current_date, manual_temp_storage, temp_list_rollback # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
-from src.core.excel_handler import store_single_entry_to_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.core.excel_handler import clear_temp_excel, store_single_entry_to_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
 
-TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xlsx"
-TEMP_STORAGED_NUMBER_LISTS = 0
+TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xlsx" # 暂存表格路径
+TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 
 class Ui_Form(object):
 
@@ -218,10 +218,14 @@ class Ui_Form(object):
         self.label = QLabel(self.widget_5)
         self.label.setObjectName(u"label")
 
+
+
         self.horizontalLayout.addWidget(self.label)
 
         self.spinBox = QSpinBox(self.widget_5)
         self.spinBox.setObjectName(u"spinBox")
+        self.spinBox.valueChanged.connect(self.information_edition_rollback) # Learning5:将SpinBox的值变化与信息栏回滚函数连接
+                                                                             # Learning7：槽函数若有括号，则会立即执行，而不是在信号触发时执行
 
         self.horizontalLayout.addWidget(self.spinBox)
 
@@ -229,6 +233,7 @@ class Ui_Form(object):
         self.label_2.setObjectName(u"label_2")
 
         self.horizontalLayout.addWidget(self.label_2)
+
 
         self.label_3 = QLabel(self.widget_5)
         self.label_3.setObjectName(u"label_3")
@@ -239,6 +244,7 @@ class Ui_Form(object):
         self.storageNum.setObjectName(u"plainTextEdit")
 
         self.horizontalLayout.addWidget(self.storageNum)
+
 
         self.label_4 = QLabel(self.widget_5)
         self.label_4.setObjectName(u"label_4")
@@ -336,7 +342,10 @@ class Ui_Form(object):
         self.label.setText(QCoreApplication.translate("Form", u"\u6b63\u5728\u7f16\u8f91\u7b2c", None))
         self.label_2.setText(QCoreApplication.translate("Form", u"\u9879", None))
         self.label_3.setText(QCoreApplication.translate("Form", "已暂存", None))
-        self.storageNum.setText(QCoreApplication.translate("Form",str(TEMP_STORAGED_NUMBER_LISTS), None))
+
+        self.spinBox.setValue(TEMP_STORAGED_NUMBER_LISTS)  # 重置SpinBox的值为0
+        self.storageNum.setText(QCoreApplication.translate("Form",str(TEMP_STORAGED_NUMBER_LISTS-1), None))
+        
         self.label_4.setText(QCoreApplication.translate("Form", u"\u9879", None))
         self.groupBox_4.setTitle(QCoreApplication.translate("Form", u"PDF\u5bfc\u5165", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("Form", u"\u5bfc\u5165\u9884\u89c8", None))
@@ -350,6 +359,8 @@ class Ui_Form(object):
     # retranslateUi
     
     
+
+
     """
     下面是一些按钮的槽函数，但是核心的功能实现在detail_ui_button_utils.py中
     """
@@ -388,13 +399,8 @@ class Ui_Form(object):
         }
 
         # 调用 manual_temp_storage 函数获取输入框内容
-        manual_input_data = manual_temp_storage(self,input_fields) # 传入self参数
+        manual_temp_storage(self,input_fields) # 传入self参数
 
-        # 打印暂存数据（可以替换为其他逻辑，如保存到文件或数据库）
-        print("暂存数据:", manual_input_data)
-        # 调用 store_single_entry_to_excel 函数存储数据到Excel文件
-        store_single_entry_to_excel(manual_input_data, TEMP_SINGLE_STORAGE_EXCEL_PATH)
-        
 
     def check_manual_input_data(self): # Learning3:传参参数名与某个全局变量同名，造成全局变量值无法被获取
         """
@@ -412,7 +418,15 @@ class Ui_Form(object):
         :return: None
         """
 
-        
+
+    def information_edition_rollback(self): # Learning6：自定义方法一定要放一个self参数,不妨报错
+        """
+        信息栏，编辑条目回滚
+        :param: self
+        :return: None
+        """
+        # 调用 temp_list_rollback 函数实现条目回滚
+        temp_list_rollback()
 
         
 
@@ -433,9 +447,12 @@ if __name__ == "__main__":
     ui.setupUi(Form)
     # 设置窗口标题
     Form.show()
+    # 设置关闭事件
+    Form.closeEvent = lambda event: (clear_temp_excel(), print("Notice:清空暂存表格成功"), event.accept())
     sys.exit(app.exec())
 
-
+# Summerize:
+# 1. 创建Widget时候的对于该widget的属性设置,包括名称,大小,布局，槽函数等放在一块
 
 # Learning:
 # 1. 相对导入的情况一共分为四种,只有导入同级别目录和导入子包这两种情况以主脚本模式运行没有问题
@@ -446,5 +463,7 @@ if __name__ == "__main__":
 #    传入的形参名，如果形参未传入则返回的是布尔值 False
 # 4. Qtcreator 生成的ui代码块默认张这样的格式：
 # TODO：
-# [ ] 2025.4.30 实现暂存栏暂存条目数的动态更新
+# [x] 2025.4.30 实现暂存栏暂存条目数的动态更新
+# [x] 2025.4.30 实现窗口关闭时自动清空临时存储表格的数据
+# [ ] 2025.4.30 实现spinBox控件值变化时，录入信息窗口更新相应项的条目信息
 # [ ] 2025.4.30 实现信息栏正在编辑第几项的跳转逻辑
