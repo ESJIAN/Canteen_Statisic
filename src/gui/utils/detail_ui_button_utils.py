@@ -13,12 +13,13 @@ from email.mime import application
 from PySide6.QtWidgets import QApplication, QWidget
 import pandas as pd  
 
-from src.gui.error_window import TagNumShortage                 # Learning1：子模块的导入相对路径的起算点是主模块
+from src.gui.error_window import TagNumShortage,IndexOutOfRange                 # Learning1：子模块的导入相对路径的起算点是主模块
 from src.gui.check_window import ExcelCheckWindow               # Learning2:顶级脚本设定绝对倒入配置后不需要在子模块中重设
 from src.gui.data_save_dialog import data_save_success
 from src.core.excel_handler import store_single_entry_to_excel  # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
 import __main__                                                 # Learning5:__main__模块的引用，访问主模块变量
+
 
 
 def get_current_date():
@@ -141,6 +142,14 @@ def show_check_window(self,file_path):
     self.PopWindowApplicationForm.show()
     
 
+def commit_data_to_excel(self):
+    """
+    提交数据到主表、副表Excel文件
+    :param: self
+    :return: None
+    """
+
+
 def temp_list_rollback(self):
     """
     实现点击信息栏正在编辑xx项目上下箭头时,条目回滚
@@ -148,15 +157,17 @@ def temp_list_rollback(self):
     :return: None
     """
 
-   
+    print(f"Notice:当前编辑条目为第{self.spinBox.value()}项,条目切换信号为{__main__.TEMP_LIST_ROLLBACK_SIGNAL}")
 
-    if self.spinBox.value()>0 & __main__.TEMP_LIST_ROLLBACK_SIGNAL == True:
+    if self.spinBox.value()>0 and __main__.TEMP_LIST_ROLLBACK_SIGNAL == True: # Learning6：py的与符号是and关键字而不是&，&是位运算符
         try:
             temp_storage = pd.read_excel(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
             index = self.spinBox.value()
-            # 检查索引是否在范围内
-            if 0 <= index < len(temp_storage):
-                current_entry = temp_storage.iloc[index]
+    
+            # 如果目标条目索引号在已存储列表范围内，则切换到阅览已存储条目模式
+            if 0 <= index <= len(temp_storage):
+                # 获取当前条目的数据
+                current_entry = temp_storage.iloc[index-1]
                 # 更新输入框内容
                 self.line1Right.setText(str(current_entry['日期']))
                 self.line2Right.setText(str(current_entry['类别']))
@@ -167,8 +178,38 @@ def temp_list_rollback(self):
                 self.line7Right.setText(str(current_entry['单价']))
                 self.line8Right.setText(str(current_entry['单位']))
                 self.line9Right.setText(str(current_entry['公司']))
-                # 更新SpinBox的值
-                self.spinBox.setValue(__main__.TEMP_STORAGED_NUMBER_LISTS)  # 重置SpinBox的值为0
+
+            # 如果目标条目索引号超出已存储列表+1，则切换到输入条目模式
+            elif 0 <= index <= len(temp_storage)+1:
+                self.line1Right.setText("")
+                self.line2Right.setText("")
+                self.line3Right.setText("")
+                self.line4Right.setText("")
+                self.line5Right.setText("")
+                self.line6Right.setText("")
+                self.line7Right.setText("")
+                self.line8Right.setText("")
+                self.line9Right.setText("")
+
+            # 如果目标编辑条目索引号超出已存储列表范围+1，则提示错误，并且返回最后改动的条目上
+            else:
+                print("Error: 条目超出范围，请检查条目索引号")
+
+                # 重置条目索引到报错前
+                self.spinBox.setValue(self.spinBox.value()-1)  # 重置SpinBox的值为0
+
+                # 弹窗报错
+                # 为self追加创建一个Form属性,继承自QWidget
+                self.PopWindowApplicationForm = QWidget()
+                # 为self追加一个ui属性,继承自TagNumShortage
+                self.PopWindowApplicationUi = IndexOutOfRange() # Learning7：不要误用成self.IndexOutOfRange(self)，因为IndexOutOfRange是一个类，而不是一个函数
+                #
+                self.PopWindowApplicationUi.setupUi(self.PopWindowApplicationForm)
+                
+                self.PopWindowApplicationForm.show()
+                
+                return None
+                
         except Exception as e:
                     print(f"Error: {e}")
                     return None
@@ -189,6 +230,9 @@ def temp_list_rollback(self):
 # 3. 在存在主窗口的时候，在创建子窗口时，不要创建新的QApplication实例，而是使用已经存在的实例。因为QApplication只能有一个实例，创建多个实例会导致错误。
 #    来源：Fixed2的修复
 # 4. 如果直接是self.date_2 = ""，self.date_2不再指向原来的 QLineEdit 对象，而是被重新赋值为一个字符串 ""
+# 5. 
+# 6. 
+# 7. 明确一个类你是想调用还是想实例化，调用就是直接使用类名加括号，实例化就是以创建一个对象。
 # TODO：
 # - [x] 2025.4.46 实现报错弹窗功能 
 #   - [x] 修复报错弹框的闪现问题
@@ -198,8 +242,10 @@ def temp_list_rollback(self):
 # - [x] 2025.4.29 实现暂存重置输入框功能
 # - [x] 2025.4.30 实当前编辑条目的更新、实现暂存条目数量的更新
 #   - [x] 修复保存条目数量更新时，一直重复更新第一个的问题
-# - [ ] 2025.4.30 实现暂存条目回滚功能
-#   - [ ] 修复条目回滚箭头引起的条目索引变动与实际存储条目造成的索引变动皆触发索引窗口更新的问题
+# - [x] 2025.4.30 实现暂存条目回滚功能
+#   - [x] 修复条目回滚箭头引起的条目索引变动与实际存储条目造成的索引变动皆触发索引窗口更新的问题
 #     - [x] 修复Error: local variable 'exsit_tag_number' referenced before assignment
-#     - [ ] 修复点击箭头界面无索引更新现象的问题
+#     - [x] 修复点击箭头界面无索引更新现象的问题
+#   - [x] 2025.5.1 修复滚动索引列表值不能跳到暂存列表数+1以至无法开始输入下一个条目的问题
+#   - [x] 2025.5.1 修复Error: IndexOutOfRange() takes no arguments的问题
 # - [ ] 2025.4.30 实现自动提交逻辑

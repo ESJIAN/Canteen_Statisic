@@ -225,9 +225,9 @@ class Ui_Form(object):
 
         self.spinBox = QSpinBox(self.widget_5)
         self.spinBox.setObjectName(u"spinBox")
-        self.spinBox.valueChanged.connect(self.information_edition_rollback) # Learning5:将SpinBox的值变化与信息栏回滚函数连接
+        self.spinBox.valueChanged.connect(self.information_edition_rollback) # Learning5：将SpinBox的值变化与信息栏回滚函数连接
                                                                              # Learning7：槽函数若有括号，则会立即执行，而不是在信号触发时执行
-
+                                                                             # Learning8：valueChanged时候去获取起变化的值是变化之后的值           
         self.horizontalLayout.addWidget(self.spinBox)
 
         self.label_2 = QLabel(self.widget_5)
