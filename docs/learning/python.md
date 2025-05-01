@@ -346,13 +346,13 @@ Python 会把脚本所在目录（`src/gui`）当作第一个搜索路径 `sys.p
 - 如果要用相对导入父包，必须：
   
     1. 在 `src/`、`src/gui/`、`src/core/` 都放 `__init__.py`，
-    
+  
     2. 用模块模式启动：
-    
+  
         ```bash
         python -m src.gui.main_window
         ```
-    
+  
   
     这样 `src` 会被认作包根，`__package__="src.gui"`，`..core` 才能解析。
   
@@ -562,27 +562,30 @@ import flask
 from foo import bar
 ```
 
-
 # 子模块访问修改主模块变量的方法
 
+下面给出六大类、七种常见的方法，在子模块中修改（或影响）主脚本（即 `__main__` 模块）变量的值，并配以示例与要点。
 
-下面给出六大类、七种常见的方法，在子模块中修改（或影响）主脚本（即 `__main__` 模块）变量的值，并配以示例与要点。  
+> **摘要**：
+>
+> 1. **可变对象**（mutable）直接传参并修改；
+> 2. **返回值/回调**，由主脚本接收并赋值；
+> 3. **导入 `__main__` 或 `sys.modules`**，直接写入主命名空间；
+> 4. **内建命名空间**（`builtins`）中设值；
+> 5. **类/实例属性**传递与修改；
+> 6. **环境变量**或外部配置；
+> 7. **执行上下文 `exec`**（较少用）。
 
-> **摘要**：  
-> 1. **可变对象**（mutable）直接传参并修改；  
-> 2. **返回值/回调**，由主脚本接收并赋值；  
-> 3. **导入 `__main__` 或 `sys.modules`**，直接写入主命名空间；  
-> 4. **内建命名空间**（`builtins`）中设值；  
-> 5. **类/实例属性**传递与修改；  
-> 6. **环境变量**或外部配置；  
-> 7. **执行上下文 `exec`**（较少用）。  
+下面逐一说明。
 
-下面逐一说明。  
+## 1. 可变对象传参（Mutable semantics）
 
-## 1. 可变对象传参（Mutable semantics）  
-### 1.1 原理  
-Python 中，列表 (`list`)、字典 (`dict`) 等可变对象作为参数传递时传递的是引用，子模块函数内部对其修改会反映到主脚本中。 ([Updating the variable values in a python script from other python script](https://discuss.python.org/t/updating-the-variable-values-in-a-python-script-from-other-python-script/41201?utm_source=chatgpt.com))  
-### 1.2 示例  
+### 1.1 原理
+
+Python 中，列表 (`list`)、字典 (`dict`) 等可变对象作为参数传递时传递的是引用，子模块函数内部对其修改会反映到主脚本中。 ([Updating the variable values in a python script from other python script](https://discuss.python.org/t/updating-the-variable-values-in-a-python-script-from-other-python-script/41201?utm_source=chatgpt.com))
+
+### 1.2 示例
+
 ```python
 # main.py
 import sub
@@ -595,9 +598,12 @@ def inc(d):
     d["count"] += 1
 ```
 
-## 2. 返回值／回调（Return or Callback）  
-### 2.1 返回值由主脚本接收  
-最简单、安全：子模块函数返回新的值，由主脚本显式赋回变量。 ([How to change the value of a module variable from within an object ...](https://stackoverflow.com/questions/34594936/how-to-change-the-value-of-a-module-variable-from-within-an-object-of-another-mo?utm_source=chatgpt.com))  
+## 2. 返回值／回调（Return or Callback）
+
+### 2.1 返回值由主脚本接收
+
+最简单、安全：子模块函数返回新的值，由主脚本显式赋回变量。 ([How to change the value of a module variable from within an object ...](https://stackoverflow.com/questions/34594936/how-to-change-the-value-of-a-module-variable-from-within-an-object-of-another-mo?utm_source=chatgpt.com))
+
 ```python
 # main.py
 import sub
@@ -607,8 +613,11 @@ x = sub.inc(x)
 def inc(x):
     return x + 1
 ```
-### 2.2 传入回调函数  
-将主脚本的 setter 函数传给子模块，由子模块回调。  
+
+### 2.2 传入回调函数
+
+将主脚本的 setter 函数传给子模块，由子模块回调。
+
 ```python
 # main.py
 import sub
@@ -619,28 +628,38 @@ sub.register_callback(set_x)
 sub.do_something()  # 内部会调用 set_x
 ```
 
-## 3. 导入 `__main__` 或通过 `sys.modules` 直接写主命名空间  
-### 3.1 import __main__  
-子模块中直接 `import __main__`，然后赋值：  
+## 3. 导入 `__main__` 或通过 `sys.modules` 直接写主命名空间
+
+### 3.1 import __main__
+
+子模块中直接 `import __main__`，然后赋值：
+
 ```python
 # sub.py
 import __main__
 def set_main_var(v):
     __main__.x = v
 ```
-此时主脚本 `x` 即被修改。 ([python - Modify a __main__.variable from inside a module given ...](https://stackoverflow.com/questions/60469967/modify-a-main-variable-from-inside-a-module-given-the-name-of-the-variable-a?utm_source=chatgpt.com))  
-### 3.2 利用 `sys.modules`  
+
+此时主脚本 `x` 即被修改。 ([python - Modify a __main__.variable from inside a module given ...](https://stackoverflow.com/questions/60469967/modify-a-main-variable-from-inside-a-module-given-the-name-of-the-variable-a?utm_source=chatgpt.com))
+
+### 3.2 利用 `sys.modules`
+
 ```python
 # sub.py
 import sys
 def set_main_var(v):
     sys.modules['__main__'].x = v
 ```
-等同于上述方法。 ([How to change the value of a module variable from within an object ...](https://stackoverflow.com/questions/34594936/how-to-change-the-value-of-a-module-variable-from-within-an-object-of-another-mo?utm_source=chatgpt.com))  
 
-## 4. 使用内建命名空间 `builtins`  
-### 4.1 原理  
-将变量放在 `builtins`，在任意模块中修改都会生效（风险：全局污染）。 ([Global variables shared across modules - Python discussion forum](https://discuss.python.org/t/global-variables-shared-across-modules/16833?utm_source=chatgpt.com))  
+等同于上述方法。 ([How to change the value of a module variable from within an object ...](https://stackoverflow.com/questions/34594936/how-to-change-the-value-of-a-module-variable-from-within-an-object-of-another-mo?utm_source=chatgpt.com))
+
+## 4. 使用内建命名空间 `builtins`
+
+### 4.1 原理
+
+将变量放在 `builtins`，在任意模块中修改都会生效（风险：全局污染）。 ([Global variables shared across modules - Python discussion forum](https://discuss.python.org/t/global-variables-shared-across-modules/16833?utm_source=chatgpt.com))
+
 ```python
 # main.py
 import builtins
@@ -652,9 +671,12 @@ def inc():
     builtins.shared += 1
 ```
 
-## 5. 类／实例属性传递  
-### 5.1 通过对象封装状态  
-将主脚本变量封装在对象属性里，子模块持有该对象引用并修改属性。  
+## 5. 类／实例属性传递
+
+### 5.1 通过对象封装状态
+
+将主脚本变量封装在对象属性里，子模块持有该对象引用并修改属性。
+
 ```python
 # main.py
 import sub
@@ -667,11 +689,15 @@ print(ctx.x)
 def update(obj):
     obj.x += 1
 ```
+
 与可变对象传参原理相同，更面向对象。
 
-## 6. 环境变量或外部配置  
-### 6.1 os.environ  
-将变量放入 `os.environ`，子模块修改后，主脚本可重新读取。适合跨进程。 ([python实现对导入包中的全局变量进行修改原创 - CSDN博客](https://blog.csdn.net/qq_45270849/article/details/135514634?utm_source=chatgpt.com))  
+## 6. 环境变量或外部配置
+
+### 6.1 os.environ
+
+将变量放入 `os.environ`，子模块修改后，主脚本可重新读取。适合跨进程。 ([python实现对导入包中的全局变量进行修改原创 - CSDN博客](https://blog.csdn.net/qq_45270849/article/details/135514634?utm_source=chatgpt.com))
+
 ```python
 # sub.py
 import os
@@ -679,9 +705,12 @@ def set_var(v):
     os.environ['X'] = str(v)
 ```
 
-## 7. 动态执行上下文（exec）  
-### 7.1 exec 在主命名空间中  
-子模块通过传入主脚本的 `globals()`，在该命名空间 `exec` 代码：  
+## 7. 动态执行上下文（exec）
+
+### 7.1 exec 在主命名空间中
+
+子模块通过传入主脚本的 `globals()`，在该命名空间 `exec` 代码：
+
 ```python
 # main.py
 import sub
@@ -692,13 +721,48 @@ sub.run("x = 5", ns)
 def run(code, ns):
     exec(code, ns)
 ```
+
 可直接创建/修改主脚本变量，但不推荐（可读性差）。
 
 ---
 
-### 小结  
-- **最常用**：方法1（可变对象）和方法2（返回值／回调），结构清晰、安全。  
-- **直接修改**：方法3（`__main__`／`sys.modules`）与方法4（`builtins`），但易导致全局污染与可维护性问题。  
-- **面向对象**：方法5 适合复杂状态管理；方法6 用于跨进程；方法7 较少见。  
+### 小结
+
+- **最常用**：方法1（可变对象）和方法2（返回值／回调），结构清晰、安全。
+- **直接修改**：方法3（`__main__`／`sys.modules`）与方法4（`builtins`），但易导致全局污染与可维护性问题。
+- **面向对象**：方法5 适合复杂状态管理；方法6 用于跨进程；方法7 较少见。
 
 以上七种方式，覆盖了从最“Pythonic”到最“黑魔法”的做法，可根据场景权衡选择。
+
+
+
+
+# sum函数的高级用法
+
+你问的这句代码：
+
+**existing_rows** **=** **sum**(**1** **for** **row_idx** **in** **range**(**sheet.nrows**)** **if** **any**(**sheet.row_values**(**row_idx**)**)**)** **# Learning3：**
+
+**解读如下：**
+
+* [sheet.nrows](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)：当前 Excel 表的总行数。
+* [range(sheet.nrows)](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)：遍历所有行的索引。
+* [sheet.row_values(row_idx)](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)：获取第 [row_idx](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 行的所有单元格的值，返回一个列表。
+* [any(sheet.row_values(row_idx))](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)：判断这一行是否有至少一个单元格不是空（即这一行不是全空）。
+* [sum(1 for ... if ...)](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)：对所有“不是全空”的行计数，每遇到一行非空就加1。
+
+**最终作用：**
+
+> 统计 Excel 表中“非全空”的行数（即已有有效数据的行数），通常用于确定追加写入时应该从哪一行开始写。
+
+---
+
+**举例：**
+
+* 如果前3行有内容，第4、5行全是空的，则 [existing_rows](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 为3。
+* 这样你可以从第4行开始追加新数据，避免覆盖原有内容。
+
+---
+
+**一句话总结：**
+这句代码的作用是 **统计 Excel 表格中已有内容的行数** ，用于后续追加写入时定位起始行
