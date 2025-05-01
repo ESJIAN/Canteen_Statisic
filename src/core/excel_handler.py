@@ -11,10 +11,11 @@ from openpyxl import load_workbook
 from datetime import datetime
 
 import os
-import pandas as pd
 import __main__
 import xlrd
 from xlutils.copy import copy
+from xlwt.Style import  XFStyle
+
 from xlwt import Workbook
 
 
@@ -49,7 +50,8 @@ def store_single_entry_to_temple_excel(data, file_path):
             # 创建可写副本
             writable_workbook = copy(workbook)
             writable_sheet = writable_workbook.get_sheet(0)
-
+         
+            
             # 追加数据
             for row_index, row_data in enumerate(rows, start=existing_rows):
                 for col_index, cell_value in enumerate(row_data):
@@ -103,6 +105,15 @@ def clear_temp_excel():
         print(f"清空暂存表格时出错: {e}")
 
 
+def get_merged_cell_value(sheet, row, col):
+    for (rlow, rhigh, clow, chigh) in sheet.merged_cells:
+        if rlow <= row < rhigh and clow <= col < chigh:
+            # 返回合并区域左上角的值
+            return sheet.cell_value(rlow, clow)
+    # 非合并单元格，直接返回
+    return sheet.cell_value(row, col)
+
+
 def cmmit_data_to_storage_excel(excel_file_path):
     """
     提交暂存 Excel 数据到主表、副表 Excel 文件
@@ -110,44 +121,43 @@ def cmmit_data_to_storage_excel(excel_file_path):
     """
     # 读取暂存表格数据
     try:
-        # 打开工作簿
-        temp_storage_workbook = xlrd.open_workbook(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+        # 读取暂存工作簿
+        read_temp_storage_workbook = xlrd.open_workbook(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
     except Exception as e:
-        print(f"Error:打开暂存表工作簿出错 {e}")
+        print(f"Error: 打开暂存表工作簿出错 {e}")
         return
-    
+
     # 读取主工作表格数据
     try:
         # 打开工作簿
-        main_workbook = xlrd.open_workbook(excel_file_path, formatting_info=True)
-        # 创建可写副本
-        main_workbook_copy = copy(main_workbook)  
+        read_main_workbook = xlrd.open_workbook(excel_file_path, formatting_info=True)
+        # 利用xlutils的copy函数创建可写副本
+        writable_main_workbook = copy(read_main_workbook)
         print(f"Notice: 主工作表加载成功，文件路径: {excel_file_path}")
     except Exception as e:
         print(f"Error: {e}")
         return
 
     # 获取表头数据
-    headers = temp_storage_workbook.sheet_by_index(0).row_values(0)  # 获取表头的第一行数据
+    read_temp_storage_workbook_headers = read_temp_storage_workbook.sheet_by_index(0).row_values(0)  # 获取表头的第一行数据
     # 确保表头是一个扁平的列表
-    if not all(isinstance(header, str) for header in headers):
+    if not all(isinstance(header, str) for header in read_temp_storage_workbook_headers):
         raise ValueError("表头必须是字符串类型")
-    
+
     # 轮询读取暂存表格数据行
-    for row_index in range(1, temp_storage_workbook.sheet_by_index(0).nrows):
-        
+    for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
         # 读取行数据
-        row_data = temp_storage_workbook.sheet_by_index(0).row_values(row_index)#   
+        row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
         # 创建一个字典，用于存储列索引和列名的对应关系
-        header_index = {name: idx for idx, name in enumerate(headers)}
+        header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
         # 获取行中公司列单元中公司名数据
         company_name = row_data[header_index["公司"]]
         # 获取行中金额列单元中金额数据
         amount = row_data[header_index["金额"]]
-        
+
         # 1. 先用 xlrd 找到 sheet 的索引
         sheet_index = None
-        for idx, sheet in enumerate(main_workbook.sheets()):
+        for idx, sheet in enumerate(read_main_workbook.sheets()):
             if sheet.name == company_name:
                 sheet_index = idx
                 break
@@ -156,14 +166,20 @@ def cmmit_data_to_storage_excel(excel_file_path):
             continue
 
         # 2. 用 xlrd 读取原有值
-        original_sheet = main_workbook.sheet_by_index(sheet_index)
-        current_value = original_sheet.cell_value(7, 3)
-        if current_value is None:
+        original_sheet = read_main_workbook.sheet_by_index(sheet_index)
+        current_value = get_merged_cell_value(original_sheet, 7, 3)
+        if current_value is None or current_value == "":
             current_value = 0
+
+        # 读取金额
+        if amount is None or amount == "":
+            amount = 0
         try:
             amount = float(amount)
         except Exception:
             amount = 0
+
+        # 计算新值
         if isinstance(current_value, (int, float)):
             new_value = current_value + amount
         else:
@@ -172,10 +188,15 @@ def cmmit_data_to_storage_excel(excel_file_path):
             except Exception:
                 new_value = amount
 
-        # 4. 用 xlwt 写入新值
-        corporation_worksheet = main_workbook_copy.get_sheet(sheet_index)
-        corporation_worksheet.write(7, 3, new_value)
-        main_workbook_copy.save(excel_file_path)
+        # 4. 用 xlutils 写入新值
+        writable_sheet = writable_main_workbook.get_sheet(sheet_index)
+        writable_sheet.write(7, 3, new_value)
+
+    try:
+        writable_main_workbook.save(excel_file_path)
+        print(f"数据已成功提交到主表: {excel_file_path}")
+    except Exception as e:
+        print(f"Error: 保存主表时出错 {e}")
 
 
 
