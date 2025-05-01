@@ -13,6 +13,8 @@ from datetime import datetime
 import os
 import pandas as pd
 import __main__
+import xlrd
+from xlutils.copy import copy
 def store_single_entry_to_temple_excel(data, file_path):
     """
     将单条目的数据追加存储到临时excel表格中
@@ -70,56 +72,76 @@ def clear_temp_excel():
         print(f"清空暂存表格时出错: {e}")
 
 
-def cmmit_data_to_storage_excel(temp_excel_file):
+def cmmit_data_to_storage_excel(excel_file_path):
     """
     提交暂存 Excel 数据到主表、副表 Excel 文件
-    :param: temp_excel_file_path: 要存储的暂存表
+    :param: temp_excel_file: 要存储的暂存表
     """
-    # 1. 打开工作簿
-    wb = load_workbook(file_path)
-    ws = wb[sheet_name]
+    # 读取暂存表格数据
+    try:
+        # 打开工作簿
+        temp_storage_workbook = xlrd.open_workbook(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+    except Exception as e:
+        print(f"Error: {e}")
+        return
+    
+    # 读取主工作表格数据
+    try:
+        # 打开工作簿
+        main_workbook = xlrd.open_workbook(excel_file_path, formatting_info=True)
+        # 创建可写副本
+        main_workbook_copy = copy(main_workbook)  
+        print(f"Notice: 工作表加载成功，文件路径: {excel_file_path}")
+    except Exception as e:
+        print(f"Error: {e}")
+        return
 
-    # 2. 读出已有日期列表
-    dates = []
-    for row in range(data_start, ws.max_row+1):
-        cell = ws[f"{date_col}{row}"].value
-        if not cell: break
-        # 如果是字符串，先解析
-        d = cell if isinstance(cell, datetime) else datetime.strptime(cell, '%Y-%m-%d')
-        dates.append((row, d))
+    # 轮询读取暂存表格数据行
+    for row_index in range(1, temp_storage_workbook.sheet_by_index(0).nrows):
+        # 读取行数据
+        row_data = temp_storage_workbook.sheet_by_index(0).row_values(row_index)
+        # 获取行数据中的公司名称
+        company_name = row_data["公司"]
+        # 获取行数据中的金额
+        amount = row_data["金额"]
+        # 打开主表公司worksheet，追加金额数据
+        try:
+            corporation_worksheet = main_workbook_copy.sheet_by_name(company_name)
+            # 访问8，D单元格
+            cell = corporation_worksheet.cell(row=8, column=4)  
+            # 获取当前单元格的值
+            current_value = cell.value
+            # 如果当前单元格的值是数字，则进行累加
+            if isinstance(current_value, (int, float)):
+                new_value = current_value + amount
+            else:
+                new_value = amount  # 如果不是数字，则直接使用新的金额
+            # 更新单元格的值
+            cell.value = new_value
+            # 保存工作簿
+            main_workbook_copy.save(excel_file_path)
+            
+        except Exception as e:
+            print(f"Error: {e}")
+            continue
 
-    # 3. 二分查找第一个大于新日期的位置
-    D_new = (input_data['日期']
-            if isinstance(input_data['日期'], datetime)
-            else datetime.strptime(input_data['日期'], '%Y-%m-%d'))
-    lo, hi = 0, len(dates)
-    while lo < hi:
-        mid = (lo + hi) // 2
-        if dates[mid][1] > D_new:
-            hi = mid
-        else:
-            lo = mid + 1
-    insert_idx = dates[lo][0] if lo < len(dates) else (dates[-1][0] + 1)
 
-    # 4. 在工作表中插入空行
-    ws.insert_rows(insert_idx)
 
-    # 5. 填入新数据
-    row = insert_idx
-    ws[f"{date_col}{row}"].value = D_new
-    # 假设其他字段在 B…J 列
-    cols = ['B','C','D','E','F','G','H','I','J']
-    keys = ['类别','品名','备注','金额','数量','单价','单位','公司']
-    for col, key in zip(cols, keys):
-        ws[f"{col}{row}"].value = input_data[key]
+    # 打开主表公司worksheet
+    corporation_worksheet = main_workbook_copy.sheet_by_index(0)
 
-    # 6. 保存
-    wb.save(file_path)
-    return insert_idx
+   
+   
+
+# Learning:
+# 1. Openpyxl 不对 .xls 文件格式提供支持，只能对 .xlsx 文件格式提供支持
 
 
 # TODO:
 # - [x] 修复数据存储到Excel文件中的报错:ValueError: If using all scalar values, you must pass an index
 # - [X] 实现以相对路径的方式存储表格到指定目录
 # - [x] 2025.4.30 实现追加写入表格的行逻辑
-
+# - [ ] 2025.5.1 实现数据提交到主表、副表Excel文件的功能
+#   - [x] 修复Error: openpyxl does not support the old .xls file format, please use xlrd to read this file, or convert it to the more recent .xlsx file format.
+#   - [x] 修复NameError: name 'input_data' is not defined
+#   - [ ] 实现提交条目数据到主表公司

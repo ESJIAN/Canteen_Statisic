@@ -143,14 +143,14 @@ def show_check_window(self,file_path):
     self.PopWindowApplicationForm.show()
     
 
-def commit_data_to_excel(self):
+def commit_data_to_excel(self,workbook_path):
     """
     提交数据到主表、副表Excel文件
     :param: self
     :return: None
     """
-    mian_workbook = __main__.MIAN_WORK_EXCEL_PATH + "2025.4.20.xls"
-    cmmit_data_to_storage_excel(mian_workbook)
+    
+    cmmit_data_to_storage_excel(workbook_path)
 
 
 def temp_list_rollback(self):

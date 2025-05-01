@@ -31,7 +31,7 @@ project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..')
 # 将项目根目录添加到 sys.path
 sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
-from src.gui.utils.detail_ui_button_utils import get_current_date, manual_temp_storage, temp_list_rollback # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.gui.utils.detail_ui_button_utils import commit_data_to_excel, get_current_date, manual_temp_storage, temp_list_rollback # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
 from src.core.excel_handler import clear_temp_excel, store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
@@ -427,7 +427,8 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
-        commit_data_to_excel(self)
+        mian_workbook = MIAN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        commit_data_to_excel(self,mian_workbook)
 
 
     def information_edition_rollback(self): # Learning6：自定义方法一定要放一个self参数,不妨报错
