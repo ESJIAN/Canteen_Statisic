@@ -72,7 +72,8 @@ def manual_temp_storage(self,input_fields):
             
             # 打印暂存数据（可以替换为其他逻辑，如保存到文件或数据库）
             print("暂存数据:", temp_storage)
-            # 调用 store_single_entry_to_excel 函数存储数据到Excel文件
+            # 调用 store_single_entry_to_excel 函数存储数据到Excel文件,以xls方式存储
+
             store_single_entry_to_temple_excel(temp_storage, __main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
 
             return temp_storage

@@ -36,7 +36,7 @@ from src.gui.utils.detail_ui_button_utils import show_check_window
 from src.core.excel_handler import clear_temp_excel, store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
 
-TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xlsx" # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
+TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xls" # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 

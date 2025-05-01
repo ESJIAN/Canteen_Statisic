@@ -15,6 +15,7 @@ import pandas as pd
 import __main__
 import xlrd
 from xlutils.copy import copy
+from xlwt import Workbook
 def store_single_entry_to_temple_excel(data, file_path):
     """
     将单条目的数据追加存储到临时excel表格中
@@ -23,38 +24,56 @@ def store_single_entry_to_temple_excel(data, file_path):
     :return: None
     """
 
-    if isinstance(data, dict):
-        # 确保字典的值是列表
-        for key, value in data.items():
-            if not isinstance(value, list):
-                data[key] = [value]  # 转换为列表
-    elif isinstance(data, list):
-        # 确保列表的每个元素是列表
-        if not all(isinstance(row, list) for row in data):
-            raise ValueError("列表的每个元素必须是列表")
-    else:
-        raise ValueError("数据必须是字典或列表")    
+    if not isinstance(data, dict):
+        raise ValueError("数据必须是字典类型")
     
-    # 创建 DataFrame 对象
-    temp_manual_input_data = pd.DataFrame(data)
+    # 确保字典的值是列表
+    for key, value in data.items():
+        if not isinstance(value, list):
+            data[key] = [value]  # 转换为列表
 
-    if not temp_manual_input_data.empty:
-        try:
-            # 检查文件是否存在，存在则追加，不存在则新建
-            if os.path.exists(file_path):
-                # 读取原有数据
-                existing_df = pd.read_excel(file_path)
-                # 追加新数据
-                combined_df = pd.concat([existing_df, temp_manual_input_data], ignore_index=True)
-                combined_df.to_excel(file_path, index=False)
-            else:
-                # 文件不存在，直接写入
-                temp_manual_input_data.to_excel(file_path, index=False)
-            print("数据已成功追加存储到Excel文件中。")
-        except Exception as e:
-            print(f"写入Excel文件时出错: {e}")
-    else:
-        print("数据为空，无法存储到Excel文件中。")
+    # 将字典数据转换为二维列表
+    headers = list(data.keys())
+    rows = list(zip(*data.values()))
+
+    try:
+        if os.path.exists(file_path):
+            # 打开现有文件
+            workbook = xlrd.open_workbook(file_path, formatting_info=True)
+            sheet = workbook.sheet_by_index(0)
+            existing_rows = sheet.nrows
+
+            # 创建可写副本
+            writable_workbook = copy(workbook)
+            writable_sheet = writable_workbook.get_sheet(0)
+
+            # 追加数据
+            for row_index, row_data in enumerate(rows, start=existing_rows):
+                for col_index, cell_value in enumerate(row_data):
+                    writable_sheet.write(row_index, col_index, cell_value)
+
+            # 保存文件
+            writable_workbook.save(file_path)
+        else:
+            # 创建新文件
+            workbook = Workbook()
+            sheet = workbook.add_sheet("Sheet1")
+
+            # 写入表头
+            for col_index, header in enumerate(headers):
+                sheet.write(0, col_index, header)
+
+            # 写入数据
+            for row_index, row_data in enumerate(rows, start=1):
+                for col_index, cell_value in enumerate(row_data):
+                    sheet.write(row_index, col_index, cell_value)
+
+            # 保存文件
+            workbook.save(file_path)
+
+        print("数据已成功追加存储到Excel文件中。")
+    except Exception as e:
+        print(f"写入Excel文件时出错: {e}")
 
 def clear_temp_excel():
     """
@@ -82,7 +101,7 @@ def cmmit_data_to_storage_excel(excel_file_path):
         # 打开工作簿
         temp_storage_workbook = xlrd.open_workbook(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error:打开暂存表工作簿出错 {e}")
         return
     
     # 读取主工作表格数据
@@ -91,7 +110,7 @@ def cmmit_data_to_storage_excel(excel_file_path):
         main_workbook = xlrd.open_workbook(excel_file_path, formatting_info=True)
         # 创建可写副本
         main_workbook_copy = copy(main_workbook)  
-        print(f"Notice: 工作表加载成功，文件路径: {excel_file_path}")
+        print(f"Notice: 主工作表加载成功，文件路径: {excel_file_path}")
     except Exception as e:
         print(f"Error: {e}")
         return
