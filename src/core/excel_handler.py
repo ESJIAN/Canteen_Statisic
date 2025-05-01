@@ -85,7 +85,7 @@ def clear_temp_excel():
     :return: None
     """
     try:
-        if os.path.exists(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH):
+        if os.path.exists(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH) :
             # 打开现有文件
             workbook = xlrd.open_workbook(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH, formatting_info=True)
             writable_workbook = copy(workbook)
@@ -144,36 +144,48 @@ def cmmit_data_to_storage_excel(excel_file_path):
         company_name = row_data[header_index["公司"]]
         # 获取行中金额列单元中金额数据
         amount = row_data[header_index["金额"]]
-        # 打开主表公司worksheet，追加金额数据
-        try:
-            corporation_worksheet = main_workbook_copy.sheet_by_name(company_name)
-            # 访问8，D单元格
-            cell = corporation_worksheet.cell(row=8, column=4)  
-            # 获取当前单元格的值
-            current_value = cell.value
-            # 如果当前单元格的值是数字，则进行累加
-            if isinstance(current_value, (int, float)):
-                new_value = current_value + amount
-            else:
-                new_value = amount  # 如果不是数字，则直接使用新的金额
-            # 更新单元格的值
-            cell.value = new_value
-            # 保存工作簿
-            main_workbook_copy.save(excel_file_path)
-            
-        except Exception as e:
-            print(f"Error: {e}")
+        
+        # 1. 先用 xlrd 找到 sheet 的索引
+        sheet_index = None
+        for idx, sheet in enumerate(main_workbook.sheets()):
+            if sheet.name == company_name:
+                sheet_index = idx
+                break
+        if sheet_index is None:
+            print(f"未找到公司名为 {company_name} 的sheet")
             continue
 
+        # 2. 用 xlrd 读取原有值
+        original_sheet = main_workbook.sheet_by_index(sheet_index)
+        current_value = original_sheet.cell_value(7, 3)
+        if current_value is None:
+            current_value = 0
+        try:
+            amount = float(amount)
+        except Exception:
+            amount = 0
+        if isinstance(current_value, (int, float)):
+            new_value = current_value + amount
+        else:
+            try:
+                new_value = float(current_value) + amount
+            except Exception:
+                new_value = amount
+
+        # 4. 用 xlwt 写入新值
+        corporation_worksheet = main_workbook_copy.get_sheet(sheet_index)
+        corporation_worksheet.write(7, 3, new_value)
+        main_workbook_copy.save(excel_file_path)
 
 
-   
-   
+
+
 
 # Learning:
 # 1. Openpyxl 不对 .xls 文件格式提供支持，只能对 .xlsx 文件格式提供支持
 # 2. 代码操作Excel打开的表时候会出现权限遭拒错误
-
+# 3.
+# 4. 
 # TODO:
 # - [x] 修复数据存储到Excel文件中的报错:ValueError: If using all scalar values, you must pass an index
 # - [X] 实现以相对路径的方式存储表格到指定目录
@@ -184,4 +196,7 @@ def cmmit_data_to_storage_excel(excel_file_path):
 #   - [ ] 实现提交条目数据到主表公司
 #      - [x] 将openpyxl替换为xlwd，实现Excel以xls文件保存，减少与原表格的数据格式冲突
 #      - [x] 修复： [Errno 13] Permission denied: '.\\src\\data\\input\\manual\\temp_manual_input_data.xls'
-# - [ ] 2025.5.1 修复暂存一次表格前7行出现None字符的问题
+#      - [ ] 修复表单访问方法错用的问题
+#      - [x] 修复Error: 'Worksheet' object has no attribute 'cell'
+#      - [ ] 修复TypeError: descriptor 'decode' for 'bytes' objects doesn't apply to a 'NoneType' object
+# - [x] 2025.5.1 修复暂存一次表格前7行出现None字符的问题
