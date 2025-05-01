@@ -33,12 +33,15 @@ sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解�
 
 from src.gui.utils.detail_ui_button_utils import get_current_date, manual_temp_storage, temp_list_rollback # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
-from src.core.excel_handler import clear_temp_excel, store_single_entry_to_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.core.excel_handler import clear_temp_excel, store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
 
-TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xlsx" # 暂存表格路径
+TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xlsx" # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
+
+MIAN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表格路径
+Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\子表\\"  # 子工作表格路径
 
 class Ui_Form(object):
 
@@ -193,10 +196,16 @@ class Ui_Form(object):
         self.pushButton_7.setObjectName(u"pushButton_7")
         self.pushButton_7.setGeometry(QRect(220, 100, 75, 24))
         self.pushButton_7.clicked.connect(self.temp_store_inputs)
+
+        # 提交数据按钮创建配置
+
         self.pushButton_5 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_5)
         self.pushButton_5.setObjectName(u"pushButton_5")
         self.pushButton_5.setGeometry(QRect(220, 190, 75, 24))
+        self.pushButton_5.clicked.connect(self.commit_data)
+
+
         self.pushButton = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton)
         self.pushButton.setObjectName(u"pushButton")
@@ -418,6 +427,7 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
+        commit_data_to_excel(self)
 
 
     def information_edition_rollback(self): # Learning6：自定义方法一定要放一个self参数,不妨报错
@@ -463,8 +473,12 @@ if __name__ == "__main__":
 # 3. 对于函数内部来讲，如果产生形参名与实参名撞名的情况，则在函数内访问该变量，实际上实在访问
 #    传入的形参名，如果形参未传入则返回的是布尔值 False
 # 4. Qtcreator 生成的ui代码块默认张这样的格式：
+# 5.
+# 6. 
+# 7. 
+# 8.
 # TODO：
 # [x] 2025.4.30 实现暂存栏暂存条目数的动态更新
 # [x] 2025.4.30 实现窗口关闭时自动清空临时存储表格的数据
-# [ ] 2025.4.30 实现spinBox控件值变化时，录入信息窗口更新相应项的条目信息
-# [ ] 2025.4.30 实现信息栏正在编辑第几项的跳转逻辑
+# [x] 2025.4.30 实现spinBox控件值变化时，录入信息窗口更新相应项的条目信息
+# [x] 2025.4.30 实现信息栏正在编辑第几项的跳转逻辑

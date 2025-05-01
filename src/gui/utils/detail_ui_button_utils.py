@@ -16,7 +16,8 @@ import pandas as pd
 from src.gui.error_window import TagNumShortage,IndexOutOfRange                 # Learning1：子模块的导入相对路径的起算点是主模块
 from src.gui.check_window import ExcelCheckWindow               # Learning2:顶级脚本设定绝对倒入配置后不需要在子模块中重设
 from src.gui.data_save_dialog import data_save_success
-from src.core.excel_handler import store_single_entry_to_excel  # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.core.excel_handler import store_single_entry_to_temple_excel  # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.core.excel_handler import cmmit_data_to_storage_excel
 
 import __main__                                                 # Learning5:__main__模块的引用，访问主模块变量
 
@@ -72,7 +73,7 @@ def manual_temp_storage(self,input_fields):
             # 打印暂存数据（可以替换为其他逻辑，如保存到文件或数据库）
             print("暂存数据:", temp_storage)
             # 调用 store_single_entry_to_excel 函数存储数据到Excel文件
-            store_single_entry_to_excel(temp_storage, __main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+            store_single_entry_to_temple_excel(temp_storage, __main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
 
             return temp_storage
         else:
@@ -148,6 +149,8 @@ def commit_data_to_excel(self):
     :param: self
     :return: None
     """
+    mian_workbook = __main__.MIAN_WORK_EXCEL_PATH + "2025.4.20.xls"
+    cmmit_data_to_storage_excel(mian_workbook)
 
 
 def temp_list_rollback(self):
@@ -193,7 +196,7 @@ def temp_list_rollback(self):
 
             # 如果目标编辑条目索引号超出已存储列表范围+1，则提示错误，并且返回最后改动的条目上
             else:
-                print("Error: 条目超出范围，请检查条目索引号")
+                print("Notice: 条目超出范围，请检查条目索引号")
 
                 # 重置条目索引到报错前
                 self.spinBox.setValue(self.spinBox.value()-1)  # 重置SpinBox的值为0

@@ -5,11 +5,15 @@
 # @File    : excel_handler.py
 # @Software: VsCode
 
+
+
+from openpyxl import load_workbook
+from datetime import datetime
+
 import os
 import pandas as pd
-
 import __main__
-def store_single_entry_to_excel(data, file_path):
+def store_single_entry_to_temple_excel(data, file_path):
     """
     将单条目的数据追加存储到临时excel表格中
     :param data: 要存储的字典数据
@@ -64,6 +68,55 @@ def clear_temp_excel():
             empty_df.to_excel(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH, index=False)
     except Exception as e:
         print(f"清空暂存表格时出错: {e}")
+
+
+def cmmit_data_to_storage_excel(temp_excel_file):
+    """
+    提交暂存 Excel 数据到主表、副表 Excel 文件
+    :param: temp_excel_file_path: 要存储的暂存表
+    """
+    # 1. 打开工作簿
+    wb = load_workbook(file_path)
+    ws = wb[sheet_name]
+
+    # 2. 读出已有日期列表
+    dates = []
+    for row in range(data_start, ws.max_row+1):
+        cell = ws[f"{date_col}{row}"].value
+        if not cell: break
+        # 如果是字符串，先解析
+        d = cell if isinstance(cell, datetime) else datetime.strptime(cell, '%Y-%m-%d')
+        dates.append((row, d))
+
+    # 3. 二分查找第一个大于新日期的位置
+    D_new = (input_data['日期']
+            if isinstance(input_data['日期'], datetime)
+            else datetime.strptime(input_data['日期'], '%Y-%m-%d'))
+    lo, hi = 0, len(dates)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if dates[mid][1] > D_new:
+            hi = mid
+        else:
+            lo = mid + 1
+    insert_idx = dates[lo][0] if lo < len(dates) else (dates[-1][0] + 1)
+
+    # 4. 在工作表中插入空行
+    ws.insert_rows(insert_idx)
+
+    # 5. 填入新数据
+    row = insert_idx
+    ws[f"{date_col}{row}"].value = D_new
+    # 假设其他字段在 B…J 列
+    cols = ['B','C','D','E','F','G','H','I','J']
+    keys = ['类别','品名','备注','金额','数量','单价','单位','公司']
+    for col, key in zip(cols, keys):
+        ws[f"{col}{row}"].value = input_data[key]
+
+    # 6. 保存
+    wb.save(file_path)
+    return insert_idx
+
 
 # TODO:
 # - [x] 修复数据存储到Excel文件中的报错:ValueError: If using all scalar values, you must pass an index
