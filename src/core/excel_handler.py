@@ -181,6 +181,16 @@ def cmmit_data_to_storage_excel(excel_file_path):
             updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name)
             # 更新食品收发库存表中的条目信息
             update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
+            
+            # 更新收发存表皮中的条目信息
+            # 尝试打开名为食堂物品收发库存表的 sheet
+            if "收发存表皮" in [s.name for s in main_workbook.sheets]:
+                sheet = main_workbook.sheets["收发存表皮"]
+                print(f"Notice: 找到入库类型名为 `收发存表皮` 的sheet")
+            else:
+                print(f"Error: 未找到入库类型名为 `收发存表皮` 的sheet,可能存在空字符")
+                return
+            
 
 
         try:
@@ -407,9 +417,9 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
 #      - [x] 修复TypeError: descriptor 'decode' for 'bytes' objects doesn't apply to a 'NoneType' object
 #      - [x] 实现提交数据条目到主表物品相应的入库类型sheet表中
 #      - [x] 实现提交数据条目到食堂物品收发存表中
-#      - [ ] 实现提交数据条目到主副食明细账中
-#      - [ ] 实现提交数据条目到收发表存皮重
-#   - [ ] 实现提交数据到子表中
+#      - [ ] 2025.5.3. 实现提交数据条目到主副食明细账中
+#      - [ ] 2025.5.3. 实现提交数据条目到收发表存皮重
+#   - [ ] 2025.5.3. 实现提交数据到子表中
 #      - [ ] 实现提交数据到主食表入库中
 #      - [ ] 实现提交数据到副食表入库中 
 # - [x] 2025.5.1 修复暂存一次表格前7行出现None字符的问题
