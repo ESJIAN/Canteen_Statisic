@@ -8,6 +8,7 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
+import os
 import pandas as pd  # 用于读取 Excel 文件
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
@@ -59,21 +60,26 @@ class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写
         :param file_path: Excel 文件路径
         """
         try:
-            # 使用 pandas 读取 Excel 文件
-            data = pd.read_excel(file_path)
+            # 如果表格存在打开表格
+            if os.path.exists(file_path):
+                # 使用 pandas 读取 Excel 文件
+                data = pd.read_excel(file_path)
 
-            # 设置表格行列数
-            self.tableWidget.setRowCount(data.shape[0])  # 行数
-            self.tableWidget.setColumnCount(data.shape[1])  # 列数
-            self.tableWidget.setHorizontalHeaderLabels(data.columns)  # 设置表头
+                # 设置表格行列数
+                self.tableWidget.setRowCount(data.shape[0])  # 行数
+                self.tableWidget.setColumnCount(data.shape[1])  # 列数
+                self.tableWidget.setHorizontalHeaderLabels(data.columns)  # 设置表头
 
-            # 填充表格数据
-            for row in range(data.shape[0]):
-                for col in range(data.shape[1]):
-                    item = QTableWidgetItem(str(data.iloc[row, col]))
-                    self.tableWidget.setItem(row, col, item)
+                # 填充表格数据
+                for row in range(data.shape[0]):
+                    for col in range(data.shape[1]):
+                        item = QTableWidgetItem(str(data.iloc[row, col]))
+                        self.tableWidget.setItem(row, col, item)
 
-            print("Notice:表格数据加载成功！")
+                print("Notice:表格数据加载成功！")
+            # 如果表格不存在则打印错误信息
+            else:
+                print(f"Error:Excel文件不存在: {file_path}")
         except Exception as e:
             print(f"Error:加载表格数据时出错,报错信息为{e}")
 

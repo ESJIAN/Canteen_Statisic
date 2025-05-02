@@ -61,21 +61,23 @@ def store_single_entry_to_temple_excel(data, file_path):
             # 保存文件
             writable_workbook.save(file_path)
         else:
-            # 创建新文件
+            # 创建工作簿对象
             workbook = Workbook()
+            # 创建工作表对象
             sheet = workbook.add_sheet("Sheet1")
-
-            # 写入表头
+            
+            # 写入内容行数据
             for col_index, header in enumerate(headers):
+                # 写入表头
                 sheet.write(0, col_index, header)
-
-                # 写入数据
-                for row_index, row_data in enumerate(rows, start=1):
-                    for col_index, cell_value in enumerate(row_data):
-                        sheet.write(row_index, col_index, str(cell_value))  # 转为文本存储
+            for row_index, row_data in enumerate(rows, start=1):
+                for col_index, cell_value in enumerate(row_data):
+                    sheet.write(row_index, col_index, str(cell_value))  # 转为文本存储
 
             # 保存文件
             workbook.save(file_path)
+            # 打印信息
+            print(f"Notice:暂存表格不存在,重新创建暂存表格,路径为{file_path}")
 
         print("数据已成功追加存储到Excel文件中。")
     except Exception as e: # Leraning2：不能操作Excel正在打开的表
@@ -216,3 +218,4 @@ def cmmit_data_to_storage_excel(excel_file_path):
 #      - [x] 修复Error: 'Worksheet' object has no attribute 'cell'
 #      - [x] 修复TypeError: descriptor 'decode' for 'bytes' objects doesn't apply to a 'NoneType' object
 # - [x] 2025.5.1 修复暂存一次表格前7行出现None字符的问题
+# - [ ] 2025.5.2 解决store_single_entry_to_temple_excel函数表格不存在时[Errno 2] No such file or directory: '.\\src\\data\\input\\manual\\temp_manual_input_data.xls'的问题

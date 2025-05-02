@@ -400,13 +400,13 @@ class Ui_Form(object):
         # 定义输入框的字典
         input_fields = {
             "日期": self.line1Right,
-            "类别": self.line2Right,
             "品名": self.line3Right,
-            "备注": self.line4Right,
-            "金额": self.line5Right,
-            "数量": self.line6Right,
-            "单价": self.line7Right,
+            "类别": self.line2Right,
             "单位": self.line8Right,
+            "单价": self.line7Right,
+            "数量": self.line6Right,
+            "金额": self.line5Right,
+            "备注": self.line4Right,
             "公司": self.line9Right,
         }
 
