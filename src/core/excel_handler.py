@@ -18,7 +18,7 @@ from xlwt.Style import  XFStyle
 
 from xlwt import Workbook
 import xlwings as xw
-
+import re
 
 def store_single_entry_to_temple_excel(data, file_path):
     """
@@ -136,7 +136,7 @@ def cmmit_data_to_storage_excel(excel_file_path):
         raise ValueError("表头必须是字符串类型")
 
     # 调用xlwings打开 excel 应用对象
-    with xw.App(visible=True) as app:
+    with xw.App(visible=False) as app:
         # 读取主工作表格
         try:
             # 打开主工作簿对象
@@ -153,6 +153,9 @@ def cmmit_data_to_storage_excel(excel_file_path):
             # 创建一个字典，用于存储列索引和列名的对应关系
             header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
             
+            # 将日期分解为月和日
+            year,month, day = row_data[header_index["日期"]].split("-")
+
             # 获取行中类别列类型单元中的类别名数据
             category_name = row_data[header_index["类别"]]
             # 获取行中品名列类型单元中的品名名数据
@@ -174,23 +177,49 @@ def cmmit_data_to_storage_excel(excel_file_path):
             
             
             # 更新指定公司sheet中的金额数据
-            update_company_sheet(main_workbook, company_name, amount)
-            # 将除公司以外的条目打包成一个元组
-            row_data_tuple = (category_name, product_name, unit_name, price, quantity, amount, remark, company_name, single_name)
-            
+            update_company_sheet(main_workbook, company_name, amount)    
+
             # 访问single_name对应的sheet
             try:
                 sheet = main_workbook.sheets[single_name]
             except KeyError:
                 print(f"未找到入库类型名为 {company_name} 的sheet")
                 return
-            # 从0行便利到有空行的行，记录下行标，数据填写空的第一行开始写入
+            
+            # 查找第一行空行，记录下空行行标（从表格的第二行开始）
             for row_index in range(0, sheet.used_range.rows.count):
-                if sheet.range((row_index + 1, 1)).value is None:
+                if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
                     break
-            # 整行写入数据
-            sheet.range(row_index, 0).value = row_data_tuple
-
+        
+            # 尝试写入一行数据
+            try:
+                # 写入序号数据,从空行的第一行起算
+                sheet.range((row_index + 1, 1)).value = row_index + 1
+                print(f"Notice: 在主表为入库类型{header_index} 的 {row_index} 行写入序号：{row_index + 1} 成功")
+                # 为B、C列写入月份日期数据
+                sheet.range((row_index + 1, 2)).value = month
+                sheet.range((row_index + 1, 3)).value = day
+                print(f"Notice: 在主表为入库类型{header_index} 的 {row_index} 行写入月份：{month} 日：{day} 成功")
+                # 依次为D~K列写入数据(D、E列合并，需要加入跳过判断逻辑)
+                for col_index in range(4, 12):
+                    if col_index == 5:
+                        # 如果当前列是E列，则跳过
+                        continue
+                    else:
+                        # 操作该单元时候，访问第该单元对应列的第四行单元获取该列的列名属性
+                        cell_attribute = sheet.range((4, col_index)).value
+                        if isinstance(cell_attribute, str):
+                            # 去除所有中文之间的空格
+                            cell_attribute = re.sub(r'(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])', '', cell_attribute)
+                        try:
+                            # 在row_data中查找该列名对应的值，然后写入正在被操作的该单元中
+                            sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
+                            print(f"Notice: 在主表为入库类型 {header_index} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
+                        except KeyError:
+                            print(f"Error: 未在主表入库类型 {header_index} 找到名为 {cell_attribute} 的列")
+                        
+            except Exception as e:
+                print(f"Error: 写入主表时出错 {e}")
 
         try:
             # 保存并关闭工作簿
