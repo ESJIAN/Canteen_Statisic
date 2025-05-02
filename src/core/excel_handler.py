@@ -195,11 +195,11 @@ def cmmit_data_to_storage_excel(excel_file_path):
             try:
                 # 写入序号数据,从空行的第一行起算
                 sheet.range((row_index + 1, 1)).value = row_index + 1
-                print(f"Notice: 在主表为入库类型{header_index} 的 {row_index} 行写入序号：{row_index + 1} 成功")
+                print(f"Notice: 在主表为入库类型 {single_name} 的第 {row_index} 行写入序号：{row_index + 1} 成功")
                 # 为B、C列写入月份日期数据
                 sheet.range((row_index + 1, 2)).value = month
                 sheet.range((row_index + 1, 3)).value = day
-                print(f"Notice: 在主表为入库类型{header_index} 的 {row_index} 行写入月份：{month} 日：{day} 成功")
+                print(f"Notice: 在主表为入库类型 {single_name} 的第 {row_index} 行写入月份：{month} 日：{day} 成功")
                 # 依次为D~K列写入数据(D、E列合并，需要加入跳过判断逻辑)
                 for col_index in range(4, 12):
                     if col_index == 5:
@@ -214,9 +214,9 @@ def cmmit_data_to_storage_excel(excel_file_path):
                         try:
                             # 在row_data中查找该列名对应的值，然后写入正在被操作的该单元中
                             sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
-                            print(f"Notice: 在主表为入库类型 {header_index} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
+                            print(f"Notice: 在主表为入库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
                         except KeyError:
-                            print(f"Error: 未在主表入库类型 {header_index} 找到名为 {cell_attribute} 的列")
+                            print(f"Error: 未在主表入库类型 {single_name} 找到名为 {cell_attribute} 的列")
                         
             except Exception as e:
                 print(f"Error: 写入主表时出错 {e}")
@@ -224,6 +224,7 @@ def cmmit_data_to_storage_excel(excel_file_path):
         try:
             # 保存并关闭工作簿
             main_workbook.save()
+            main_workbook.close()
             print(f"Notice: 主工作表保存成功，文件路径: {excel_file_path}")
         except Exception as e:
             print(f"Error: 保存主表时出错 {e}")
