@@ -1,4 +1,4 @@
-你的报错：
+# 错误1
 
 **sheet = main_workbook.sheets["扶贫主食入库"]**
 
@@ -74,3 +74,127 @@
 **sheet** **=** main_workbook.sheets**[**target_name**]**
 
 这样可以避免因为 sheet 名称不一致导致的 KeyError 或 com_error。
+
+
+
+
+# 错误2：
+
+**Error: 更新食堂物品收发存库存表时出错 Attempted to access 0-based **Range. xlwings/Excel Ranges are 1-based.
+
+**原因：**
+
+* 在 [xlwings](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 中，Excel 的行列索引是**从 1 开始**的（1-based），而不是 Python 常用的 0-based。
+* 你在代码中有类似 [sheet.range((row_index, 1))](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 这样的写法，如果 [row_index](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 为 0，就会报这个错。
+
+---
+
+## 解决方法
+
+**确保所有 [sheet.range((row_index, col_index))](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 的 [row_index](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 和 [col_index](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 都 ≥ 1。**
+
+### 重点检查这段代码：
+
+**for** **row_index** **in** **range**(**0**, sheet.used_range.rows.count**)**:
+
+**    **if** sheet.range**(**(**row_index** , **1**)**)**.value **is** **None** **and** sheet.range**(**(**row_index** , **2**)**)**.value **is** **None** **and** **row_index** **!=** **0** **and** **row_index** **!=** **4**:**
+
+**        **break
+
+**# ...**
+
+**sheet.range**(**(**row_index** , **1**)**)**.value **=** product_name**
+
+* 这里 [row_index](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 从 0 开始，导致 [sheet.range((0, 1))](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 报错。
+
+---
+
+### 推荐修正
+
+将所有相关 [row_index](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 的地方加 1，确保从 1 开始：
+
+**for** **row_index** **in** **range**(**1**, sheet.used_range.rows.count **+** **1**)**:**
+
+**    **if** sheet.range**(**(**row_index**, **1**)**)**.value **is** **None** **and** sheet.range**(**(**row_index**, **2**)**)**.value **is** **None** **and** **row_index** **!=** **1** **and** **row_index** **!=** **5**:**
+
+**        **break
+
+**# 更新该行A列的物品名称信息**
+
+**sheet.range**(**(**row_index**, **1**)**)**.value **=** product_name**
+
+* 如果你有特殊跳过首行/表头的需求，请相应调整判断条件。
+
+---
+
+**总结：**
+
+* [xlwings](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 的 `.range((row, col))` 必须 [row &gt;= 1](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 且 [col &gt;= 1](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)。
+* 检查所有相关代码，避免出现 0 作为行或列索引。
+
+这样即可解决该报错。
+
+
+
+# 错误3
+
+是的，你遇到的这个错误：
+
+**Error: 保存主表时出错 (-2147352567, 'Exception **occurred.', (0, 'Microsoft Excel', '文档未保存。', ...), **None)**
+
+**很大概率和 Excel 进程未正常关闭有关。**
+
+---
+
+## 原因分析
+
+* 如果你在调试或多次运行程序时， **Excel 进程未被关闭** ，文件句柄被占用，导致后续保存或写入时 Excel 拒绝保存（尤其是用 xlwings/xlwings.App 打开的文件）。
+* 也可能是你打开了同一个文件的多个实例，或文件在 Windows 资源管理器中被占用。
+
+---
+
+## 解决方法
+
+1. **确保每次操作后都关闭 Excel 应用和工作簿：**
+
+   **main_workbook.save**(**)**
+
+   **main_workbook.close**(**)**
+
+   **app.quit**(**)**
+2. **调试前手动结束所有 Excel 进程：**
+
+   * 打开任务管理器，结束所有 `EXCEL.EXE` 进程。
+   * 或在命令行运行：
+
+     **taskkill /f /im excel.exe**
+3. **避免多次打开同一个文件不关闭。**
+4. **确保没有其他程序（如资源管理器、OneDrive等）占用该文件。**
+
+---
+
+## 代码建议
+
+在 `with xw.App(visible=False) as app:` 结构下，`app` 会自动关闭，但如果你有异常提前退出，建议加上 `try...finally` 或确保 `main_workbook.close()` 被调用。
+
+---
+
+**总结：**
+
+* 该错误常见于 Excel 文件被占用或进程未关闭。
+* 关闭所有 Excel 进程，确保每次都正确关闭和保存工作簿，可以解决此问题。3. **避免多次打开同一个文件不关闭。**
+
+4. **确保没有其他程序（如资源管理器、OneDrive等）占用该文件。**
+
+---
+
+## 代码建议
+
+在 `with xw.App(visible=False) as app:` 结构下，`app` 会自动关闭，但如果你有异常提前退出，建议加上 `try...finally` 或确保 `main_workbook.close()` 被调用。
+
+---
+
+**总结：**
+
+* 该错误常见于 Excel 文件被占用或进程未关闭。
+* 关闭所有 Excel 进程，确保每次都正确关闭和保存工作簿，可以解决此问题。

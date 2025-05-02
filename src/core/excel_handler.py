@@ -189,31 +189,56 @@ def cmmit_data_to_storage_excel(excel_file_path):
                 print(f"Error: 未找到入库类型名为 `食堂物品收发存库存表` 的sheet,可能存在空字符")
                 return
             
-            # 调用Excel VBA api 查找名为'名称'的 A列中存不存在该名称
-            if sheet.range("A:A").api.Find(product_name, match_case=False) is not None:
+            try:
+                # 调用Excel VBA api 查找名为'名称'的 A列中存不存在该名称
+                if sheet.range("A:A").api.Find(product_name) is not None:
 
-                # 如果存在，则更新该行的数据
-                row_index = sheet.range("A:A").find(product_name, match_case=False).row
-                print(f"Notice: 在表 食堂物品收发存库存表 找到名称为 {product_name} 的行,行号为{row_index}")
-                
-                # 在F列更新数量信息，G列更新单价信息，H列更新金额信息
-                sheet.range(f"F{row_index}").value = sheet.range(f"F{row_index}").value+quantity
-                sheet.range(f"G{row_index}").value = sheet.range(f"G{row_index}").value+price
-                sheet.range(f"H{row_index}").value = sheet.range(f"H{row_index}").value+amount
-            else:
-                # 如果不存在，查找第一行空行，记录下空行行标（从表格的第二行开始）       
-                for row_index in range(0, sheet.used_range.rows.count):
-                    if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
-                        break
+                    # 如果存在，则更新该行的数据
+                    row_index = sheet.range("A:A").find(product_name, match_case=False).row
+                    print(f"Notice: 在表 食堂物品收发存库存表 找到名称为 {product_name} 的行,行号为{row_index}")
 
-                # 更新该行A列的物品名称信息
-                sheet.range((row_index + 1, 1)).value = product_name
-                # 更新该行F列的数量信息
-                sheet.range((row_index + 1, 6)).value = sheet.range((row_index + 1, 6)).value+quantity
-                # 更新改行H列的金额信息
-                sheet.range((row_index + 1, 8)).value = sheet.range((row_index + 1, 8)).value+amount
+                    # 判断quantity、price、amount的值是否为数值
+                    if isinstance(quantity, (int, float)) and isinstance(price, (int, float)) and isinstance(amount, (int, float)):
+                        # 在F列更新数量信息，G列更新单价信息，H列更新金额信息
+                        sheet.range(f"F{row_index}").value = sheet.range(f"F{row_index}").value+quantity
+                        sheet.range(f"G{row_index}").value = sheet.range(f"G{row_index}").value+price
+                        sheet.range(f"H{row_index}").value = sheet.range(f"H{row_index}").value+amount
+                        
+                        print(f"Notice: 在表 食堂物品收发存库存表 更新行信息 数量、单价、金额 的列,行号为{row_index}")
+                    
+                    else:
+                        print(f"Error: quantity、price、amount的值必须为数值")
+                        return
+                    
+                else:
+                    # 如果不存在，查找第一行空行，记录下空行
+                    for row_index in range(0, sheet.used_range.rows.count):
+                        if sheet.range((row_index + 1 , 1)).value is None and sheet.range((row_index + 1 , 2)).value is None and row_index != 0 and row_index != 4:
+                            break
 
-                
+                    # 更新该行A列的物品名称信息
+                    sheet.range((row_index + 1, 1)).value = product_name
+                    
+                    try:
+                        # 将quantity、price、amount转换为浮点数
+                        quantity = float(quantity)
+                        price = float(price)
+                        amount = float(amount)
+                    except ValueError:
+                        print(f"Error: quantity、price、amount的值必须为数值")
+                        return
+                   
+                    # 在F列更新数量信息，G列更新单价信息，H列更新金额信息
+                    sheet.range((row_index + 1, 6)).value = quantity
+                    sheet.range((row_index + 1, 7)).value = price
+                    sheet.range((row_index + 1, 8)).value = amount
+
+                    print(f"Notice: 在表 食堂物品收发存库存表 为 `名称、数量、单价、金额` 列添加值,行号为{row_index}")
+                                
+                main_workbook.close()
+            except Exception as e:
+                    print(f"Error: 更新食堂物品收发存库存表时出错 {e}")
+                    
 
             
 
@@ -287,12 +312,17 @@ def write_data_to_sheet(main_workbook, single_name, row_data, header_index, mont
     try:
         # 检查目标Sheet名是否存在
         if single_name in [s.name for s in main_workbook.sheets]:
+            sheet = main_workbook.sheets[single_name]
             print(f"Notice: 找到入库类型名为 `{single_name}` 的sheet")
+        
+        elif single_name+" " in [s.name for s in main_workbook.sheets]:
+            sheet = main_workbook.sheets[f"{single_name} "]
+            print(f"Notice: 找到入库类型名为 `{single_name} ` 的sheet")
         else:
             print(f"Error: 未找到入库类型名为 `{single_name}` 的sheet,可能存在空字符")
             return
 
-        sheet = main_workbook.sheets[single_name]
+        
 
         # 查找第一行空行，记录下空行行标（从表格的第二行开始）
         for row_index in range(0, sheet.used_range.rows.count):
