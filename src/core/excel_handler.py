@@ -37,8 +37,8 @@ def store_single_entry_to_temple_excel(data, file_path):
             data[key] = [value]  # 转换为列表
 
     # 将字典数据转换为二维列表
-    headers = list(data.keys())
-    rows = list(zip(*data.values()))
+    headers = list(data.keys())      # 获取传入字典的键列
+    rows = list(zip(*data.values())) # 将键列解包重新打包成每一行的数据
 
     try:
         if os.path.exists(file_path):
@@ -66,10 +66,10 @@ def store_single_entry_to_temple_excel(data, file_path):
             # 创建工作表对象
             sheet = workbook.add_sheet("Sheet1")
             
-            # 写入内容行数据
+            # 写入表头行数据
             for col_index, header in enumerate(headers):
-                # 写入表头
                 sheet.write(0, col_index, header)
+            # 写入内容行数据
             for row_index, row_data in enumerate(rows, start=1):
                 for col_index, cell_value in enumerate(row_data):
                     sheet.write(row_index, col_index, str(cell_value))  # 转为文本存储
