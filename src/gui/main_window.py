@@ -82,6 +82,7 @@ class Ui_Form(object):
         self.formLayout.setObjectName(u"formLayout")
 
         # Learning4：标签-输入框组的开始
+        # 日期输入行
         self.line1Left = QLabel(self.groupBox)
         self.line1Left.setObjectName(u"date")
 
@@ -93,7 +94,7 @@ class Ui_Form(object):
         self.formLayout.setWidget(1, QFormLayout.ItemRole.FieldRole, self.line1Right)
         # Learning4：标签-输入框组的结束
 
-        # 
+        # 类别输入行
         self.line2Left = QLabel(self.groupBox)
         self.line2Left.setObjectName(u"foodType")
 
@@ -104,7 +105,7 @@ class Ui_Form(object):
 
         self.formLayout.setWidget(2, QFormLayout.ItemRole.FieldRole, self.line2Right)
 
-        # 
+        # 品名输入行
         self.line3Left = QLabel(self.groupBox)
         self.line3Left.setObjectName(u"name")
 
@@ -115,40 +116,18 @@ class Ui_Form(object):
 
         self.formLayout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.line3Right)
 
-        # 
-        self.line4Light = QLabel(self.groupBox)
-        self.line4Light.setObjectName(u"info")
+        # 单位输入行
+        self.line8Left = QLabel(self.groupBox)
+        self.line8Left.setObjectName(u"Label_3")
 
-        self.formLayout.setWidget(4, QFormLayout.ItemRole.LabelRole, self.line4Light)
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.LabelRole, self.line8Left)
 
-        self.line4Right = QLineEdit(self.groupBox)
-        self.line4Right.setObjectName(u"info_2")
+        self.line8Right = QLineEdit(self.groupBox)
+        self.line8Right.setObjectName(u"LineEdit_3")
 
-        self.formLayout.setWidget(4, QFormLayout.ItemRole.FieldRole, self.line4Right)
-
-        # 
-        self.line5Left = QLabel(self.groupBox)
-        self.line5Left.setObjectName(u"amount")
-
-        self.formLayout.setWidget(5, QFormLayout.ItemRole.LabelRole, self.line5Left)
-
-        self.line5Right = QLineEdit(self.groupBox)
-        self.line5Right.setObjectName(u"amount_2")
-
-        self.formLayout.setWidget(5, QFormLayout.ItemRole.FieldRole, self.line5Right)
-
-        # 
-        self.line6Left = QLabel(self.groupBox)
-        self.line6Left.setObjectName(u"Label")
-
-        self.formLayout.setWidget(6, QFormLayout.ItemRole.LabelRole, self.line6Left)
-
-        self.line6Right = QLineEdit(self.groupBox)
-        self.line6Right.setObjectName(u"LineEdit")
-
-        self.formLayout.setWidget(6, QFormLayout.ItemRole.FieldRole, self.line6Right)
-
-        # 
+        self.formLayout.setWidget(8, QFormLayout.ItemRole.FieldRole, self.line8Right)
+        
+        # 单价输入行
         self.line7Left = QLabel(self.groupBox)
         self.line7Left.setObjectName(u"Label_2")
 
@@ -159,18 +138,41 @@ class Ui_Form(object):
 
         self.formLayout.setWidget(7, QFormLayout.ItemRole.FieldRole, self.line7Right)
 
-        # 
-        self.line8Left = QLabel(self.groupBox)
-        self.line8Left.setObjectName(u"Label_3")
 
-        self.formLayout.setWidget(8, QFormLayout.ItemRole.LabelRole, self.line8Left)
+        # 数量输入行
+        self.line6Left = QLabel(self.groupBox)
+        self.line6Left.setObjectName(u"Label")
 
-        self.line8Right = QLineEdit(self.groupBox)
-        self.line8Right.setObjectName(u"LineEdit_3")
+        self.formLayout.setWidget(6, QFormLayout.ItemRole.LabelRole, self.line6Left)
 
-        self.formLayout.setWidget(8, QFormLayout.ItemRole.FieldRole, self.line8Right)
+        self.line6Right = QLineEdit(self.groupBox)
+        self.line6Right.setObjectName(u"LineEdit")
 
-        # 
+        self.formLayout.setWidget(6, QFormLayout.ItemRole.FieldRole, self.line6Right)
+
+        # 金额输入行
+        self.line5Left = QLabel(self.groupBox)
+        self.line5Left.setObjectName(u"amount")
+
+        self.formLayout.setWidget(5, QFormLayout.ItemRole.LabelRole, self.line5Left)
+
+        self.line5Right = QLineEdit(self.groupBox)
+        self.line5Right.setObjectName(u"amount_2")
+
+        self.formLayout.setWidget(5, QFormLayout.ItemRole.FieldRole, self.line5Right)
+
+        # 备注输入行
+        self.line4Light = QLabel(self.groupBox)
+        self.line4Light.setObjectName(u"info")
+
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.LabelRole, self.line4Light)
+
+        self.line4Right = QLineEdit(self.groupBox)
+        self.line4Right.setObjectName(u"info_2")
+
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.FieldRole, self.line4Right)
+
+        # 公司输入行
         self.line9Left = QLabel(self.groupBox)
         self.line9Left.setObjectName(u"info_3")
 

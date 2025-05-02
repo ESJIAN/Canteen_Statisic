@@ -17,6 +17,7 @@ from xlutils.copy import copy
 from xlwt.Style import  XFStyle
 
 from xlwt import Workbook
+import xlwings as xw
 
 
 def store_single_entry_to_temple_excel(data, file_path):
@@ -126,77 +127,71 @@ def cmmit_data_to_storage_excel(excel_file_path):
     except Exception as e:
         print(f"Error: 打开暂存表工作簿出错 {e}")
         return
-
-    # 读取主工作表格数据
-    try:
-        # 打开工作簿
-        read_main_workbook = xlrd.open_workbook(excel_file_path, formatting_info=True)
-        # 利用xlutils的copy函数创建可写副本
-        writable_main_workbook = copy(read_main_workbook)
-        print(f"Notice: 主工作表加载成功，文件路径: {excel_file_path}")
-    except Exception as e:
-        print(f"Error: {e}")
-        return
-
+    
     # 获取表头数据
     read_temp_storage_workbook_headers = read_temp_storage_workbook.sheet_by_index(0).row_values(0)  # 获取表头的第一行数据
     # 确保表头是一个扁平的列表
     if not all(isinstance(header, str) for header in read_temp_storage_workbook_headers):
         raise ValueError("表头必须是字符串类型")
 
-    # 轮询读取暂存表格数据行
-    for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
-        # 读取行数据
-        row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
-        # 创建一个字典，用于存储列索引和列名的对应关系
-        header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
-        # 获取行中公司列单元中公司名数据
-        company_name = row_data[header_index["公司"]]
-        # 获取行中金额列单元中金额数据
-        amount = row_data[header_index["金额"]]
-
-        # 1. 先用 xlrd 找到 sheet 的索引
-        sheet_index = None
-        for idx, sheet in enumerate(read_main_workbook.sheets()):
-            if sheet.name == company_name:
-                sheet_index = idx
-                break
-        if sheet_index is None:
-            print(f"未找到公司名为 {company_name} 的sheet")
-            continue
-
-        # 2. 用 xlrd 读取原有值
-        original_sheet = read_main_workbook.sheet_by_index(sheet_index)
-        current_value = get_merged_cell_value(original_sheet, 7, 3)
-        if current_value is None or current_value == "":
-            current_value = 0
-
-        # 读取金额
-        if amount is None or amount == "":
-            amount = 0
+    # 调用xlwings打开主工作簿
+    with xw.App(visible=True) as app:
+        # 读取主工作表格数据
         try:
-            amount = float(amount)
-        except Exception:
-            amount = 0
+            main_workbook = app.books.open(excel_file_path)
+            print(f"Notice: 主工作表加载成功，文件路径: {excel_file_path}")
+        except Exception as e:
+            print(f"Error: {e}")
+            return    
 
-        # 计算新值
-        if isinstance(current_value, (int, float)):
-            new_value = current_value + amount
-        else:
+        # 轮询读取暂存表格数据行
+        for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
+            # 读取行数据
+            row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
+            # 创建一个字典，用于存储列索引和列名的对应关系
+            header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
+            # 获取行中公司列单元中公司名数据
+            company_name = row_data[header_index["公司"]]
+            # 获取行中金额列单元中金额数据
+            amount = row_data[header_index["金额"]]
+
+            # 查找对应的sheet
             try:
-                new_value = float(current_value) + amount
+                sheet = main_workbook.sheets[company_name]
+            except KeyError:
+                print(f"未找到公司名为 {company_name} 的sheet")
+                continue
+
+            # 获取当前值
+            current_value = sheet.range("D8").value  # 假设目标单元格是 D8（Excel索引从1开始）
+            if current_value is None or current_value == "":
+                current_value = 0
+
+            # 读取金额
+            if amount is None or amount == "":
+                amount = 0
+            try:
+                amount = float(amount)
             except Exception:
-                new_value = amount
+                amount = 0
 
-        # 4. 用 xlutils 写入新值
-        writable_sheet = writable_main_workbook.get_sheet(sheet_index)
-        writable_sheet.write(7, 3, new_value)
+            # 计算新值
+            if isinstance(current_value, (int, float)):
+                new_value = current_value + amount
+            else:
+                try:
+                    new_value = float(current_value) + amount
+                except Exception:
+                    new_value = amount
 
-    try:
-        writable_main_workbook.save(excel_file_path)
-        print(f"数据已成功提交到主表: {excel_file_path}")
-    except Exception as e:
-        print(f"Error: 保存主表时出错 {e}")
+            # 写入新值
+            sheet.range("D8").value = new_value
+        try:
+            # 保存并关闭工作簿
+            main_workbook.save()
+            print(f"Notice: 主工作表保存成功，文件路径: {excel_file_path}")
+        except Exception as e:
+            print(f"Error: 保存主表时出错 {e}")
 
 
 
@@ -205,7 +200,7 @@ def cmmit_data_to_storage_excel(excel_file_path):
 # Learning:
 # 1. Openpyxl 不对 .xls 文件格式提供支持，只能对 .xlsx 文件格式提供支持
 # 2. 代码操作Excel打开的表时候会出现权限遭拒错误
-# 3.
+# 3. xlrd&xlwd 和 xlrd&xlutils 两种库的搭配对于 Excel xls的表格操作容易触发兼容性问题
 # 4. 
 # TODO:
 # - [x] 修复数据存储到Excel文件中的报错:ValueError: If using all scalar values, you must pass an index
@@ -214,10 +209,10 @@ def cmmit_data_to_storage_excel(excel_file_path):
 # - [ ] 2025.5.1 实现数据提交到主表、副表Excel文件的功能
 #   - [x] 修复Error: openpyxl does not support the old .xls file format, please use xlrd to read this file, or convert it to the more recent .xlsx file format.
 #   - [x] 修复NameError: name 'input_data' is not defined
-#   - [ ] 实现提交条目数据到主表公司
+#   - [x] 实现提交条目数据到主表公司
 #      - [x] 将openpyxl替换为xlwd，实现Excel以xls文件保存，减少与原表格的数据格式冲突
 #      - [x] 修复： [Errno 13] Permission denied: '.\\src\\data\\input\\manual\\temp_manual_input_data.xls'
-#      - [ ] 修复表单访问方法错用的问题
+#      - [x] 修复表单访问方法错用的问题
 #      - [x] 修复Error: 'Worksheet' object has no attribute 'cell'
-#      - [ ] 修复TypeError: descriptor 'decode' for 'bytes' objects doesn't apply to a 'NoneType' object
+#      - [x] 修复TypeError: descriptor 'decode' for 'bytes' objects doesn't apply to a 'NoneType' object
 # - [x] 2025.5.1 修复暂存一次表格前7行出现None字符的问题
