@@ -213,11 +213,15 @@ def cmmit_data_to_storage_excel(excel_file_path):
                 else:
                     # 如果不存在，查找第一行空行，记录下空行
                     for row_index in range(0, sheet.used_range.rows.count):
-                        if sheet.range((row_index + 1 , 1)).value is None and sheet.range((row_index + 1 , 2)).value is None and row_index != 0 and row_index != 4:
+                        if sheet.range((row_index + 1 , 1)).value is None and sheet.range((row_index + 1 , 2)).value is None and sheet.range((row_index + 2 , 1)).value is None and sheet.range((row_index + 2 , 2)).value is None :
                             break
 
                     # 更新该行A列的物品名称信息
                     sheet.range((row_index + 1, 1)).value = product_name
+                    # 更新该行B列物品的计量单位信息
+                    sheet.range((row_index + 1, 2)).value = unit_name
+                    # 更新改行O列物品的备注信息
+                    sheet.range((row_index + 1, 15)).value = remark
                     
                     try:
                         # 将quantity、price、amount转换为浮点数
@@ -233,23 +237,18 @@ def cmmit_data_to_storage_excel(excel_file_path):
                     sheet.range((row_index + 1, 7)).value = price
                     sheet.range((row_index + 1, 8)).value = amount
 
-                    print(f"Notice: 在表 食堂物品收发存库存表 为 `名称、数量、单价、金额` 列添加值,行号为{row_index}")
+                    print(f"Notice: 在表 食堂物品收发存库存表 为 `名称{product_name}、数量 {quantity}、单价 {price}、金额 {amount}` 列添加值,行号为{row_index+1}")
                                 
-                main_workbook.close()
             except Exception as e:
                     print(f"Error: 更新食堂物品收发存库存表时出错 {e}")
-                    
-
-            
-
-
-
 
         try:
-            # 保存并关闭工作簿
+            # 保存工作簿
             main_workbook.save()
+            # 关闭工作簿
             main_workbook.close()
             print(f"Notice: 主工作表保存成功，文件路径: {excel_file_path}")
+        
         except Exception as e:
             print(f"Error: 保存主表时出错 {e}")
 
@@ -390,12 +389,18 @@ def write_data_to_sheet(main_workbook, single_name, row_data, header_index, mont
 # - [ ] 2025.5.1 实现数据提交到主表、副表Excel文件的功能
 #   - [x] 修复Error: openpyxl does not support the old .xls file format, please use xlrd to read this file, or convert it to the more recent .xlsx file format.
 #   - [x] 修复NameError: name 'input_data' is not defined
-#   - [x] 实现提交条目数据到主表公司
+#   - [x] 实现提交条目数据到主表中
 #      - [x] 将openpyxl替换为xlwd，实现Excel以xls文件保存，减少与原表格的数据格式冲突
 #      - [x] 修复： [Errno 13] Permission denied: '.\\src\\data\\input\\manual\\temp_manual_input_data.xls'
 #      - [x] 修复表单访问方法错用的问题
 #      - [x] 修复Error: 'Worksheet' object has no attribute 'cell'
 #      - [x] 修复TypeError: descriptor 'decode' for 'bytes' objects doesn't apply to a 'NoneType' object
-#      - [ ] 实现提交数据条目到主表食堂物品手法库存表中
+#      - [x] 实现提交数据条目到主表物品相应的入库类型sheet表中
+#      - [x] 实现提交数据条目到食堂物品收发存表中
+#      - [ ] 实现提交数据条目到主副食明细账中
+#      - [ ] 实现提交数据条目到收发表存皮重
+#   - [ ] 实现提交数据到子表中
+#      - [ ] 实现提交数据到主食表入库中
+#      - [ ] 实现提交数据到副食表入库中 
 # - [x] 2025.5.1 修复暂存一次表格前7行出现None字符的问题
 # - [x] 2025.5.2 解决store_single_entry_to_temple_excel函数表格不存在时[Errno 2] No such file or directory: '.\\src\\data\\input\\manual\\temp_manual_input_data.xls'的问题

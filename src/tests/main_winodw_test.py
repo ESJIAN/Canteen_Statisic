@@ -460,13 +460,6 @@ class Ui_Form(object):
         # 调用 temp_list_rollback 函数实现条目回滚
         temp_list_rollback(self)
 
-        
-
-        
-
-
-        
-
 if __name__ == "__main__":
 
     # 创建一个QApplication对象

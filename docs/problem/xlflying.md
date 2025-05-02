@@ -75,9 +75,6 @@
 
 这样可以避免因为 sheet 名称不一致导致的 KeyError 或 com_error。
 
-
-
-
 # 错误2：
 
 **Error: 更新食堂物品收发存库存表时出错 Attempted to access 0-based **Range. xlwings/Excel Ranges are 1-based.
@@ -133,8 +130,6 @@
 * 检查所有相关代码，避免出现 0 作为行或列索引。
 
 这样即可解决该报错。
-
-
 
 # 错误3
 
@@ -198,3 +193,79 @@
 
 * 该错误常见于 Excel 文件被占用或进程未关闭。
 * 关闭所有 Excel 进程，确保每次都正确关闭和保存工作簿，可以解决此问题。
+
+
+# 错误4
+
+
+
+你遇到的错误：
+
+**Error: 保存主表时出错 (-2147417848, 'The object invoked **has disconnected from its clients.', None, None)
+
+---
+
+## 原因分析
+
+这个错误通常是**Excel进程或对象提前被关闭或失效**导致的。常见原因包括：
+
+1. **Excel进程被异常关闭** （如任务管理器强制关闭、代码中提前关闭了 app 或 workbook）。
+2. **对象作用域问题** ，如 [main_workbook](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 或 [app](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 被销毁或超出 `with` 语句作用域后还在用。
+3. **多线程/异步操作**导致 COM 对象失效。
+4. **异常提前退出** ，导致 Excel 对象断开。
+
+---
+
+## 解决方法
+
+### 1. **确保所有 Excel 操作都在 [with xw.App(...) as app:](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 作用域内完成**
+
+不要在 `with` 语句块外部再访问 [main_workbook](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 或 [sheet](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)。
+
+### 2. **不要提前关闭 workbook 或 app**
+
+只在所有操作完成后再调用 [main_workbook.save()](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 和 [main_workbook.close()](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)，并确保这些操作都在 `with` 作用域内。
+
+### 3. **异常处理时不要提前关闭 app**
+
+如果你在 `try...except` 里提前关闭了 [main_workbook](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 或 [app](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)，后续再访问就会报这个错。
+
+### 4. **不要让 Excel 进程被外部强制关闭**
+
+调试时不要手动杀掉 Excel 进程。
+
+---
+
+## 推荐代码结构
+
+**with** xw.App**(**visible**=**False**)** **as** **app**:
+
+**    **try**:**
+
+**        **main_workbook** **=** **app**.books.open**(**excel_file_path**)
+
+**        **# ...所有Excel操作...
+
+**        **main_workbook**.save**(**)**
+
+**        **print**(**f**"Notice: 主工作表保存成功，文件路径: **{**excel_file_path**}**"**)
+
+**        **main_workbook**.close**(**)**
+
+**    **except** **Exception** **as** **e**:**
+
+**        **print**(**f**"Error: **{**e**}**"**)
+
+---
+
+## 参考
+
+你可以参考 [xlflying.md](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 中关于 Excel 进程和对象关闭的说明。
+
+---
+
+**总结：**
+
+* 该错误本质是 Excel 对象失效或进程断开。
+* 保证所有 Excel 操作都在 [with xw.App(...) as app:](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 作用域内完成，且不要提前关闭对象。
+* 避免多线程/异步操作和外部强制关闭 Excel 进程。
