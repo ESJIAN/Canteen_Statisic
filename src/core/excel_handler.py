@@ -191,10 +191,10 @@ def cmmit_data_to_storage_excel(excel_file_path):
             
             try:
                 # 调用Excel VBA api 查找名为'名称'的 A列中存不存在该名称
-                if sheet.range("A:A").api.Find(product_name) is not None:
-
+                found = sheet.range("A:A").api.Find(product_name)
+                if found is not None:
                     # 如果存在，则更新该行的数据
-                    row_index = sheet.range("A:A").find(product_name, match_case=False).row
+                    row_index = found.row
                     print(f"Notice: 在表 食堂物品收发存库存表 找到名称为 {product_name} 的行,行号为{row_index}")
 
                     # 判断quantity、price、amount的值是否为数值
