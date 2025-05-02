@@ -120,7 +120,7 @@ class Ui_Form(object):
         self.line8Left = QLabel(self.groupBox)
         self.line8Left.setObjectName(u"Label_3")
 
-        self.formLayout.setWidget(4, QFormLayout.ItemRole.LabelRole, self.line8Left)
+        self.formLayout.setWidget(8, QFormLayout.ItemRole.LabelRole, self.line8Left)
 
         self.line8Right = QLineEdit(self.groupBox)
         self.line8Right.setObjectName(u"LineEdit_3")
