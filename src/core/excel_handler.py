@@ -177,77 +177,48 @@ def cmmit_data_to_storage_excel(excel_file_path):
 
             # 更新指定公司sheet中的金额数据
             update_company_sheet(main_workbook, company_name, amount)    
+            # 更新入库相关表中的条目信息
+            write_data_to_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name)
+            # 更新食品收发库存表中的条目信息
 
-            def write_data_to_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name):
-                """
-                将数据写入指定的sheet中
-                :param main_workbook: 主工作簿对象
-                :param single_name: sheet名称
-                :param row_data: 行数据
-                :param header_index: 表头索引字典
-                :param month: 月份
-                :param day: 日期
-                :param unit_name: 单位名称
-                :return: None
-                """
-                try:
-                    # 检查目标Sheet名是否存在
-                    if single_name in [s.name for s in main_workbook.sheets]:
-                        print(f"Notice: 找到入库类型名为 `{single_name}` 的sheet")
-                    else:
-                        print(f"Error: 未找到入库类型名为 `{single_name}` 的sheet,可能存在空字符")
-                        return
+            # 尝试打开名为食堂物品收发库存表的 sheet 
+            if "食堂物品收发存库存表" in [s.name for s in main_workbook.sheets]:
+                sheet = main_workbook.sheets["食堂物品收发存库存表"]
+                print(f"Notice: 找到入库类型名为 `食堂物品收发存库存表` 的sheet")
+            else:
+                print(f"Error: 未找到入库类型名为 `食堂物品收发存库存表` 的sheet,可能存在空字符")
+                return
+            
+            # 调用Excel VBA api 查找名为'名称'的 A列中存不存在该名称
+            if sheet.range("A:A").api.Find(product_name, match_case=False) is not None:
 
-                    sheet = main_workbook.sheets[single_name]
+                # 如果存在，则更新该行的数据
+                row_index = sheet.range("A:A").find(product_name, match_case=False).row
+                print(f"Notice: 在表 食堂物品收发存库存表 找到名称为 {product_name} 的行,行号为{row_index}")
+                
+                # 在F列更新数量信息，G列更新单价信息，H列更新金额信息
+                sheet.range(f"F{row_index}").value = sheet.range(f"F{row_index}").value+quantity
+                sheet.range(f"G{row_index}").value = sheet.range(f"G{row_index}").value+price
+                sheet.range(f"H{row_index}").value = sheet.range(f"H{row_index}").value+amount
+            else:
+                # 如果不存在，查找第一行空行，记录下空行行标（从表格的第二行开始）       
+                for row_index in range(0, sheet.used_range.rows.count):
+                    if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
+                        break
 
-                    # 查找第一行空行，记录下空行行标（从表格的第二行开始）
-                    for row_index in range(0, sheet.used_range.rows.count):
-                        if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
-                            break
+                # 更新该行A列的物品名称信息
+                sheet.range((row_index + 1, 1)).value = product_name
+                # 更新该行F列的数量信息
+                sheet.range((row_index + 1, 6)).value = sheet.range((row_index + 1, 6)).value+quantity
+                # 更新改行H列的金额信息
+                sheet.range((row_index + 1, 8)).value = sheet.range((row_index + 1, 8)).value+amount
 
-                    # 尝试写入一行数据
-                    try:
-                        # 写入序号数据,从空行的第一行起算
-                        sheet.range((row_index + 1, 1)).value = row_index + 1
-                        print(f"Notice: 在主表为入库类型 {single_name} 的第 {row_index} 行写入序号：{row_index + 1} 成功")
+                
 
-                        # 为B、C列写入月份日期数据
-                        sheet.range((row_index + 1, 2)).value = month
-                        sheet.range((row_index + 1, 3)).value = day
-                        print(f"Notice: 在主表为入库类型 {single_name} 的第 {row_index} 行写入月份：{month} 日：{day} 成功")
+            
 
-                        # 依次为D~K列写入数据(D、E列合并，需要加入跳过判断逻辑)
-                        for col_index in range(4, 12):
-                            if col_index == 5:
-                                # 如果当前列是E列，则跳过
-                                continue
-                            else:
-                                # 操作该单元时候，访问第该单元对应列的第四行单元获取该列的列名属性
-                                cell_attribute = sheet.range((4, col_index)).value
 
-                                if isinstance(cell_attribute, str):
-                                    # 去除所有中文之间的空格
-                                    cell_attribute = re.sub(r'(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])', '', cell_attribute)
 
-                                try:
-                                    if cell_attribute == "计量单位":
-                                        # 如果该列名是单独的计量单位，手动匹配暂存表格中名为单位列的对应单元值
-                                        sheet.range((row_index + 1, col_index)).value = unit_name
-                                        print(f"Notice: 在主表为入库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index['单位']]} 成功")
-
-                                    else:
-                                        # 在row_data中查找该列名对应的值，然后写入正在被操作的该单元中
-                                        sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
-                                        print(f"Notice: 在主表为入库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
-
-                                except KeyError:
-                                    print(f"Error: 未在主表入库类型 {single_name} 找到名为 {cell_attribute} 的列")
-
-                    except Exception as e:
-                        print(f"Error: 写入主表时出错 {e}")
-
-                except KeyError:
-                    print(f"未找到入库类型名为 {single_name} 的sheet")
 
         try:
             # 保存并关闭工作簿
@@ -301,14 +272,76 @@ def update_company_sheet(main_workbook, company_name, amount):
     sheet.range("D8").value = new_value
 
 
-
-def update_importclass_sheet(mian_workbook,importclass_data_tuple):
+def write_data_to_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name):
     """
-    根据相应的入库类型取更新相应的入库表
-    :param mian_workbook: 主工作簿对象
-    :param importclass_data: 入库类型数据
+    将数据写入指定的sheet中
+    :param main_workbook: 主工作簿对象
+    :param single_name: sheet名称
+    :param row_data: 行数据
+    :param header_index: 表头索引字典
+    :param month: 月份
+    :param day: 日期
+    :param unit_name: 单位名称
     :return: None
     """
+    try:
+        # 检查目标Sheet名是否存在
+        if single_name in [s.name for s in main_workbook.sheets]:
+            print(f"Notice: 找到入库类型名为 `{single_name}` 的sheet")
+        else:
+            print(f"Error: 未找到入库类型名为 `{single_name}` 的sheet,可能存在空字符")
+            return
+
+        sheet = main_workbook.sheets[single_name]
+
+        # 查找第一行空行，记录下空行行标（从表格的第二行开始）
+        for row_index in range(0, sheet.used_range.rows.count):
+            if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
+                break
+
+        # 尝试写入一行数据
+        try:
+            # 写入序号数据,从空行的第一行起算
+            sheet.range((row_index + 1, 1)).value = row_index + 1
+            print(f"Notice: 在主表为入库类型 {single_name} 的第 {row_index} 行写入序号：{row_index + 1} 成功")
+
+            # 为B、C列写入月份日期数据
+            sheet.range((row_index + 1, 2)).value = month
+            sheet.range((row_index + 1, 3)).value = day
+            print(f"Notice: 在主表为入库类型 {single_name} 的第 {row_index} 行写入月份：{month} 日：{day} 成功")
+
+            # 依次为D~K列写入数据(D、E列合并，需要加入跳过判断逻辑)
+            for col_index in range(4, 12):
+                if col_index == 5:
+                    # 如果当前列是E列，则跳过
+                    continue
+                else:
+                    # 操作该单元时候，访问第该单元对应列的第四行单元获取该列的列名属性
+                    cell_attribute = sheet.range((4, col_index)).value
+
+                    if isinstance(cell_attribute, str):
+                        # 去除所有中文之间的空格
+                        cell_attribute = re.sub(r'(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])', '', cell_attribute)
+
+                    try:
+                        if cell_attribute == "计量单位":
+                            # 如果该列名是单独的计量单位，手动匹配暂存表格中名为单位列的对应单元值
+                            sheet.range((row_index + 1, col_index)).value = unit_name
+                            print(f"Notice: 在主表为入库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index['单位']]} 成功")
+
+                        else:
+                            # 在row_data中查找该列名对应的值，然后写入正在被操作的该单元中
+                            sheet.range((row_index + 1, col_index)).value = row_data[header_index[cell_attribute]]
+                            print(f"Notice: 在主表为入库类型 {single_name} 的 {row_index} 行名为 {cell_attribute} 的列写入值 {row_data[header_index[cell_attribute]]} 成功")
+
+                    except KeyError:
+                        print(f"Error: 未在主表入库类型 {single_name} 找到名为 {cell_attribute} 的列")
+
+        except Exception as e:
+            print(f"Error: 写入主表时出错 {e}")
+
+    except KeyError:
+        print(f"未找到入库类型名为 {single_name} 的sheet")
 
 
 
