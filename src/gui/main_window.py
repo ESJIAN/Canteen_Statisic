@@ -120,23 +120,23 @@ class Ui_Form(object):
         self.line8Left = QLabel(self.groupBox)
         self.line8Left.setObjectName(u"Label_3")
 
-        self.formLayout.setWidget(8, QFormLayout.ItemRole.LabelRole, self.line8Left)
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.LabelRole, self.line8Left)
 
         self.line8Right = QLineEdit(self.groupBox)
         self.line8Right.setObjectName(u"LineEdit_3")
 
-        self.formLayout.setWidget(8, QFormLayout.ItemRole.FieldRole, self.line8Right)
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.FieldRole, self.line8Right)
         
         # 单价输入行
         self.line7Left = QLabel(self.groupBox)
         self.line7Left.setObjectName(u"Label_2")
 
-        self.formLayout.setWidget(7, QFormLayout.ItemRole.LabelRole, self.line7Left)
+        self.formLayout.setWidget(5, QFormLayout.ItemRole.LabelRole, self.line7Left)
 
         self.line7Right = QLineEdit(self.groupBox)
         self.line7Right.setObjectName(u"LineEdit_2")
 
-        self.formLayout.setWidget(7, QFormLayout.ItemRole.FieldRole, self.line7Right)
+        self.formLayout.setWidget(5, QFormLayout.ItemRole.FieldRole, self.line7Right)
 
 
         # 数量输入行
@@ -154,23 +154,23 @@ class Ui_Form(object):
         self.line5Left = QLabel(self.groupBox)
         self.line5Left.setObjectName(u"amount")
 
-        self.formLayout.setWidget(5, QFormLayout.ItemRole.LabelRole, self.line5Left)
+        self.formLayout.setWidget(7, QFormLayout.ItemRole.LabelRole, self.line5Left)
 
         self.line5Right = QLineEdit(self.groupBox)
         self.line5Right.setObjectName(u"amount_2")
 
-        self.formLayout.setWidget(5, QFormLayout.ItemRole.FieldRole, self.line5Right)
+        self.formLayout.setWidget(7, QFormLayout.ItemRole.FieldRole, self.line5Right)
 
         # 备注输入行
         self.line4Light = QLabel(self.groupBox)
         self.line4Light.setObjectName(u"info")
 
-        self.formLayout.setWidget(4, QFormLayout.ItemRole.LabelRole, self.line4Light)
+        self.formLayout.setWidget(8, QFormLayout.ItemRole.LabelRole, self.line4Light)
 
         self.line4Right = QLineEdit(self.groupBox)
         self.line4Right.setObjectName(u"info_2")
 
-        self.formLayout.setWidget(4, QFormLayout.ItemRole.FieldRole, self.line4Right)
+        self.formLayout.setWidget(8, QFormLayout.ItemRole.FieldRole, self.line4Right)
 
         # 公司输入行
         self.line9Left = QLabel(self.groupBox)
@@ -467,6 +467,8 @@ if __name__ == "__main__":
 
 # Summerize:
 # 1. 创建Widget时候的对于该widget的属性设置,包括名称,大小,布局，槽函数等放在一块
+# 2. 代码中的GUI组件代码尽可能取分组，且要放置批注以便后续定位代码-GUI组件的匹配
+
 
 # Learning:
 # 1. 相对导入的情况一共分为四种,只有导入同级别目录和导入子包这两种情况以主脚本模式运行没有问题
