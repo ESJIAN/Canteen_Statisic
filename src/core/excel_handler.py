@@ -122,24 +122,24 @@ def cmmit_data_to_storage_excel(excel_file_path):
     提交暂存 Excel 数据到主表、副表 Excel 文件
     :param: temp_excel_file: 要存储的暂存表
     """
-    # 读取暂存表格数据
+    # 读取暂存表格
     try:
         # 读取暂存工作簿
         read_temp_storage_workbook = xlrd.open_workbook(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
     except Exception as e:
         print(f"Error: 打开暂存表工作簿出错 {e}")
         return
-    
     # 获取表头数据
     read_temp_storage_workbook_headers = read_temp_storage_workbook.sheet_by_index(0).row_values(0)  # 获取表头的第一行数据
     # 确保表头是一个扁平的列表
     if not all(isinstance(header, str) for header in read_temp_storage_workbook_headers):
         raise ValueError("表头必须是字符串类型")
 
-    # 调用xlwings打开主工作簿
+    # 调用xlwings打开 excel 应用对象
     with xw.App(visible=True) as app:
-        # 读取主工作表格数据
+        # 读取主工作表格
         try:
+            # 打开主工作簿对象
             main_workbook = app.books.open(excel_file_path)
             print(f"Notice: 主工作表加载成功，文件路径: {excel_file_path}")
         except Exception as e:
@@ -152,48 +152,105 @@ def cmmit_data_to_storage_excel(excel_file_path):
             row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
             # 创建一个字典，用于存储列索引和列名的对应关系
             header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
-            # 获取行中公司列单元中公司名数据
-            company_name = row_data[header_index["公司"]]
+            
+            # 获取行中类别列类型单元中的类别名数据
+            category_name = row_data[header_index["类别"]]
+            # 获取行中品名列类型单元中的品名名数据
+            product_name = row_data[header_index["品名"]]
+            # 获取行中单位列类型单元中的单位名数据
+            unit_name = row_data[header_index["单位"]]
+            # 获取行中单价列类型单元中的单价名数据
+            price = row_data[header_index["单价"]]
+            # 获取行中数量列类型单元中的数量名数据
+            quantity = row_data[header_index["数量"]]
             # 获取行中金额列单元中金额数据
             amount = row_data[header_index["金额"]]
-
-            # 查找对应的sheet
+            # 获取行中备注列单元中备注数据
+            remark = row_data[header_index["备注"]]
+            # 获取行中公司列单元中公司名数据
+            company_name = row_data[header_index["公司"]]
+            # 获取行中单名称列单元中单名数据
+            single_name = row_data[header_index["单名"]]
+            
+            
+            # 更新指定公司sheet中的金额数据
+            update_company_sheet(main_workbook, company_name, amount)
+            # 将除公司以外的条目打包成一个元组
+            row_data_tuple = (category_name, product_name, unit_name, price, quantity, amount, remark, company_name, single_name)
+            
+            # 访问single_name对应的sheet
             try:
-                sheet = main_workbook.sheets[company_name]
+                sheet = main_workbook.sheets[single_name]
             except KeyError:
-                print(f"未找到公司名为 {company_name} 的sheet")
-                continue
+                print(f"未找到入库类型名为 {company_name} 的sheet")
+                return
+            # 从0行便利到有空行的行，记录下行标，数据填写空的第一行开始写入
+            for row_index in range(0, sheet.used_range.rows.count):
+                if sheet.range((row_index + 1, 1)).value is None:
+                    break
+            # 整行写入数据
+            sheet.range(row_index, 0).value = row_data_tuple
 
-            # 获取当前值
-            current_value = sheet.range("D8").value  # 假设目标单元格是 D8（Excel索引从1开始）
-            if current_value is None or current_value == "":
-                current_value = 0
 
-            # 读取金额
-            if amount is None or amount == "":
-                amount = 0
-            try:
-                amount = float(amount)
-            except Exception:
-                amount = 0
-
-            # 计算新值
-            if isinstance(current_value, (int, float)):
-                new_value = current_value + amount
-            else:
-                try:
-                    new_value = float(current_value) + amount
-                except Exception:
-                    new_value = amount
-
-            # 写入新值
-            sheet.range("D8").value = new_value
         try:
             # 保存并关闭工作簿
             main_workbook.save()
             print(f"Notice: 主工作表保存成功，文件路径: {excel_file_path}")
         except Exception as e:
             print(f"Error: 保存主表时出错 {e}")
+
+
+
+def update_company_sheet(main_workbook, company_name, amount):
+    """
+    更新指定公司sheet中的金额数据
+    :param main_workbook: 主工作簿对象
+    :param company_name: 公司名称
+    :param amount: 要增加的金额
+    :return: None
+    """
+    # 查找对应的公司sheet
+    try:
+        sheet = main_workbook.sheets[company_name]
+    except KeyError:
+        print(f"未找到公司名为 {company_name} 的sheet")
+        return
+
+    # 获取当前值
+    current_value = sheet.range("D8").value  # 假设目标单元格是 D8（Excel索引从1开始）
+    if current_value is None or current_value == "":
+        current_value = 0
+
+    # 读取金额
+    if amount is None or amount == "":
+        amount = 0
+    try:
+        amount = float(amount)
+    except Exception:
+        amount = 0
+
+    # 计算新值
+    if isinstance(current_value, (int, float)):
+        new_value = current_value + amount
+    else:
+        try:
+            new_value = float(current_value) + amount
+        except Exception:
+            new_value = amount
+
+    # 写入新值
+    sheet.range("D8").value = new_value
+
+
+
+def update_importclass_sheet(mian_workbook,importclass_data_tuple):
+    """
+    根据相应的入库类型取更新相应的入库表
+    :param mian_workbook: 主工作簿对象
+    :param importclass_data: 入库类型数据
+    :return: None
+    """
+
 
 
 
