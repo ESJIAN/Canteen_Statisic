@@ -46,9 +46,16 @@ def manual_temp_storage(self,input_fields):
 
     try:
         for field_name, input_field in input_fields.items():
-            if input_field.text():              # 检查输入框是否有内容
-                exsit_tag_number+=1             # 统计有内容的输入框数量
-                temp_storage[field_name] = input_field.text()
+            if __main__.DEBUG_SIGN == True:
+                exsit_tag_number+=1
+                temp_storage[field_name] = input_field
+
+            elif input_field.text() :              # 检查输入框是否有内容
+                exsit_tag_number+=1                # 统计有内容的输入框数量
+                temp_storage[field_name] = input_field.text() # 将输入框内容存储到字典
+        if __main__.DEBUG_SIGN == True:
+            __main__.SERIALS_NUMBER += 1  
+
         if exsit_tag_number==__main__.TOTAL_FIELD_NUMBER:
             data_save_success(self)             # 显示保存成功的消息提示弹窗
 

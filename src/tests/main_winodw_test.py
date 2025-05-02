@@ -45,7 +45,7 @@ MIAN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表�
 Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\子表\\"  # 子工作表格路径
 
 SERIALS_NUMBER = 1
-
+DEBUG_SIGN = True
 class Ui_Form(object):
 
     def setupUi(self, Form):
@@ -416,14 +416,14 @@ class Ui_Form(object):
         """
         # 定义输入框的字典
         input_fields = {
-            "日期": "日期"+str(SERIALS_NUMBER),
-            "品名": "品名"+str(SERIALS_NUMBER),
-            "类别": "类别"+str(SERIALS_NUMBER),
-            "单位": "单位"+str(SERIALS_NUMBER),
-            "单价": "单价"+str(SERIALS_NUMBER),
-            "数量": "数量"+str(SERIALS_NUMBER),
-            "金额": "金额"+str(SERIALS_NUMBER),
-            "备注": "备注"+str(SERIALS_NUMBER),
+            "日期": f"2025-5-2",
+            "品名": f"品名{SERIALS_NUMBER}",
+            "类别": f"类别{SERIALS_NUMBER}",
+            "单位": f"单位{SERIALS_NUMBER}",
+            "单价": f"单价{SERIALS_NUMBER}",
+            "数量": f"数量{SERIALS_NUMBER}",
+            "金额": f"金额{SERIALS_NUMBER}",
+            "备注": f"备注{SERIALS_NUMBER}",
             "公司": "聚鑫干调",
             "单名": "扶贫主食入库",
         }
