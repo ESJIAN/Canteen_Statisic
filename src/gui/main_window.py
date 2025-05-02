@@ -35,6 +35,7 @@ from src.gui.utils.detail_ui_button_utils import commit_data_to_excel, get_curre
 from src.gui.utils.detail_ui_button_utils import show_check_window
 from src.core.excel_handler import clear_temp_excel, store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
+TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 
 TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xls" # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
@@ -42,6 +43,8 @@ TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回
 
 MIAN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表格路径
 Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\子表\\"  # 子工作表格路径
+
+
 
 class Ui_Form(object):
 
@@ -183,6 +186,16 @@ class Ui_Form(object):
 
         self.formLayout.setWidget(9, QFormLayout.ItemRole.FieldRole, self.line9Right) # Learning5：使用QFormLayout.ItemRole.FieldRole 来设置输入框
 
+        # 主表入库类型单名输入行
+        self.line10Left = QLabel(self.groupBox)
+        self.line10Left.setObjectName(u"info_5")
+
+        self.formLayout.setWidget(10, QFormLayout.ItemRole.LabelRole, self.line10Left)
+        
+        self.line10Right = QLineEdit(self.groupBox)
+        self.line10Right.setObjectName(u"info_6")
+        
+        self.formLayout.setWidget(10, QFormLayout.ItemRole.FieldRole, self.line10Right)
 
 
         self.verticalLayout.addLayout(self.formLayout)
@@ -335,6 +348,8 @@ class Ui_Form(object):
         Form.setWindowTitle(QCoreApplication.translate("Form", u"\u98df\u54c1\u7ba1\u7406\u7cfb\u7edf", None))
         self.groupBox_3.setTitle(QCoreApplication.translate("Form", u"\u624b\u52a8\u5bfc\u5165", None))
         self.groupBox.setTitle(QCoreApplication.translate("Form", u"\u5f55\u5165\u4fe1\u606f", None))
+        
+        # 输入框左侧Label名
         self.line1Left.setText(QCoreApplication.translate("Form", u"\u65e5\u671f", None))
         self.line1Right.setText("")
         self.line2Left.setText(QCoreApplication.translate("Form", u"\u7c7b\u522b", None))
@@ -345,6 +360,8 @@ class Ui_Form(object):
         self.line7Left.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))
         self.line8Left.setText(QCoreApplication.translate("Form", u"\u5355\u4f4d", None))
         self.line9Left.setText(QCoreApplication.translate("Form", u"\u516c\u53f8", None)) 
+        self.line10Left.setText(QCoreApplication.translate("Form", "单名", None))
+
         self.pushButton_6.setText(QCoreApplication.translate("Form", u"\u4fee\u8ba2\u63d0\u4ea4", None))
         self.pushButton_7.setText(QCoreApplication.translate("Form", u"\u6682\u5b58\u8be5\u6761", None))
         self.pushButton_5.setText(QCoreApplication.translate("Form", u"\u63d0\u4ea4\u6570\u636e", None))
@@ -408,6 +425,7 @@ class Ui_Form(object):
             "金额": self.line5Right,
             "备注": self.line4Right,
             "公司": self.line9Right,
+            "单名": self.line10Right,
         }
 
         # 调用 manual_temp_storage 函数获取输入框内容

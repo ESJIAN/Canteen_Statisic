@@ -5,7 +5,7 @@
 # @File    : ui_utils.py
 # @Software: VsCode
 
-TOTAL_FIELD_NUMBER = 9  # 总字段所具有的TAG数
+
 
 import sys
 from datetime import datetime
@@ -49,7 +49,7 @@ def manual_temp_storage(self,input_fields):
             if input_field.text():              # 检查输入框是否有内容
                 exsit_tag_number+=1             # 统计有内容的输入框数量
                 temp_storage[field_name] = input_field.text()
-        if exsit_tag_number==TOTAL_FIELD_NUMBER:
+        if exsit_tag_number==__main__.TOTAL_FIELD_NUMBER:
             data_save_success(self)             # 显示保存成功的消息提示弹窗
 
             self.line1Right.setText("")         # Learning4：对QLineEdit组件使用setText()方法重置输入框内容
@@ -61,6 +61,7 @@ def manual_temp_storage(self,input_fields):
             self.line7Right.setText("")
             self.line8Right.setText("")
             self.line9Right.setText("")
+            self.line10Right.setText("")
 
             __main__.TEMP_STORAGED_NUMBER_LISTS +=1 # Learning5：形式参数传参进来的变量
             try:
@@ -156,7 +157,7 @@ def commit_data_to_excel(self,workbook_path):
 
 def temp_list_rollback(self):
     """
-    实现点击信息栏正在编辑xx项目上下箭头时,条目回滚
+    实现点击信息栏中“正在编辑xx项目”上下箭头时,正在编辑条目回滚的视图回滚
     :param: self
     :return: None
     """
@@ -182,6 +183,7 @@ def temp_list_rollback(self):
                 self.line7Right.setText(str(current_entry['单价']))
                 self.line8Right.setText(str(current_entry['单位']))
                 self.line9Right.setText(str(current_entry['公司']))
+                self.line10Right.setText(str(current_entry['单名']))
 
             # 如果目标条目索引号超出已存储列表+1，则切换到输入条目模式
             elif 0 <= index <= len(temp_storage)+1:
@@ -194,6 +196,7 @@ def temp_list_rollback(self):
                 self.line7Right.setText("")
                 self.line8Right.setText("")
                 self.line9Right.setText("")
+                self.line10Right.setText("")
 
             # 如果目标编辑条目索引号超出已存储列表范围+1，则提示错误，并且返回最后改动的条目上
             else:

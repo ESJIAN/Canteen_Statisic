@@ -218,4 +218,4 @@ def cmmit_data_to_storage_excel(excel_file_path):
 #      - [x] 修复Error: 'Worksheet' object has no attribute 'cell'
 #      - [x] 修复TypeError: descriptor 'decode' for 'bytes' objects doesn't apply to a 'NoneType' object
 # - [x] 2025.5.1 修复暂存一次表格前7行出现None字符的问题
-# - [ ] 2025.5.2 解决store_single_entry_to_temple_excel函数表格不存在时[Errno 2] No such file or directory: '.\\src\\data\\input\\manual\\temp_manual_input_data.xls'的问题
+# - [x] 2025.5.2 解决store_single_entry_to_temple_excel函数表格不存在时[Errno 2] No such file or directory: '.\\src\\data\\input\\manual\\temp_manual_input_data.xls'的问题
