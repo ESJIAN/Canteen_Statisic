@@ -175,6 +175,80 @@ def cmmit_data_to_storage_excel(excel_file_path):
             update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
             # 更新收发存表皮中的条目信息
             update_receipt_storage_sheet(main_workbook, single_name, category_name, amount)
+            # 更新主副食明细账中的条目信息
+            # 尝试打开名为收发存表皮的 sheet
+            if "主副食品明细账" in [s.name for s in main_workbook.sheets]:
+                sheet = main_workbook.sheets["主副食品明细账"]
+                print(f"Notice: 找到入库类型名为 `主副食品明细账` 的sheet")
+            else:
+                print(f"Error: 未找到入库类型名为 `主副食品明细账` 的sheet,可能存在空字符")
+                return
+            
+            # 提取输入数据的单名信息和类别信息进行行索引词匹配
+            if single_name == "扶贫主食入库":
+                row_index_name = "（帮扶食品）主副食"
+                column_index_name = "主食购入"
+            elif single_name == "扶贫副食入库":
+                row_index_name = "（帮扶食品）主副食"
+                column_index_name = "副食购入"
+            elif single_name == "自购主食入库等":
+                if category_name == "主食":
+                    row_index_name = "自购主副食"
+                    column_index_name = "主食购入"
+                elif category_name == "副食":
+                    row_index_name = "自购主副食"
+                    column_index_name = "副食购入"
+                else:
+                    print(f"Error: 未找到入库类型名为 `自购主食入库等` 的sheet,可能存在空字符")
+                    return
+            else:
+                print(f"Error: 未找到入库类型名为 `自购主食入库等` 的sheet,可能存在空字符")
+                return
+
+            # 更新左侧相应单元的数据
+            # 调用Excel API 进行行索引名匹配
+            found_row = sheet.range("A:A").api.Find(row_index_name)
+            if found_row is not None:
+                try:
+                    found_row_index = sheet.range("A:A").value.index(row_index_name) + 1
+                    print(f"Notice: 在 收发存表皮 Sheet中找到 {row_index_name} 的行索引为 {found_row_index}")
+                except Exception as e:
+                    print(f"Error: 获取行索引出错 {e}")
+                    return
+            else:
+                print(f"Error: 在 收发存表皮 Sheet中未找到 {row_index_name} 的行索引，请检查输入数据")
+                return
+            
+            # 调用Excel API 进行列索引名匹配
+            found_column = sheet.range("5:5").api.Find(column_index_name)
+            if found_column is not None:
+                try:
+                    found_column_index = found_column.Column
+                    print(f"Notice: 在 收发存表皮 Sheet中找到 {column_index_name} 的列索引为 {found_column_index}")
+                except Exception as e:
+                    print(f"Error: 获取列索引出错 {e}")
+                    return
+            
+            # 更新左侧相应单元的金额数据
+            if found_column_index is not None and found_row_index is not None:
+                if sheet.range(found_row_index,found_column_index).value == None:
+                    sheet.range(found_row_index,found_column_index).value = amount
+                    print(f"Notice: 在 收发存表皮 Sheet中的 {row_index_name} {column_index_name} 的金额数据为空，已更新为 {amount}")
+
+                elif sheet.range(found_row_index,found_column_index).value != None:
+                    print(f"Notice: 在 收发存表皮 Sheet中的 {row_index_name} {column_index_name} 的原始金额数据为 {sheet.range(found_row_index,found_column_index).value}") 
+                    sheet.range(found_row_index,found_column_index).value = amount + float(sheet.range(found_row_index,found_column_index).value)
+                    print(f"Notice: 在 收发存表皮 Sheet中的 {row_index_name} {column_index_name} 的现在金额数据为 {sheet.range(found_row_index,found_column_index).value}")
+                    
+                else:
+                    print(f"Error: 在 收发存表皮 Sheet中未找到 {row_index_name} {column_index_name} 的单元格，请检查输入数据")
+                    return
+                
+            # 更新右侧相应单元的数据
+
+                
+
+
 
         try:
             # 保存工作簿
@@ -470,8 +544,8 @@ def update_receipt_storage_sheet(main_workbook, single_name, category_name, amou
 #      - [x] 修复TypeError: descriptor 'decode' for 'bytes' objects doesn't apply to a 'NoneType' object
 #      - [x] 实现提交数据条目到主表物品相应的入库类型sheet表中
 #      - [x] 实现提交数据条目到食堂物品收发存表中
-#      - [ ] 2025.5.3. 实现提交数据条目到主副食明细账中
-#      - [ ] 2025.5.3. 实现提交数据条目到收发表存皮重
+#      - [x] 2025.5.3. 实现提交数据条目到主副食明细账中
+#      - [x] 2025.5.3. 实现提交数据条目到收发表存皮重
 #   - [ ] 2025.5.3. 实现提交数据到子表中
 #      - [ ] 实现提交数据到主食表入库中
 #      - [ ] 实现提交数据到副食表入库中 
