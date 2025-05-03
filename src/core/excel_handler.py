@@ -109,7 +109,7 @@ def clear_temp_excel():
 
 
 
-def cmmit_data_to_storage_excel(excel_file_path):
+def cmmit_data_to_storage_excel(main_excel_file_path,sub_mian_food_excel_file_path,sub_auxiliary_food_excel_file_path):
     """
     提交暂存 Excel 数据到主表、副表 Excel 文件
     :param: temp_excel_file: 要存储的暂存表
@@ -127,10 +127,93 @@ def cmmit_data_to_storage_excel(excel_file_path):
     if not all(isinstance(header, str) for header in read_temp_storage_workbook_headers):
         raise ValueError("表头必须是字符串类型")
     
-    process_main_workbook(excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+    process_main_workbook(main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
 
+    # 在子表副食表中更新信息
+    # 调用xlwings打开 excel 应用对象
+    with xw.App(visible=False) as app:
+        # 读取主工作表格
+        try:
+            # 打开主工作簿对象
+            main_workbook = app.books.open(sub_mian_food_excel_file_path)
+            print(f"Notice: 子工作表加载成功，文件路径: {sub_mian_food_excel_file_path}")
+        except Exception as e:
+            print(f"Error: {e}")
+            return  
     
+    # 轮询读取暂存表格数据行
+    for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
+        # 读取行数据
+        row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
+        # 创建一个字典，用于存储列索引和列名的对应关系
+        header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
+        
+        # 将日期分解为月和日
+        year, month, day = row_data[header_index["日期"]].split("-")
+        # 获取行中类别列类型单元中的类别名数据
+        category_name = row_data[header_index["类别"]]
+        # 获取行中品名列类型单元中的品名名数据
+        product_name = row_data[header_index["品名"]]
+        # 获取行中单位列类型单元中的单位名数据
+        unit_name = row_data[header_index["单位"]]
+        # 获取行中单价列类型单元中的单价名数据
+        price = row_data[header_index["单价"]]
+        # 获取行中数量列类型单元中的数量名数据
+        quantity = row_data[header_index["数量"]]
+        # 获取行中金额列单元中金额数据
+        amount = row_data[header_index["金额"]]
+        # 获取行中备注列单元中备注数据
+        remark = row_data[header_index["备注"]]
+        # 获取行中公司列单元中公司名数据
+        company_name = row_data[header_index["公司"]]
+        # 获取行中单名称列单元中单名数据
+        single_name = row_data[header_index["单名"]]  
 
+        # 查找对应的品名的 sheet
+        if product_name in [s.name for s in main_workbook.sheets]:
+            sheet = main_workbook.sheets[product_name]
+        else:
+            print(f"未找到品名为 {product_name} 的sheet")
+            return
+
+        # 寻找没有内容的第一行
+        for row_index in range(sheet.used_range.rows.count):
+            if all(sheet.range((row_index + 1, col)).value is None for col in range(1, 3)):
+                print(f"Notice: 发现第 {row_index + 1} 行为空行，开始写入数据")
+                break
+        
+        # 往该没有内容的行的A列中写入月份、B列中写入日
+        try:
+            sheet.range((row_index + 1, 1)).value = month
+            sheet.range((row_index + 1, 2)).value = day
+        except Exception as e:
+            print(f"Error: 子表主食表 {product_name} sheet 写入日期失败{e}")
+            return
+        # 往该没有内容的行的D列中写入出入库摘要
+        try:
+            sheet.range((row_index + 1, 4)).value = "入库"
+        except Exception as e:
+            print(f"Error: 子表主食表 {product_name} sheet 写入出入库摘要失败{e}")
+            return
+        # 往该没有内容的行中的E列写入单价
+        try:
+            sheet.range((row_index + 1, 5)).value = price
+        except Exception as e:
+            print(f"Error: 子表主食表 {product_name} sheet 写入单价失败{e}")
+            return
+        # 往该没有内容的行中的F列写入数量
+        try:
+            sheet.range((row_index + 1, 6)).value = quantity
+        except Exception as e:
+            print(f"Error: 子表主食表 {product_name} sheet 写入数量失败{e}")
+            return
+        # 往该没有内容的行中的G列写入金额
+        try:
+            sheet.range((row_index + 1, 7)).value = amount
+        except Exception as e:
+            print(f"Error: 子表主食表 {product_name} sheet 写入金额失败{e}")
+            return
+        
 
 def process_main_workbook(excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
@@ -195,11 +278,12 @@ def process_main_workbook(excel_file_path, read_temp_storage_workbook, read_temp
             main_workbook.save()
             # 关闭工作簿
             main_workbook.close()
+            # 关闭应用对象
+            app.quit() # Learning：切记关闭应用对象，否则会造成下次创建一个同名应用对象时候发生对象名重复的冲突造成进程卡死
             print(f"Notice: 主工作表保存成功，文件路径: {excel_file_path}")
         
         except Exception as e:
             print(f"Error: 保存主表时出错 {e}")
-
 
 
 def update_company_sheet(main_workbook, company_name, amount):

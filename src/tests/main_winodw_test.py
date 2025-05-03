@@ -448,7 +448,10 @@ class Ui_Form(object):
         :return: None
         """
         mian_workbook = MIAN_WORK_EXCEL_PATH + "2025.4.20.xls"
-        commit_data_to_excel(self,mian_workbook)
+
+        sub_mian_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
+        sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
+        commit_data_to_excel(self,mian_workbook,sub_mian_food_workbook,sub_auxiliary_food_workbook)
 
 
     def information_edition_rollback(self): # Learning6：自定义方法一定要放一个self参数,不妨报错
@@ -474,7 +477,7 @@ if __name__ == "__main__":
     # 设置窗口标题
     Form.show()
     # 设置关闭事件
-    Form.closeEvent = lambda event: (clear_temp_excel(), print("Notice:清空暂存表格成功"), event.accept())
+    Form.closeEvent = lambda event: (clear_temp_excel(), print("Notice:清空暂存表格成功"), event.accept()) # type: ignore
     sys.exit(app.exec())
 
 # Summerize:

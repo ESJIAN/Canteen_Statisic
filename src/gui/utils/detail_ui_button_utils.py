@@ -152,14 +152,14 @@ def show_check_window(self,file_path):
     self.PopWindowApplicationForm.show()
     
 
-def commit_data_to_excel(self,workbook_path):
+def commit_data_to_excel(self,workbook_path,sub_mian_food_workbook,sub_auxiliary_food_workbook):
     """
     提交数据到主表、副表Excel文件
     :param: self
     :return: None
     """
     
-    cmmit_data_to_storage_excel(workbook_path)
+    cmmit_data_to_storage_excel(workbook_path,sub_mian_food_workbook,sub_auxiliary_food_workbook)
 
 
 def temp_list_rollback(self):
