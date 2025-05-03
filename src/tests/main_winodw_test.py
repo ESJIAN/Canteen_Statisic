@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFormLayout, QGridLay
     QGroupBox, QHBoxLayout, QLabel, QLayout,
     QLineEdit, QPlainTextEdit, QPushButton, QScrollArea,
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
-    QWidget)
+    QWidget, QFileDialog)
 
 # 获取当前文件的绝对路径
 current_file_path = os.path.abspath(__file__) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
@@ -328,6 +328,7 @@ class Ui_Form(object):
         self.pushButton_3 = QPushButton(self.groupBox_4)
         self.pushButton_3.setObjectName(u"pushButton_3")
         self.pushButton_3.setGeometry(QRect(210, 30, 75, 24))
+        self.pushButton_3.clicked.connect(self.photo_import)
         self.tabWidget_2.addTab(self.tab_3, "")
         self.tab_4 = QWidget()
         self.tab_4.setObjectName(u"tab_4")
@@ -403,15 +404,20 @@ class Ui_Form(object):
         self.storageNum.setText(QCoreApplication.translate("Form",str(TEMP_STORAGED_NUMBER_LISTS-1), None))
         
         self.label_4.setText(QCoreApplication.translate("Form", u"\u9879", None))
-        self.groupBox_4.setTitle(QCoreApplication.translate("Form", u"PDF\u5bfc\u5165", None))
-        self.groupBox_2.setTitle(QCoreApplication.translate("Form", u"\u5bfc\u5165\u9884\u89c8", None))
-        self.pushButton_3.setText(QCoreApplication.translate("Form", u"\u8f7d\u5165\u6587\u4ef6", None))
+        
+        # 照片导入右侧button名
+        self.groupBox_4.setTitle(QCoreApplication.translate("Form", "照片导入", None))
+        self.groupBox_2.setTitle(QCoreApplication.translate("Form", "照片列表", None))
+        self.pushButton_3.setText(QCoreApplication.translate("Form", "导入文件", None))
+
+
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", u"入库", None))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), QCoreApplication.translate("Form", u"出库", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"显示别的什么", None))
         #self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_5), QCoreApplication.translate("Form", u"Tab 1", None))
         #self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_6), QCoreApplication.translate("Form", u"Tab 2", None))
         #self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("Form", u"Tab 2", None))
+        
         #自动填充日期
         if get_ini_setting("Settings", "auto_fill_date") == "True":
             self.show_current_date()
@@ -516,6 +522,31 @@ class Ui_Form(object):
         # 调用 temp_list_rollback 函数实现条目回滚
         temp_list_rollback(self)
 
+    def photo_import(self):
+        """
+        照片导入功能实现
+        :param: self
+        :return: None
+        """
+        # 1. 弹出文件选择器，支持多选图片
+        file_dialog = QFileDialog()
+        file_dialog.setFileMode(QFileDialog.ExistingFiles)
+        file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg )")
+        if file_dialog.exec():
+            file_paths = file_dialog.selectedFiles()
+            if file_paths:
+                # 2. 创建 QLabel 显示每张图片
+                if not self.scrollAreaWidgetContents.layout():
+                    from PySide6.QtWidgets import QVBoxLayout
+                    self.scrollAreaWidgetContents.setLayout(QVBoxLayout())
+                layout = self.scrollAreaWidgetContents.layout()
+                for image_path in file_paths:
+                    label = QLabel(self.scrollAreaWidgetContents)
+                    pixmap = QPixmap(image_path)
+                    label.setPixmap(pixmap.scaled(150, 150, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                    label.setFixedSize(150, 150)
+                    layout.addWidget(label)
+
 
     def show_settings(self):
         """
@@ -542,7 +573,7 @@ if __name__ == "__main__":
     # 设置窗口标题
     Form.show()
     # 设置关闭事件
-    Form.closeEvent = lambda event: (clear_temp_excel(), print("Notice:清空暂存表格成功"), event.accept()) # type: ignore
+    Form.closeEvent = lambda event: (clear_temp_excel(), print("Notice:清空暂存表格成功"), event.accept())
     sys.exit(app.exec())
 
 # Summerize:
@@ -567,3 +598,5 @@ if __name__ == "__main__":
 # [x] 2025.4.30 实现窗口关闭时自动清空临时存储表格的数据
 # [x] 2025.4.30 实现spinBox控件值变化时，录入信息窗口更新相应项的条目信息
 # [x] 2025.4.30 实现信息栏正在编辑第几项的跳转逻辑
+# [ ] 2025.5.3 实现加载图片功能
+#    [ ] 2025.5.3. 实现点击滚动窗口中的文件条目实现以弹出的方式预览图片
