@@ -734,14 +734,11 @@ def run(code, ns):
 
 以上七种方式，覆盖了从最“Pythonic”到最“黑魔法”的做法，可根据场景权衡选择。
 
-
-
-
 # sum函数的高级用法
 
 你问的这句代码：
 
-**existing_rows** **=** **sum**(**1** **for** **row_idx** **in** **range**(**sheet.nrows**)** **if** **any**(**sheet.row_values**(**row_idx**)**)**)** **# Learning3：**
+**existing_rows** **=** **sum**(**1** **for** **row_idx** **in** **range**(**sheet.nrows**) **if** **any**(**sheet.row_values**(**row_idx**)**)**)
 
 **解读如下：**
 
@@ -766,3 +763,57 @@ def run(code, ns):
 
 **一句话总结：**
 这句代码的作用是 **统计 Excel 表格中已有内容的行数** ，用于后续追加写入时定位起始行
+
+
+
+
+# 学习3:列表推导式
+
+
+这句代码：
+
+**[**i** **for** **i**, **row** **in** **enumerate**(**sheet.rows**)** **if** row_index_name **in** **[**cell**.value **for** **cell** **in** **row**]**]
+
+**作用：**
+
+* 在 Excel 的 sheet 中，查找 **每一行是否包含指定的字符串 [row_index_name](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)** ，并返回所有满足条件的行索引（[i](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)）。
+
+---
+
+### 详细分解
+
+1. [enumerate(sheet.rows)](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)
+   遍历 sheet 的每一行，[i](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 是行号，[row](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 是该行的所有单元格对象。
+2. `[cell.value for cell in row]`
+   把当前行的所有单元格的值提取出来，形成一个列表。例如：`["主食（帮扶食品）", "米", 100, ...]`
+3. `if row_index_name in [cell.value for cell in row]`
+   判断 [row_index_name](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)（比如 `"主食（帮扶食品）"`）是否在当前行的所有单元格值中。
+4. `[i for ... if ...]`
+   如果在，收集该行的索引 [i](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html) 到结果列表中。
+
+---
+
+### 举例
+
+假设 sheet 的内容如下：
+
+|   | A                | B  | C   |
+| - | ---------------- | -- | --- |
+| 0 | 主食（帮扶食品） | 米 | 100 |
+| 1 | 副食（帮扶食品） | 面 | 200 |
+| 2 | 主食（自购）     | 粟 | 150 |
+
+如果 [row_index_name = &#34;主食（帮扶食品）&#34;](vscode-file://vscode-app/e:/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)，
+那么：
+
+* 第0行的所有 cell.value 是 `["主食（帮扶食品）", "米", 100]`，包含目标字符串。
+* 第1行不包含。
+* 第2行不包含。
+
+结果：`[0]`
+
+---
+
+**总结：**
+
+* 这句代码的作用是： **查找 sheet 中所有包含指定内容的行索引** ，返回一个索引列表。
