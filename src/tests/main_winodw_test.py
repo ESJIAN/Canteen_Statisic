@@ -397,7 +397,7 @@ class Ui_Form(object):
 
     def show_current_date(self):
         """
-        显示当前日期
+        显示当前日期, 
         :param: self
         :return: None
         """
