@@ -20,7 +20,7 @@ from src.gui.error_window import TagNumShortage,IndexOutOfRange                 
 from src.gui.check_window import ExcelCheckWindow               # Learning2:顶级脚本设定绝对倒入配置后不需要在子模块中重设
 from src.gui.data_save_dialog import data_save_success
 from src.core.excel_handler import store_single_entry_to_temple_excel  # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
-from src.core.excel_handler import cmmit_data_to_storage_excel
+from src.core.excel_handler import commit_data_to_storage_excel
 
 import __main__                                                 # Learning5:__main__模块的引用，访问主模块变量
 
@@ -155,14 +155,14 @@ def show_check_window(self,file_path):
     self.PopWindowApplicationForm.show()
     
 
-def commit_data_to_excel(self,workbook_path,sub_mian_food_workbook,sub_auxiliary_food_workbook):
+def commit_data_to_excel(self,workbook_path,sub_main_food_workbook,sub_auxiliary_food_workbook):
     """
     提交数据到主表、副表Excel文件
     :param: self
     :return: None
     """
     
-    cmmit_data_to_storage_excel(workbook_path,sub_mian_food_workbook,sub_auxiliary_food_workbook)
+    commit_data_to_storage_excel(workbook_path,sub_main_food_workbook,sub_auxiliary_food_workbook)
 
 
 def temp_list_rollback(self):

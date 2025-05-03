@@ -109,7 +109,7 @@ def clear_temp_excel():
 
 
 
-def cmmit_data_to_storage_excel(main_excel_file_path,sub_mian_food_excel_file_path,sub_auxiliary_food_excel_file_path):
+def commit_data_to_storage_excel(main_excel_file_path,sub_main_food_excel_file_path,sub_auxiliary_food_excel_file_path):
     """
     提交暂存 Excel 数据到主表、副表 Excel 文件
     :param: temp_excel_file: 要存储的暂存表
@@ -130,8 +130,8 @@ def cmmit_data_to_storage_excel(main_excel_file_path,sub_mian_food_excel_file_pa
     # 在主表中更新信息
     process_main_workbook(main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
 
-    # 调用封装后的函数
-    update_sub_tables(sub_mian_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+    # 在子表中更新信息
+    update_sub_tables(sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
 
 def process_main_workbook(excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
@@ -541,21 +541,21 @@ def update_main_food_detail_sheet(main_workbook, single_name, category_name, amo
             sheet.range(found_row_index, found_column_index).value = float(amount) + float(cell_value)
             print(f"Notice: 在 主副食品明细账 Sheet中的 {row_index_name} {column_index_name} 的现在金额数据为 {sheet.range(found_row_index, found_column_index).value}")
 
-def update_sub_tables(sub_mian_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
+def update_sub_tables(sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
     同时更新子表主食表和副食表
-    :param sub_mian_food_excel_file_path: 子表主食表路径
+    :param sub_main_food_excel_file_path: 子表主食表路径
     :param sub_auxiliary_food_excel_file_path: 子表副食表路径
     :param read_temp_storage_workbook: 暂存表格工作簿对象
     :param read_temp_storage_workbook_headers: 暂存表格表头
     :return: None
     """
     # 在子表主食表中更新信息
-    update_sub_main_food_sheet(sub_mian_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+    update_sub_main_food_sheet(sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
     # 在子表副食表中更新信息
     update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
 
-def update_sub_main_food_sheet(sub_mian_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
+def update_sub_main_food_sheet(_sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
     将暂存表数据提交到子表主食表
     :param sub_mian_food_excel_file_path: 子表主食表路径
@@ -567,8 +567,8 @@ def update_sub_main_food_sheet(sub_mian_food_excel_file_path, read_temp_storage_
         # 读取主工作表格
         try:
             # 打开主工作簿对象
-            main_workbook = app.books.open(sub_mian_food_excel_file_path)
-            print(f"Notice: 子工作表加载成功，文件路径: {sub_mian_food_excel_file_path}")
+            main_workbook = app.books.open(_sub_main_food_excel_file_path)
+            print(f"Notice: 子主食表加载成功，文件路径: {_sub_main_food_excel_file_path}")
             
             # 轮询读取暂存表格数据行
             for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
@@ -651,7 +651,7 @@ def update_sub_main_food_sheet(sub_mian_food_excel_file_path, read_temp_storage_
             # 保存并关闭子表
             main_workbook.save()
             main_workbook.close()
-            print(f"Notice: 子表主食表保存成功，文件路径: {sub_mian_food_excel_file_path}")
+            print(f"Notice: 子表主食表保存成功，文件路径: {_sub_main_food_excel_file_path}")
 
         except Exception as e:
             print(f"Error: {e}")
@@ -660,7 +660,7 @@ def update_sub_main_food_sheet(sub_mian_food_excel_file_path, read_temp_storage_
 def update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
     将暂存表数据提交到子表副食表
-    :param sub_mian_food_excel_file_path: 子表主食表路径
+    :param sub_auxiliary_food_excel_file_path: 子表副食表路径
     :param read_temp_storage_workbook: 暂存表格工作簿对象
     :param read_temp_storage_workbook_headers: 暂存表格表头
     :return: None
@@ -670,7 +670,7 @@ def update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_tem
         try:
             # 打开主工作簿对象
             main_workbook = app.books.open(sub_auxiliary_food_excel_file_path)
-            print(f"Notice: 子工作表加载成功，文件路径: {sub_auxiliary_food_excel_file_path}")
+            print(f"Notice: 子工作表(副食)加载成功，文件路径: {sub_auxiliary_food_excel_file_path}")
             
             # 轮询读取暂存表格数据行
             for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
@@ -707,53 +707,54 @@ def update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_tem
                     print(f"未找到品名为 {product_name} 的sheet")
                     return
 
-                # 寻找没有内容的第一行
+                # 寻找没有内容的第一行，并检查后面五行是否有内容
                 for sub_row_index in range(sheet.used_range.rows.count):
-                    if all(sheet.range((sub_row_index + 1, col)).value is None for col in range(1, 12)): # 通过检查每一行的1到11列
-                        print(f"Notice: 发现第 {sub_row_index + 1} 行为空行，开始写入数据")
+                    if all(sheet.range((sub_row_index + 1, col)).value is None for col in range(1, 12)) and \
+                       all(all(sheet.range((sub_row_index + offset + 1, col)).value is None for col in range(1, 12)) for offset in range(1, 6)):
+                        print(f"Notice: 发现第 {sub_row_index + 1} 行及其后五行为空行，开始写入数据")
                         break
                 
                 # 往该没有内容的行的A列中写入月份、B列中写入日
                 try:
                     sheet.range((sub_row_index + 1, 1)).value = month
                     sheet.range((sub_row_index + 1, 2)).value = day
-                    print(f"Notice: 子表主食表 {product_name} sheet 写入日期成功")
+                    print(f"Notice: 子表副食表 {product_name} sheet 写入日期成功")
                 except Exception as e:
-                    print(f"Error: 子表主食表 {product_name} sheet 写入日期失败{e}")
+                    print(f"Error: 子表副食表 {product_name} sheet 写入日期失败{e}")
                     return
                 # 往该没有内容的行的D列中写入出入库摘要
                 try:
                     sheet.range((sub_row_index + 1, 4)).value = "入库"
-                    print(f"Notice: 子表主食表 {product_name} sheet 写入出入库摘要成功")
+                    print(f"Notice: 子表副食表 {product_name} sheet 写入出入库摘要成功")
                 except Exception as e:
-                    print(f"Error: 子表主食表 {product_name} sheet 写入出入库摘要失败{e}")
+                    print(f"Error: 子表副食表 {product_name} sheet 写入出入库摘要失败{e}")
                     return
                 # 往该没有内容的行中的E列写入单价
                 try:
                     sheet.range((sub_row_index + 1, 5)).value = price
-                    print(f"Notice: 子表主食表 {product_name} sheet 写入单价成功")
+                    print(f"Notice: 子表副食表 {product_name} sheet 写入单价成功")
                 except Exception as e:
-                    print(f"Error: 子表主食表 {product_name} sheet 写入单价失败{e}")
+                    print(f"Error: 子表副食表 {product_name} sheet 写入单价失败{e}")
                     return
                 # 往该没有内容的行中的F列写入数量
                 try:
                     sheet.range((sub_row_index + 1, 6)).value = quantity
-                    print(f"Notice: 子表主食表 {product_name} sheet 写入数量成功")
+                    print(f"Notice: 子表副食表 {product_name} sheet 写入数量成功")
                 except Exception as e:
-                    print(f"Error: 子表主食表 {product_name} sheet 写入数量失败{e}")
+                    print(f"Error: 子表副食表 {product_name} sheet 写入数量失败{e}")
                     return
                 # 往该没有内容的行中的G列写入金额
                 try:
                     sheet.range((sub_row_index + 1, 7)).value = amount
-                    print(f"Notice: 子表主食表 {product_name} sheet 写入金额成功")
+                    print(f"Notice: 子表副食表 {product_name} sheet 写入金额成功")
                 except Exception as e:
-                    print(f"Error: 子表主食表 {product_name} sheet 写入金额失败{e}")
+                    print(f"Error: 子表副食表 {product_name} sheet 写入金额失败{e}")
                     return
                 
             # 保存并关闭子表
             main_workbook.save()
             main_workbook.close()
-            print(f"Notice: 子表主食表保存成功，文件路径: {sub_mian_food_excel_file_path}")
+            print(f"Notice: 子表副食表保存成功，文件路径: {sub_auxiliary_food_excel_file_path}")
 
         except Exception as e:
             print(f"Error: {e}")
