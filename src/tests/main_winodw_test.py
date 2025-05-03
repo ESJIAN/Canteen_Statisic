@@ -418,7 +418,7 @@ class Ui_Form(object):
         input_fields = {
             "日期": f"2025-5-2",
             "品名": f"品名{SERIALS_NUMBER}",
-            "类别": f"类别{SERIALS_NUMBER}",
+            "类别": "主食",
             "单位": f"单位{SERIALS_NUMBER}",
             "单价": SERIALS_NUMBER+1,
             "数量": SERIALS_NUMBER+2,

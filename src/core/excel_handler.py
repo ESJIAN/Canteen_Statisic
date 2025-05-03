@@ -191,7 +191,41 @@ def cmmit_data_to_storage_excel(excel_file_path):
                 print(f"Error: 未找到入库类型名为 `收发存表皮` 的sheet,可能存在空字符")
                 return
             
+            # 提取输入数据的单名信息和类别信息进行食堂物品收发库存表的行索引词匹配
+            if single_name == "扶贫主食":
+                row_index_name = "主食（帮扶食品）"
+
+            elif single_name == "扶贫副食":
+                row_index_name = "副食（帮扶食品）"
+
+            elif single_name == "自购主食入库":
+                if category_name == "主食":
+                    row_index_name = "主食（自购）"
+                elif category_name == "副食":
+                    row_index_name = "副食（自购）"
+                else:
+                    print("Error: 自购主食入库 未找到类别信息，请检查输入数据")
             
+            elif single_name == "场调面食入库":
+                if category_name == "主食":
+                    row_index_name = "正常厂主食"
+                elif category_name == "副食":
+                    row_index_name = "正常厂主食"
+                else:
+                    print("Error: 场调面食入库 未找到类别信息，请检查输入数据") 
+
+            else:
+                print("Error: 未找到入库类型信息，请检查输入数据")
+            
+            # 用行索引名匹配行索引
+            row_index = [i for i, row in enumerate(sheet.rows) if row_index_name in [cell.value for cell in row]]
+            
+            if row_index:
+                # 更新H列的金额数据
+                sheet.range(row_index[0] + 1, 4).value = amount # 由于enumerate 的索引从0开始，所以需要加1 ，以匹配 range 1开始的索引方法
+                print(f"Notice: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据成功")
+            else:
+                print(f"Error: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据失败，请检查输入数据")
 
 
         try:
@@ -395,6 +429,9 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
 
     except Exception as e:
         print(f"Error: 更新食堂物品收发存库存表时出错 {e}")
+
+
+
 
 # Summerize：
 # 1. 索引类操作一定要考虑容错机制
