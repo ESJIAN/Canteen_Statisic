@@ -60,7 +60,6 @@ def manual_temp_storage(self,input_fields):
             __main__.SERIALS_NUMBER += 1   # type: ignore
 
         if exsit_tag_number==__main__.TOTAL_FIELD_NUMBER:
-            data_save_success(self)             # 显示保存成功的消息提示弹窗
 
             self.line1Right.setText("")         # Learning4：对QLineEdit组件使用setText()方法重置输入框内容
             self.line2Right.setText("")
@@ -75,7 +74,6 @@ def manual_temp_storage(self,input_fields):
 
             __main__.TEMP_STORAGED_NUMBER_LISTS +=1 # type: ignore # Learning5：形式参数传参进来的变量
             try:
-                self.spinBox.setValue(__main__.TEMP_STORAGED_NUMBER_LISTS)  # 重置SpinBox的值为0
                 self.storageNum.setText(str(__main__.TEMP_STORAGED_NUMBER_LISTS-1))  # 更新存储数量的标签文本
             except Exception as e:
                 print(f"Error: {e}")
@@ -86,7 +84,9 @@ def manual_temp_storage(self,input_fields):
             # 调用 store_single_entry_to_excel 函数存储数据到Excel文件,以xls方式存储
 
             store_single_entry_to_temple_excel(temp_storage, __main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
-
+            data_save_success(self)             # 显示保存成功的消息提示弹窗
+            self.spinBox.setValue(int(self.storageNum.text())) # 更新SpinBox的值为存储数量
+            temp_list_rollback(self)
             return temp_storage
         else:
             print("Warning: Not all fields are filled.")
@@ -177,10 +177,11 @@ def temp_list_rollback(self):
     if self.spinBox.value()>0 and __main__.TEMP_LIST_ROLLBACK_SIGNAL == True: # Learning6：py的与符号是and关键字而不是&，&是位运算符
         try:
             temp_storage = pd.read_excel(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+            print(temp_storage)
             index = self.spinBox.value()
     
             # 如果目标条目索引号在已存储列表范围内，则切换到阅览已存储条目模式
-            if 0 <= index <= len(temp_storage):
+            if 0 < index <= len(temp_storage):#这里左边改成开区间了, 不能为0, 下同
                 # 获取当前条目的数据
                 current_entry = temp_storage.iloc[index-1]
                 # 更新输入框内容
@@ -196,7 +197,7 @@ def temp_list_rollback(self):
                 self.line10Right.setText(str(current_entry['单名']))
 
             # 如果目标条目索引号超出已存储列表+1，则切换到输入条目模式
-            elif 0 <= index <= len(temp_storage)+1:
+            elif 0 < index <= len(temp_storage)+1:
                 self.line1Right.setText("")
                 self.line2Right.setText("")
                 self.line3Right.setText("")
@@ -213,7 +214,7 @@ def temp_list_rollback(self):
                 print("Notice: 条目超出范围，请检查条目索引号")
 
                 # 重置条目索引到报错前
-                self.spinBox.setValue(self.spinBox.value()-1)  # 重置SpinBox的值为0
+                self.spinBox.setValue(int(self.storageNum.text())) # 更新SpinBox的值为存储数量
 
                 # 弹窗报错
                 # 为self追加创建一个Form属性,继承自QWidget
@@ -232,7 +233,8 @@ def temp_list_rollback(self):
                     return None
     else:
         #将其设置为1
-        self.spinBox.setValue(1)
+        if self.spinBox.value() <= 0:
+            self.spinBox.setValue(1)
         __main__.TEMP_LIST_ROLLBACK_SIGNAL = True
         
 def show_setting_window(self):

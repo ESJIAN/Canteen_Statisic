@@ -51,7 +51,7 @@ def store_single_entry_to_temple_excel(data, file_path):
             # 创建可写副本
             writable_workbook = copy(workbook)
             writable_sheet = writable_workbook.get_sheet(0)
-         
+            
             
             # 追加数据
             for row_index, row_data in enumerate(rows, start=existing_rows):

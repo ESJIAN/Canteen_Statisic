@@ -38,13 +38,15 @@ from src.core.excel_handler import clear_temp_excel, store_single_entry_to_templ
 
 TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 
-TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xls" # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
+TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(".", "temp_manual_input_data.xls") # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
 MIAN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表格路径
 Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\子表\\"  # 子工作表格路径
 
+SERIALS_NUMBER = 1
+DEBUG_SIGN = False
 
 class ClickableImage(QLabel):
     #chatgpt给的用于设置按钮的类
@@ -393,7 +395,7 @@ class Ui_Form(object):
         self.label_2.setText(QCoreApplication.translate("Form", u"\u9879", None))
         self.label_3.setText(QCoreApplication.translate("Form", "已暂存", None))
 
-        self.spinBox.setValue(TEMP_STORAGED_NUMBER_LISTS)  # 重置SpinBox的值为0
+        self.spinBox.setValue(1)  # 重置SpinBox的值为1
         self.storageNum.setText(QCoreApplication.translate("Form",str(TEMP_STORAGED_NUMBER_LISTS-1), None))
         
         self.label_4.setText(QCoreApplication.translate("Form", u"\u9879", None))
