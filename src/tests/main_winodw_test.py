@@ -52,12 +52,12 @@ class ClickableImage(QLabel):
     #chatgpt给的用于设置按钮的类
     def __init__(self, image_path):
         super().__init__()
-        self.setPixmap(QPixmap(image_path).scaled(QSize(200, 200), Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        self.setCursor(QCursor(Qt.PointingHandCursor))
-        self.setAlignment(Qt.AlignCenter)
+        self.setPixmap(QPixmap(image_path).scaled(QSize(200, 200), Qt.KeepAspectRatio, Qt.SmoothTransformation)) # type: ignore
+        self.setCursor(QCursor(Qt.PointingHandCursor)) # type: ignore
+        self.setAlignment(Qt.AlignCenter) # type: ignore
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.LeftButton: # type: ignore
             print("图片被点击")
 
 class Ui_Form(object):
@@ -103,11 +103,11 @@ class Ui_Form(object):
 
         self.setting = ClickableImage("")  # Use the ClickableImage class for clickable functionality
         self.setting.setObjectName("settingLabel")
-        self.setting.setAlignment(Qt.AlignRight | Qt.AlignTop)  # Align to the top-right corner
+        self.setting.setAlignment(Qt.AlignRight | Qt.AlignTop)  # type: ignore # Align to the top-right corner
         self.setting.setFixedSize(30, 30)  # Increase the size of the label
         self.setting.setText("⚙️")  # Use a gear emoji as a placeholder
         self.setting.setStyleSheet("font-size: 25px;")  # Make the gear emoji larger
-        self.gridLayout_3.addWidget(self.setting, 0, 0, Qt.AlignRight | Qt.AlignTop)  # Add to the top-right corner of the main layout
+        self.gridLayout_3.addWidget(self.setting, 0, 0, Qt.AlignRight | Qt.AlignTop)  # type: ignore # Add to the top-right corner of the main layout
         self.setting.mousePressEvent = lambda event: self.show_settings()  # Connect the click event to a function
 
         # Learning4：标签-输入框组的开始
@@ -466,7 +466,7 @@ class Ui_Form(object):
         # 定义输入框的字典
         input_fields = {
             "日期": f"2025-5-2",
-            "品名": f"品名{SERIALS_NUMBER}",
+            "品名": "大米",
             "类别": "主食",
             "单位": f"单位{SERIALS_NUMBER}",
             "单价": SERIALS_NUMBER+1,

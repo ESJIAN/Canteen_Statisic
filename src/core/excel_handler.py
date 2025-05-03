@@ -137,82 +137,90 @@ def cmmit_data_to_storage_excel(main_excel_file_path,sub_mian_food_excel_file_pa
             # 打开主工作簿对象
             main_workbook = app.books.open(sub_mian_food_excel_file_path)
             print(f"Notice: 子工作表加载成功，文件路径: {sub_mian_food_excel_file_path}")
+            
+            # 轮询读取暂存表格数据行
+            for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
+                # 读取行数据
+                row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
+                # 创建一个字典，用于存储列索引和列名的对应关系
+                header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
+                
+                # 将日期分解为月和日
+                year, month, day = row_data[header_index["日期"]].split("-")
+                # 获取行中类别列类型单元中的类别名数据
+                category_name = row_data[header_index["类别"]]
+                # 获取行中品名列类型单元中的品名名数据
+                product_name = row_data[header_index["品名"]]
+                # 获取行中单位列类型单元中的单位名数据
+                unit_name = row_data[header_index["单位"]]
+                # 获取行中单价列类型单元中的单价名数据
+                price = row_data[header_index["单价"]]
+                # 获取行中数量列类型单元中的数量名数据
+                quantity = row_data[header_index["数量"]]
+                # 获取行中金额列单元中金额数据
+                amount = row_data[header_index["金额"]]
+                # 获取行中备注列单元中备注数据
+                remark = row_data[header_index["备注"]]
+                # 获取行中公司列单元中公司名数据
+                company_name = row_data[header_index["公司"]]
+                # 获取行中单名称列单元中单名数据
+                single_name = row_data[header_index["单名"]]  
+
+                # 查找对应的品名的 sheet
+                if product_name in [s.name for s in main_workbook.sheets]:
+                    sheet = main_workbook.sheets[product_name]
+                else:
+                    print(f"未找到品名为 {product_name} 的sheet")
+                    return
+
+                # 寻找没有内容的第一行
+                for row_index in range(sheet.used_range.rows.count):
+                    if all(sheet.range((row_index + 1, col)).value is None for col in range(1, 12)): # 通过检查每一行的1到11列
+                        print(f"Notice: 发现第 {row_index + 1} 行为空行，开始写入数据")
+                        break
+                
+                # 往该没有内容的行的A列中写入月份、B列中写入日
+                try:
+                    sheet.range((row_index + 1, 1)).value = month
+                    sheet.range((row_index + 1, 2)).value = day
+                    print(f"Notice: 子表主食表 {product_name} sheet 写入日期成功")
+                except Exception as e:
+                    print(f"Error: 子表主食表 {product_name} sheet 写入日期失败{e}")
+                    return
+                # 往该没有内容的行的D列中写入出入库摘要
+                try:
+                    sheet.range((row_index + 1, 4)).value = "入库"
+                    print(f"Notice: 子表主食表 {product_name} sheet 写入出入库摘要成功")
+                except Exception as e:
+                    print(f"Error: 子表主食表 {product_name} sheet 写入出入库摘要失败{e}")
+                    return
+                # 往该没有内容的行中的E列写入单价
+                try:
+                    sheet.range((row_index + 1, 5)).value = price
+                    print(f"Notice: 子表主食表 {product_name} sheet 写入单价成功")
+                except Exception as e:
+                    print(f"Error: 子表主食表 {product_name} sheet 写入单价失败{e}")
+                    return
+                # 往该没有内容的行中的F列写入数量
+                try:
+                    sheet.range((row_index + 1, 6)).value = quantity
+                    print(f"Notice: 子表主食表 {product_name} sheet 写入数量成功")
+                except Exception as e:
+                    print(f"Error: 子表主食表 {product_name} sheet 写入数量失败{e}")
+                    return
+                # 往该没有内容的行中的G列写入金额
+                try:
+                    sheet.range((row_index + 1, 7)).value = amount
+                    print(f"Notice: 子表主食表 {product_name} sheet 写入金额成功")
+                except Exception as e:
+                    print(f"Error: 子表主食表 {product_name} sheet 写入金额失败{e}")
+                    return
+                
         except Exception as e:
             print(f"Error: {e}")
             return  
     
-    # 轮询读取暂存表格数据行
-    for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
-        # 读取行数据
-        row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
-        # 创建一个字典，用于存储列索引和列名的对应关系
-        header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
-        
-        # 将日期分解为月和日
-        year, month, day = row_data[header_index["日期"]].split("-")
-        # 获取行中类别列类型单元中的类别名数据
-        category_name = row_data[header_index["类别"]]
-        # 获取行中品名列类型单元中的品名名数据
-        product_name = row_data[header_index["品名"]]
-        # 获取行中单位列类型单元中的单位名数据
-        unit_name = row_data[header_index["单位"]]
-        # 获取行中单价列类型单元中的单价名数据
-        price = row_data[header_index["单价"]]
-        # 获取行中数量列类型单元中的数量名数据
-        quantity = row_data[header_index["数量"]]
-        # 获取行中金额列单元中金额数据
-        amount = row_data[header_index["金额"]]
-        # 获取行中备注列单元中备注数据
-        remark = row_data[header_index["备注"]]
-        # 获取行中公司列单元中公司名数据
-        company_name = row_data[header_index["公司"]]
-        # 获取行中单名称列单元中单名数据
-        single_name = row_data[header_index["单名"]]  
-
-        # 查找对应的品名的 sheet
-        if product_name in [s.name for s in main_workbook.sheets]:
-            sheet = main_workbook.sheets[product_name]
-        else:
-            print(f"未找到品名为 {product_name} 的sheet")
-            return
-
-        # 寻找没有内容的第一行
-        for row_index in range(sheet.used_range.rows.count):
-            if all(sheet.range((row_index + 1, col)).value is None for col in range(1, 3)):
-                print(f"Notice: 发现第 {row_index + 1} 行为空行，开始写入数据")
-                break
-        
-        # 往该没有内容的行的A列中写入月份、B列中写入日
-        try:
-            sheet.range((row_index + 1, 1)).value = month
-            sheet.range((row_index + 1, 2)).value = day
-        except Exception as e:
-            print(f"Error: 子表主食表 {product_name} sheet 写入日期失败{e}")
-            return
-        # 往该没有内容的行的D列中写入出入库摘要
-        try:
-            sheet.range((row_index + 1, 4)).value = "入库"
-        except Exception as e:
-            print(f"Error: 子表主食表 {product_name} sheet 写入出入库摘要失败{e}")
-            return
-        # 往该没有内容的行中的E列写入单价
-        try:
-            sheet.range((row_index + 1, 5)).value = price
-        except Exception as e:
-            print(f"Error: 子表主食表 {product_name} sheet 写入单价失败{e}")
-            return
-        # 往该没有内容的行中的F列写入数量
-        try:
-            sheet.range((row_index + 1, 6)).value = quantity
-        except Exception as e:
-            print(f"Error: 子表主食表 {product_name} sheet 写入数量失败{e}")
-            return
-        # 往该没有内容的行中的G列写入金额
-        try:
-            sheet.range((row_index + 1, 7)).value = amount
-        except Exception as e:
-            print(f"Error: 子表主食表 {product_name} sheet 写入金额失败{e}")
-            return
+    
         
 
 def process_main_workbook(excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
@@ -428,7 +436,15 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
         found = sheet.range("A:A").api.Find(product_name)
         if found is not None:
             # 如果存在，则更新该行的数据
-            row_index = found.row
+            # 用遍历方式查找行索引，避免直接用 .row
+            row_index = None
+            for i in range(1, sheet.used_range.rows.count + 1):
+                if sheet.range(f"A{i}").value == product_name:
+                    row_index = i
+                    break
+            if row_index is None:
+                print(f"Error: 在表 食堂物品收发存库存表 未找到名称为 {product_name} 的行")
+                return
             print(f"Notice: 在表 食堂物品收发存库存表 找到名称为 {product_name} 的行,行号为{row_index}")
 
             # 判断quantity、price、amount的值是否为数值
