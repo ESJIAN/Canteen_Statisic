@@ -247,7 +247,7 @@ def update_company_sheet(main_workbook, company_name, amount):
 
 def updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name):
     """
-    将数据写入指定的sheet中
+    将数据写入指定的入库类型sheet中
     :param main_workbook: 主工作簿对象
     :param single_name: sheet名称
     :param row_data: 行数据
@@ -785,8 +785,8 @@ def update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_tem
 #      - [x] 实现提交数据条目到食堂物品收发存表中
 #      - [x] 2025.5.3. 实现提交数据条目到主副食明细账中
 #      - [x] 2025.5.3. 实现提交数据条目到收发表存皮重
-#   - [ ] 2025.5.3. 实现提交数据到子表中
-#      - [ ] 实现提交数据到主食表入库中
-#      - [ ] 实现提交数据到副食表入库中 
+#   - [x] 2025.5.3. 实现提交数据到子表中
+#      - [x] 实现提交数据到主食表入库中
+#      - [x] 实现提交数据到副食表入库中 
 # - [x] 2025.5.1 修复暂存一次表格前7行出现None字符的问题
 # - [x] 2025.5.2 解决store_single_entry_to_temple_excel函数表格不存在时[Errno 2] No such file or directory: '.\\src\\data\\input\\manual\\temp_manual_input_data.xls'的问题
