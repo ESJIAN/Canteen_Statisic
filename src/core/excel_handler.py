@@ -173,79 +173,8 @@ def cmmit_data_to_storage_excel(excel_file_path):
             updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name)
             # 更新食品收发库存表中的条目信息
             update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
-            
             # 更新收发存表皮中的条目信息
-            # 尝试打开名为食堂物品收发库存表的 sheet
-            if "收发存表皮" in [s.name for s in main_workbook.sheets]:
-                sheet = main_workbook.sheets["收发存表皮"]
-                print(f"Notice: 找到入库类型名为 `收发存表皮` 的sheet")
-            else:
-                print(f"Error: 未找到入库类型名为 `收发存表皮` 的sheet,可能存在空字符")
-                return
-            
-            def update_receipt_inventory_sheet(sheet, single_name, category_name, amount):
-                """
-                更新收发存表皮中的金额数据
-                :param sheet: 收发存表皮的sheet对象
-                :param single_name: 单名信息
-                :param category_name: 类别信息
-                :param amount: 金额数据
-                :return: None
-                """
-                # 提取输入数据的单名信息和类别信息进行行索引词匹配
-                if single_name == "扶贫主食入库":
-                    row_index_name = "主食（帮扶食品）"
-
-                elif single_name == "扶贫副食入库":
-                    row_index_name = "副食（帮扶食品）"
-
-                elif single_name == "自购主食入库":
-                    if category_name == "主食":
-                        row_index_name = "主食（自购）"
-                    elif category_name == "副食":
-                        row_index_name = "副食（自购）"
-                    else:
-                        print("Error: 自购主食入库 未找到类别信息，请检查输入数据")
-                        return
-
-                elif single_name == "场调面食入库":
-                    if category_name == "主食":
-                        row_index_name = "正常厂主食"
-                    elif category_name == "副食":
-                        row_index_name = "正常厂主食"
-                    else:
-                        print("Error: 场调面食入库 未找到类别信息，请检查输入数据")
-                        return
-
-                else:
-                    print("Error: 未找到入库类型信息，请检查输入数据")
-                    return
-
-                # 调用Excel API用行索引名匹配行索引
-                found_row = sheet.range("A:A").api.Find(row_index_name)
-                if found_row is not None:
-                    try:
-                        found_row_index = sheet.range("A:A").value.index(row_index_name) + 1
-                        print(f"Notice: 在 收发存表皮 Sheet中找到 {row_index_name} 的行索引为 {found_row_index}")
-                    except Exception as e:
-                        print(f"Error: 获取行索引出错 {e}")
-                        return
-                else:
-                    print(f"Error: 在 收发存表皮 Sheet中未找到 {row_index_name} 的行索引，请检查输入数据")
-                    return
-
-                # 更新H列的金额数据
-                if found_row_index:
-                    if sheet.range(found_row_index, 4).value is None:
-                        sheet.range(found_row_index, 4).value = amount
-                        print(f"Notice: 发现 收发存表皮 Sheet 中 {row_index_name} 的金额数据不存在,现在添加数据为 {sheet.range(found_row_index, 4).value}")
-                    else:
-                        print(f"Notice: 在 收发存表皮 Sheet中 {row_index_name} 的金额原始数据为 {sheet.range(found_row_index, 4).value}")
-                        sheet.range(found_row_index, 4).value = amount + float(sheet.range(found_row_index, 4).value)
-                        print(f"Notice: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据成功,现在数据为 {sheet.range(found_row_index, 4).value}")
-                else:
-                    print(f"Error: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据失败，请检查输入数据")
-
+            update_receipt_storage_sheet(main_workbook, single_name, category_name, amount)
 
         try:
             # 保存工作簿
@@ -448,6 +377,72 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
 
     except Exception as e:
         print(f"Error: 更新食堂物品收发存库存表时出错 {e}")
+
+def update_receipt_storage_sheet(main_workbook, single_name, category_name, amount):
+    """
+    更新收发存表皮中的条目信息
+    :param main_workbook: 主工作簿对象
+    :param single_name: 单名信息
+    :param category_name: 类别信息
+    :param amount: 金额数据
+    :return: None
+    """
+    # 尝试打开名为收发存表皮的 sheet
+    if "收发存表皮" in [s.name for s in main_workbook.sheets]:
+        sheet = main_workbook.sheets["收发存表皮"]
+        print(f"Notice: 找到入库类型名为 `收发存表皮` 的sheet")
+    else:
+        print(f"Error: 未找到入库类型名为 `收发存表皮` 的sheet,可能存在空字符")
+        return
+
+    # 提取输入数据的单名信息和类别信息进行行索引词匹配
+    row_index_name = None
+    if single_name == "扶贫主食入库":
+        row_index_name = "主食（帮扶食品）"
+    elif single_name == "扶贫副食入库":
+        row_index_name = "副食（帮扶食品）"
+    elif single_name == "自购主食入库":
+        if category_name == "主食":
+            row_index_name = "主食（自购）"
+        elif category_name == "副食":
+            row_index_name = "副食（自购）"
+        else:
+            print("Error: 自购主食入库 未找到类别信息，请检查输入数据")
+    elif single_name == "场调面食入库":
+        if category_name == "主食":
+            row_index_name = "正常厂主食"
+        elif category_name == "副食":
+            row_index_name = "正常厂主食"
+        else:
+            print("Error: 场调面食入库 未找到类别信息，请检查输入数据")
+    else:
+        print("Error: 未找到入库类型信息，请检查输入数据")
+        return
+
+    # 调用Excel API用行索引名匹配行索引
+    found_row = sheet.range("A:A").api.Find(row_index_name)
+    if found_row is not None:
+        try:
+            found_row_index = sheet.range("A:A").value.index(row_index_name) + 1
+            print(f"Notice: 在 收发存表皮 Sheet中找到 {row_index_name} 的行索引为 {found_row_index}")
+        except Exception as e:
+            print(f"Error: 获取行索引出错 {e}")
+            return
+    else:
+        print(f"Error: 在 收发存表皮 Sheet中未找到 {row_index_name} 的行索引，请检查输入数据")
+        return
+
+    # 更新H列的金额数据
+    if found_row_index:
+        if sheet.range(found_row_index, 4).value is None:
+            sheet.range(found_row_index, 4).value = amount
+            print(f"Notice: 发现 收发存表皮 Sheet 中 {row_index_name} 的金额数据不存在,现在添加数据为 {sheet.range(found_row_index, 4).value}")
+        else:
+            print(f"Notice: 在 收发存表皮 Sheet中 {row_index_name} 的金额原始数据为 {sheet.range(found_row_index, 4).value}")
+            sheet.range(found_row_index, 4).value = amount + float(sheet.range(found_row_index, 4).value)
+            print(f"Notice: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据成功,现在数据为 {sheet.range(found_row_index, 4).value}")
+    else:
+        print(f"Error: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据失败，请检查输入数据")
 
 
 
