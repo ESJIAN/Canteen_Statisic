@@ -309,22 +309,22 @@ class Ui_Form(object):
         self.horizontalLayout_2.addWidget(self.tabWidget_2)
 
         self.tabWidget.addTab(self.tab, "")
-        self.tab_2 = QWidget()
-        self.tab_2.setObjectName(u"tab_2")
-        self.gridLayout_2 = QGridLayout(self.tab_2)
-        self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.tabWidget_3 = QTabWidget(self.tab_2)
-        self.tabWidget_3.setObjectName(u"tabWidget_3")
+        #self.tab_2 = QWidget()
+        #self.tab_2.setObjectName(u"tab_2")
+        #self.gridLayout_2 = QGridLayout(self.tab_2)
+        #self.gridLayout_2.setObjectName(u"gridLayout_2")
+        #self.tabWidget_3 = QTabWidget(self.tab_2)
+        #self.tabWidget_3.setObjectName(u"tabWidget_3")
         self.tab_5 = QWidget()
         self.tab_5.setObjectName(u"tab_5")
-        self.tabWidget_3.addTab(self.tab_5, "")
+        #self.tabWidget_3.addTab(self.tab_5, "")
         self.tab_6 = QWidget()
         self.tab_6.setObjectName(u"tab_6")
-        self.tabWidget_3.addTab(self.tab_6, "")
+        #self.tabWidget_3.addTab(self.tab_6, "")
 
-        self.gridLayout_2.addWidget(self.tabWidget_3, 0, 0, 1, 1)
+        #self.gridLayout_2.addWidget(self.tabWidget_3, 0, 0, 1, 1)
 
-        self.tabWidget.addTab(self.tab_2, "")
+        #elf.tabWidget.addTab(self.tab_2, "")
 
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
@@ -379,12 +379,14 @@ class Ui_Form(object):
         self.groupBox_4.setTitle(QCoreApplication.translate("Form", u"PDF\u5bfc\u5165", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("Form", u"\u5bfc\u5165\u9884\u89c8", None))
         self.pushButton_3.setText(QCoreApplication.translate("Form", u"\u8f7d\u5165\u6587\u4ef6", None))
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", u"Tab 1", None))
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), QCoreApplication.translate("Form", u"Tab 2", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"Tab 1", None))
-        self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_5), QCoreApplication.translate("Form", u"Tab 1", None))
-        self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_6), QCoreApplication.translate("Form", u"Tab 2", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("Form", u"Tab 2", None))
+        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", u"入库", None))
+        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), QCoreApplication.translate("Form", u"出库", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"显示别的什么东西", None))
+        #self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_5), QCoreApplication.translate("Form", u"Tab 1", None))
+        #self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_6), QCoreApplication.translate("Form", u"Tab 2", None))
+        #self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("Form", u"Tab 2", None))
+        #打开自动获取日期，也保留获取日期的按钮
+        self.show_current_date()
     # retranslateUi
     
     

@@ -12,6 +12,9 @@ from datetime import datetime
 from email.mime import application
 from PySide6.QtWidgets import QApplication, QWidget
 import pandas as pd  
+import os
+from configparser import ConfigParser
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton
 
 from src.gui.error_window import TagNumShortage,IndexOutOfRange                 # Learning1：子模块的导入相对路径的起算点是主模块
 from src.gui.check_window import ExcelCheckWindow               # Learning2:顶级脚本设定绝对倒入配置后不需要在子模块中重设
@@ -228,8 +231,76 @@ def temp_list_rollback(self):
                     print(f"Error: {e}")
                     return None
     else:
+        #将其设置为1
+        self.spinBox.setValue(1)
         __main__.TEMP_LIST_ROLLBACK_SIGNAL = True
         
+def show_setting_window(self):
+    """
+    显示设置窗口
+    :param: self
+    :return: None
+    """
+    self.settings_window = QWidget()
+    self.settings_window.setWindowTitle("设置")
+    self.settings_window.resize(400, 300)
+
+    layout = QVBoxLayout(self.settings_window)
+    label = QLabel("设置")
+    layout.addWidget(label)
+
+    # Add toggle for "Auto-fill Date"
+    self.auto_fill_date_toggle = QPushButton("自动填充日期")
+    self.auto_fill_date_toggle.setCheckable(True)
+    self.auto_fill_date_toggle.setChecked(False)
+    self.auto_fill_date_toggle.clicked.connect(lambda: modify_ini_setting("Settings", "auto_fill_date", self.auto_fill_date_toggle.isChecked()))
+    layout.addWidget(self.auto_fill_date_toggle)
+
+    # Add toggle for "Auto-calculate Total Price"
+    self.auto_calc_price_toggle = QPushButton("自动根据单价数量计算总价")
+    self.auto_calc_price_toggle.setCheckable(True)
+    self.auto_calc_price_toggle.setChecked(True)
+    self.auto_calc_price_toggle.clicked.connect(lambda: modify_ini_setting("Settings", "auto_calc_price", self.auto_calc_price_toggle.isChecked()))
+    layout.addWidget(self.auto_calc_price_toggle)
+
+    close_button = QPushButton("点击关闭")
+    close_button.clicked.connect(self.settings_window.close)
+    layout.addWidget(close_button)
+
+    self.settings_window.setLayout(layout)
+    self.settings_window.show()
+
+
+
+def modify_ini_setting(section, option, new_value, file_path='./config.ini'):
+    """
+    修改INI配置文件中指定的设置项。如果段或选项不存在则自动创建。
+    参数:
+        section (str): 配置段名
+        option (str): 配置项名
+        new_value (str): 新的值
+        file_path (str): INI 文件路径
+
+    返回:
+        bool: 修改成功返回 True，失败返回 False
+    """
+    import os, configparser
+    if not os.path.isfile(file_path):
+        return False
+
+    config = configparser.ConfigParser()
+    try:
+        config.read(file_path, encoding='utf-8')
+        if section not in config:
+            config.add_section(section)
+
+        config[section][option] = new_value
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            config.write(f)
+        return True
+    except:
+        return False
 
 
 # Summary：
