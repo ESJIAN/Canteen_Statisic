@@ -246,20 +246,21 @@ def show_setting_window(self):
     self.settings_window.resize(400, 300)
 
     layout = QVBoxLayout(self.settings_window)
-    label = QLabel("设置")
-    layout.addWidget(label)
+    #label = QLabel("设置")
+    #layout.addWidget(label)
 
     # Add toggle for "Auto-fill Date"
     self.auto_fill_date_toggle = QPushButton("自动填充日期")
     self.auto_fill_date_toggle.setCheckable(True)
-    self.auto_fill_date_toggle.setChecked(False)
+    self.auto_fill_date_toggle.setChecked(get_ini_setting("Settings", "auto_fill_date", file_path='../../config/config.ini') == 'True')
+    print(get_ini_setting("Settings", "auto_fill_date", file_path='../../config.ini') == 'True')
     self.auto_fill_date_toggle.clicked.connect(lambda: modify_ini_setting("Settings", "auto_fill_date", self.auto_fill_date_toggle.isChecked()))
     layout.addWidget(self.auto_fill_date_toggle)
 
     # Add toggle for "Auto-calculate Total Price"
     self.auto_calc_price_toggle = QPushButton("自动根据单价数量计算总价")
     self.auto_calc_price_toggle.setCheckable(True)
-    self.auto_calc_price_toggle.setChecked(True)
+    self.auto_calc_price_toggle.setChecked(get_ini_setting("Settings", "auto_calc_price", file_path='../../config/config.ini') == 'True')
     self.auto_calc_price_toggle.clicked.connect(lambda: modify_ini_setting("Settings", "auto_calc_price", self.auto_calc_price_toggle.isChecked()))
     layout.addWidget(self.auto_calc_price_toggle)
 
@@ -270,11 +271,20 @@ def show_setting_window(self):
     self.settings_window.setLayout(layout)
     self.settings_window.show()
 
-
-
-def modify_ini_setting(section, option, new_value, file_path='./config.ini'):
+def close_setting_window(self):
     """
-    修改INI配置文件中指定的设置项。如果段或选项不存在则自动创建。
+    关闭设置窗口
+    :param: self
+    :return: None
+    """
+    if hasattr(self, 'settings_window'):
+        self.settings_window.close()
+        del self.settings_window
+
+def modify_ini_setting(section, option, new_value, file_path='../../config/config.ini'):
+    """
+    修改INI配置文件中指定的设置项。如果文件、段或选项不存在则自动创建。
+
     参数:
         section (str): 配置段名
         option (str): 配置项名
@@ -284,13 +294,16 @@ def modify_ini_setting(section, option, new_value, file_path='./config.ini'):
     返回:
         bool: 修改成功返回 True，失败返回 False
     """
-    import os, configparser
-    if not os.path.isfile(file_path):
-        return False
-
-    config = configparser.ConfigParser()
-    try:
+    config = ConfigParser()
+    # 如果文件存在就读取；否则创建空文件
+    new_value = str(new_value)   
+    if os.path.isfile(file_path):
         config.read(file_path, encoding='utf-8')
+    else:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write("")  # 创建空文件
+
+    try:
         if section not in config:
             config.add_section(section)
 
@@ -298,10 +311,52 @@ def modify_ini_setting(section, option, new_value, file_path='./config.ini'):
 
         with open(file_path, 'w', encoding='utf-8') as f:
             config.write(f)
+        print(f"'{section}' 中 '{option}' 的值已修改为: {new_value}")
         return True
-    except:
+    except Exception as e:
+        print(f"Error: {e}")
+        print(f"Error: 无法修改 '{section}' 中 '{option}' 的值")
         return False
 
+def get_ini_setting(section, option, file_path='../../config/config.ini'):
+    """
+    从INI配置文件中获取指定设置项的值。
+    若文件、段或选项不存在，则自动创建并写入 "False"，然后返回 "False"。
+
+    参数:
+        section (str): 配置段名
+        option (str): 配置项名
+        file_path (str): INI 文件路径
+
+    返回:
+        str: 配置项的值；若不存在则返回 "False"
+    """
+    config = ConfigParser()
+
+    # 文件不存在：创建空文件
+    if not os.path.isfile(file_path):
+        os.makedirs(os.path.dirname(file_path), exist_ok=True) if os.path.dirname(file_path) else None
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write("")
+
+    config.read(file_path, encoding='utf-8')
+
+    updated = False
+
+    if section not in config:
+        config.add_section(section)
+        updated = True
+
+    if option not in config[section]:
+        config[section][option] = "False"
+        updated = True
+
+    if updated:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            config.write(f)
+        return "False"
+
+    return config.get(section, option)
 
 # Summary：
 # 1. 抽象的看所有widget都是一个个的对象，都是有属性和方法的，属性就是它的状态，方法就是它能做的事情。

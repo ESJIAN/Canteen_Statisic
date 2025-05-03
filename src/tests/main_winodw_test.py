@@ -31,7 +31,8 @@ project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..')
 # 将项目根目录添加到 sys.path
 sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
-from src.gui.utils.detail_ui_button_utils import commit_data_to_excel, get_current_date, manual_temp_storage, temp_list_rollback, show_setting_window # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.gui.utils.detail_ui_button_utils import commit_data_to_excel, get_current_date, manual_temp_storage, temp_list_rollback, show_setting_window, get_ini_setting, close_setting_window
+ # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
 from configparser import ConfigParser
 from src.core.excel_handler import clear_temp_excel, store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
@@ -412,7 +413,8 @@ class Ui_Form(object):
         #self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_6), QCoreApplication.translate("Form", u"Tab 2", None))
         #self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("Form", u"Tab 2", None))
         #自动填充日期
-        self.show_current_date()
+        if get_ini_setting("Settings", "auto_fill_date") == "True":
+            self.show_current_date()
 
         #绑定单价和数量文本框变化触发自动计算
         self.line7Right.textChanged.connect(self.auto_calc_amount)#单价数量绑定到一块儿
@@ -433,6 +435,8 @@ class Ui_Form(object):
         :return: None
         """
         #这里的代码不会太多，多了我就像你一样放到detail_ui_button_utils.py
+        if get_ini_setting("Settings", "auto_calc_price") == "False":
+            return
         try:
             if (self.line7Right.text() == "" or self.line6Right.text() == ""):
                 self.line5Right.setText("")
@@ -535,7 +539,7 @@ if __name__ == "__main__":
     # 设置窗口标题
     Form.show()
     # 设置关闭事件
-    Form.closeEvent = lambda event: (clear_temp_excel(), print("Notice:清空暂存表格成功"), event.accept())
+    Form.closeEvent = lambda event: (clear_temp_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
     sys.exit(app.exec())
 
 # Summerize:
