@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFormLayout, QGridLay
     QGroupBox, QHBoxLayout, QLabel, QLayout,
     QLineEdit, QPlainTextEdit, QPushButton, QScrollArea,
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
-    QWidget, QFileDialog)
+    QWidget, QFileDialog, QDialog, QVBoxLayout)
 
 # 获取当前文件的绝对路径
 current_file_path = os.path.abspath(__file__) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
@@ -533,19 +533,29 @@ class Ui_Form(object):
         file_dialog.setFileMode(QFileDialog.ExistingFiles)
         file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg )")
         if file_dialog.exec():
+            # 获取选择的文件路径列表
             file_paths = file_dialog.selectedFiles()
+            # 遍历文件路径列表
             if file_paths:
                 # 2. 创建 QLabel 显示每张图片
                 if not self.scrollAreaWidgetContents.layout():
                     from PySide6.QtWidgets import QVBoxLayout
                     self.scrollAreaWidgetContents.setLayout(QVBoxLayout())
                 layout = self.scrollAreaWidgetContents.layout()
+                # 清空之前的内容，避免多次导入重复显示
+                while layout.count():
+                    child = layout.takeAt(0)
+                    if child.widget():
+                        child.widget().deleteLater()
+                # 添加新图片文件名按钮，垂直紧凑排列
                 for image_path in file_paths:
-                    label = QLabel(self.scrollAreaWidgetContents)
-                    pixmap = QPixmap(image_path)
-                    label.setPixmap(pixmap.scaled(150, 150, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-                    label.setFixedSize(150, 150)
-                    layout.addWidget(label)
+                    btn = QPushButton(os.path.basename(image_path), self.scrollAreaWidgetContents)
+                    btn.setFixedHeight(24)
+                    btn.setStyleSheet("margin:0; padding:0; text-align:left; background:transparent; border:none; color:blue; text-decoration:underline;")
+                    # 绑定点击事件，弹窗预览图片
+                    btn.clicked.connect(lambda checked, path=image_path: self.preview_image(path))
+                    layout.addWidget(btn)
+                layout.addStretch(1)  # 保证紧凑排列
 
 
     def show_settings(self):
@@ -557,8 +567,21 @@ class Ui_Form(object):
         # 这里可以添加打开设置窗口的代码
         show_setting_window(self)
 
-        
-        
+    def preview_image(self, image_path):
+        """
+        弹窗预览图片（支持多开预览窗口）
+        :param image_path: 图片文件路径
+        """
+        self.dialog = QDialog()
+        self.dialog.setAttribute(Qt.WA_DeleteOnClose)  # 关闭时自动销毁，支持多开
+        self.dialog.setWindowTitle("图片预览")
+        layout = QVBoxLayout(self.dialog)
+        label = QLabel(self.dialog)
+        pixmap = QPixmap(image_path)
+        label.setPixmap(pixmap.scaled(500, 500, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        layout.addWidget(label)
+        self.dialog.setLayout(layout)
+        self.dialog.show()  # 使用show()而不是exec()，允许多开
 
 if __name__ == "__main__":
 

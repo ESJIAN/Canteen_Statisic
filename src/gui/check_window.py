@@ -122,6 +122,9 @@ class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写
             print(f"Error:保存表格数据时出错: {e}")
 
 
+    
+
+
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
