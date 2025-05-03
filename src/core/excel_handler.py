@@ -191,6 +191,7 @@ def cmmit_data_to_storage_excel(excel_file_path):
                 print(f"Error: 未找到入库类型名为 `收发存表皮` 的sheet,可能存在空字符")
                 return
             
+            
 
 
         try:
@@ -366,7 +367,7 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
         else:
             # 如果不存在，查找第一行空行，记录下空行
             for row_index in range(0, sheet.used_range.rows.count):
-                if sheet.range((row_index + 1, 1)).value is None and sheet.range((row_index + 1, 2)).value is None:
+                if sheet.range((row_index + 1, 1)).value is None and sheet.range((row_index + 1, 2)).value is None and sheet.range((row_index + 2, 1)).value is None and sheet.range((row_index + 2, 2)).value is None:
                     break
 
             # 更新该行A列的物品名称信息
@@ -395,7 +396,8 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
     except Exception as e:
         print(f"Error: 更新食堂物品收发存库存表时出错 {e}")
 
-
+# Summerize：
+# 1. 索引类操作一定要考虑容错机制
 
 # Learning:
 # 1. Openpyxl 不对 .xls 文件格式提供支持，只能对 .xlsx 文件格式提供支持
