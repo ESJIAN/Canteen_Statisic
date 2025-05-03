@@ -39,7 +39,7 @@ def manual_temp_storage(self,input_fields):
     :return: 包含所有输入框内容的字典
     """
 
-    __main__.TEMP_LIST_ROLLBACK_SIGNAL = False  # Learning3：信号量，标记是否需要回滚
+    __main__.TEMP_LIST_ROLLBACK_SIGNAL = False  # type: ignore # Learning3：信号量，标记是否需要回滚
     exsit_tag_number = 0                        # 统计有内容的输入框数量
 
     temp_storage = {}                           # 存储输入框内容的字典
@@ -54,7 +54,7 @@ def manual_temp_storage(self,input_fields):
                 exsit_tag_number+=1                # 统计有内容的输入框数量
                 temp_storage[field_name] = input_field.text() # 将输入框内容存储到字典
         if __main__.DEBUG_SIGN == True:
-            __main__.SERIALS_NUMBER += 1  
+            __main__.SERIALS_NUMBER += 1   # type: ignore
 
         if exsit_tag_number==__main__.TOTAL_FIELD_NUMBER:
             data_save_success(self)             # 显示保存成功的消息提示弹窗
@@ -70,7 +70,7 @@ def manual_temp_storage(self,input_fields):
             self.line9Right.setText("")
             self.line10Right.setText("")
 
-            __main__.TEMP_STORAGED_NUMBER_LISTS +=1 # Learning5：形式参数传参进来的变量
+            __main__.TEMP_STORAGED_NUMBER_LISTS +=1 # type: ignore # Learning5：形式参数传参进来的变量
             try:
                 self.spinBox.setValue(__main__.TEMP_STORAGED_NUMBER_LISTS)  # 重置SpinBox的值为0
                 self.storageNum.setText(str(__main__.TEMP_STORAGED_NUMBER_LISTS-1))  # 更新存储数量的标签文本
@@ -228,7 +228,7 @@ def temp_list_rollback(self):
                     print(f"Error: {e}")
                     return None
     else:
-        __main__.TEMP_LIST_ROLLBACK_SIGNAL = True
+        __main__.TEMP_LIST_ROLLBACK_SIGNAL = True # type: ignore
         
 
 
