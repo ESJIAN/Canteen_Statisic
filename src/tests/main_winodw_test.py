@@ -542,7 +542,7 @@ if __name__ == "__main__":
     # 设置窗口标题
     Form.show()
     # 设置关闭事件
-    Form.closeEvent = lambda event: (clear_temp_excel(), print("Notice:清空暂存表格成功"), event.accept())
+    Form.closeEvent = lambda event: (clear_temp_excel(), print("Notice:清空暂存表格成功"), event.accept()) # type: ignore
     sys.exit(app.exec())
 
 # Summerize:
