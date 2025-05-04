@@ -11,6 +11,7 @@
 import sys
 import os
 import threading
+import shutil
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
@@ -24,6 +25,7 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFormLayout, QGridLay
     QLineEdit, QPlainTextEdit, QPushButton, QScrollArea,
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
     QWidget, QFileDialog, QDialog, QVBoxLayout)
+
 
 # 获取当前文件的绝对路径
 current_file_path = os.path.abspath(__file__) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
@@ -47,6 +49,7 @@ from src.gui.utils.detail_ui_button_utils import (
 from src.gui.utils.detail_ui_button_utils import show_check_window
 from configparser import ConfigParser
 from src.core.excel_handler import clear_temp_excel, store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.gui.photo_preview_dialog import preview_image
 
 TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 
@@ -610,39 +613,64 @@ class Ui_Form(object):
 
     def photo_import(self):
         """
-        照片导入功能实现
+        照片导入功能实现，支持批量导入和显示多张图片
         :param: self
         :return: None
         """
+
         # 1. 弹出文件选择器，支持多选图片
+        
         file_dialog = QFileDialog()
         file_dialog.setFileMode(QFileDialog.ExistingFiles)
         file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg )")
+        
+        "检查选择的文件路径是否有效，加载文件到程序图片暂存文件夹，并且展示到界面上"
         if file_dialog.exec():
             # 获取选择的文件路径列表
             file_paths = file_dialog.selectedFiles()
-            # 遍历文件路径列表
-            if file_paths:
-                # 2. 创建 QLabel 显示每张图片
-                if not self.scrollAreaWidgetContents.layout():
-                    from PySide6.QtWidgets import QVBoxLayout
-                    self.scrollAreaWidgetContents.setLayout(QVBoxLayout())
-                layout = self.scrollAreaWidgetContents.layout()
+            
+            "将文件复制到 ./src/data/input/img 目录下"
+            dest_dir = os.path.join(".", "src", "data", "input", "img")         # 目标目录
+            os.makedirs(dest_dir, exist_ok=True)                                # 如果目标目录不存在，则创建它
+            copied_paths = []                                                   # 用于记录复制成功的文件路径
+            for src_path in file_paths:                                         # 遍历每个文件路径
+                dest_path = os.path.join(dest_dir, os.path.basename(src_path))  # 拼接目标路径已经文件名
+                try: # 文件操作使用try和if进行容错考虑
+                    shutil.copy2(src_path, dest_path)                           # 复制文件到目标路径
+                    copied_paths.append(dest_path)                              # 记录复制成功的文件路径
+                except Exception as e:
+                    print(f"Error: 复制文件失败: {src_path} -> {dest_path}, 错误: {e}")
+           
+            "遍历复制后的文件路径,在父组件的容器布局中调用QLabel显示"
+            if copied_paths:
+                if not self.scrollAreaWidgetContents.layout():                  # 如果容器布局不存在，则创建它
+                    self.scrollAreaWidgetContents.setLayout(QVBoxLayout())      # 为scrollAreaWidgetContents组件创建垂直布局
+                layout = self.scrollAreaWidgetContents.layout()                 # 获取容器布局对象
                 # 清空之前的内容，避免多次导入重复显示
-                while layout.count():
-                    child = layout.takeAt(0)
-                    if child.widget():
-                        child.widget().deleteLater()
+                while layout.count():                                           # 清空布局
+                    child = layout.takeAt(0)                                    # 从布局中移除子组件
+                    if child.widget():                                          # 如果子组件是widget，则删除它
+                        child.widget().deleteLater()                            # 删除子组件
                 # 添加新图片文件名按钮，垂直紧凑排列
-                for image_path in file_paths:
+                for image_path in copied_paths:
                     btn = QPushButton(os.path.basename(image_path), self.scrollAreaWidgetContents)
                     btn.setFixedHeight(24)
-                    btn.setStyleSheet("margin:0; padding:0; text-align:left; background:transparent; border:none; color:blue; text-decoration:underline;")
+                    # 增加轮廓阴影效果
+                    btn.setStyleSheet("""
+                        margin:0; 
+                        padding:0; 
+                        text-align:left; 
+                        background:transparent; 
+                        border: 1px solid #888; 
+                        border-radius: 4px;
+                        color:blue; 
+                        text-decoration:underline;
+                    """)
                     # 绑定点击事件，弹窗预览图片
-                    btn.clicked.connect(lambda checked, path=image_path: self.preview_image(path))
+                    btn.clicked.connect(lambda checked, path=image_path: preview_image(self,path))
                     layout.addWidget(btn)
                 layout.addStretch(1)  # 保证紧凑排列
-
+            
 
     def show_settings(self):
         """
@@ -653,21 +681,7 @@ class Ui_Form(object):
         # 这里可以添加打开设置窗口的代码
         show_setting_window(self)
 
-    def preview_image(self, image_path):
-        """
-        弹窗预览图片（支持多开预览窗口）
-        :param image_path: 图片文件路径
-        """
-        self.dialog = QDialog()
-        self.dialog.setAttribute(Qt.WA_DeleteOnClose)  # 关闭时自动销毁，支持多开
-        self.dialog.setWindowTitle("图片预览")
-        layout = QVBoxLayout(self.dialog)
-        label = QLabel(self.dialog)
-        pixmap = QPixmap(image_path)
-        label.setPixmap(pixmap.scaled(500, 500, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        layout.addWidget(label)
-        self.dialog.setLayout(layout)
-        self.dialog.show()  # 使用show()而不是exec()，允许多开
+
 
 if __name__ == "__main__":
 
