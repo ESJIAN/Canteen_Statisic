@@ -244,12 +244,15 @@ class Ui_Form(object):
         self.verticalLayout.addLayout(self.formLayout)
 
         "提交数据按钮创建配置"
-        self.pushButton_6 = QPushButton(self.groupBox_3)
+        
         self.buttonGroup = QButtonGroup(Form)
         self.buttonGroup.setObjectName(u"buttonGroup")
+
+        self.pushButton_6 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_6)
         self.pushButton_6.setObjectName(u"pushButton_6")
         self.pushButton_6.setGeometry(QRect(220, 240, 75, 24))
+        self.pushButton_6.clicked.connect(self.clear_temp_manual_list)
         
         self.pushButton_7 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_7)
@@ -372,7 +375,7 @@ class Ui_Form(object):
         self.pushButton_10 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
         self.pushButton_10.setObjectName(u"pushButton_10")               # 设置该按钮的ObjectName
         self.pushButton_10.setGeometry(QRect(210, 190, 75, 24))          # 设置按钮位置
-        self.pushButton_10.clicked.connect(self.clear_temp_import_list)  # 绑定槽函数
+        self.pushButton_10.clicked.connect(self.clear_temp_photo_import_list)  # 绑定槽函数
 
 
         self.tabWidget_2.addTab(self.tab_3, "")
@@ -621,6 +624,15 @@ class Ui_Form(object):
         threading.Thread(target=commit_data_to_excel, args=(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
 
+    def clear_temp_manual_list(self):
+        """
+        清空手动输入条目
+        :param: self
+        :return: None
+
+        """
+        clear_temp_xls_excel()
+
 
     def information_edition_rollback(self): # Learning6：自定义方法一定要放一个self参数,不妨报错
         """
@@ -722,13 +734,20 @@ class Ui_Form(object):
         # 这里可以添加打开设置窗口的代码
         show_setting_window(self)
 
-    def clear_temp_import_list(self):
+    def clear_temp_photo_import_list(self):
         """
         清空照片列表组件中的临时导入条目
         :param: self
         :return: None
         """
-        self.scrollAreaWidgetContents.layout().takeAt(0).
+        # 一次性清空所有条目
+        layout = self.scrollAreaWidgetContents.layout()
+        if layout:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget:
+                    widget.deleteLater()
         
 
 
