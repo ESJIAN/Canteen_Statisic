@@ -143,68 +143,70 @@ def process_main_workbook(excel_file_path, read_temp_storage_workbook, read_temp
     :param read_temp_storage_workbook_headers: 暂存表格表头
     :return: None
     """
-    # 调用xlwings打开 excel 应用对象
-    with xw.App(visible=False) as app:
-        # 读取主工作表格
-        try:
-            # 打开主工作簿对象
-            main_workbook = app.books.open(excel_file_path)
-            print(f"Notice: 主工作表加载成功，文件路径: {excel_file_path}")
-        except Exception as e:
-            print(f"Error: {e}")
-            return    
+    try:
+        # 调用xlwings打开 excel 应用对象
+        with xw.App(visible=False) as app:
+            # 读取主工作表格
+            try:
+                # 打开主工作簿对象
+                main_workbook = app.books.open(excel_file_path)
+                print(f"Notice: 主工作表加载成功，文件路径: {excel_file_path}")
+            except Exception as e:
+                print(f"Error: {e}")
+                return    
 
-        # 轮询读取暂存表格数据行
-        for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
-            # 读取行数据
-            row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
-            # 创建一个字典，用于存储列索引和列名的对应关系
-            header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
+            # 轮询读取暂存表格数据行
+            for row_index in range(1, read_temp_storage_workbook.sheet_by_index(0).nrows):
+                # 读取行数据
+                row_data = read_temp_storage_workbook.sheet_by_index(0).row_values(row_index)
+                # 创建一个字典，用于存储列索引和列名的对应关系
+                header_index = {name: idx for idx, name in enumerate(read_temp_storage_workbook_headers)}
+                
+                # 将日期分解为月和日
+                year, month, day = row_data[header_index["日期"]].split("-")
+                # 获取行中类别列类型单元中的类别名数据
+                category_name = row_data[header_index["类别"]]
+                # 获取行中品名列类型单元中的品名名数据
+                product_name = row_data[header_index["品名"]]
+                # 获取行中单位列类型单元中的单位名数据
+                unit_name = row_data[header_index["单位"]]
+                # 获取行中单价列类型单元中的单价名数据
+                price = row_data[header_index["单价"]]
+                # 获取行中数量列类型单元中的数量名数据
+                quantity = row_data[header_index["数量"]]
+                # 获取行中金额列单元中金额数据
+                amount = row_data[header_index["金额"]]
+                # 获取行中备注列单元中备注数据
+                remark = row_data[header_index["备注"]]
+                # 获取行中公司列单元中公司名数据
+                company_name = row_data[header_index["公司"]]
+                # 获取行中单名称列单元中单名数据
+                single_name = row_data[header_index["单名"]]
+                
+                # 更新指定公司sheet中的金额数据
+                update_company_sheet(main_workbook, company_name, amount)
+                # 更新入库相关表中的条目信息
+                updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name)
+                # 更新食品收发库存表中的条目信息
+                update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
+                # 更新收发存表皮中的条目信息
+                update_receipt_storage_sheet(main_workbook, single_name, category_name, amount)
+                # 更新主副食明细账中的条目信息
+                update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
+
+            try:
+                # 保存工作簿
+                main_workbook.save()
+                # 关闭工作簿
+                main_workbook.close()
+                # 关闭应用对象
+                app.quit() # Learning：切记关闭应用对象，否则会造成下次创建一个同名应用对象时候发生对象名重复的冲突造成进程卡死
+                print(f"Notice: 主工作表保存成功，文件路径: {excel_file_path}")
             
-            # 将日期分解为月和日
-            year, month, day = row_data[header_index["日期"]].split("-")
-            # 获取行中类别列类型单元中的类别名数据
-            category_name = row_data[header_index["类别"]]
-            # 获取行中品名列类型单元中的品名名数据
-            product_name = row_data[header_index["品名"]]
-            # 获取行中单位列类型单元中的单位名数据
-            unit_name = row_data[header_index["单位"]]
-            # 获取行中单价列类型单元中的单价名数据
-            price = row_data[header_index["单价"]]
-            # 获取行中数量列类型单元中的数量名数据
-            quantity = row_data[header_index["数量"]]
-            # 获取行中金额列单元中金额数据
-            amount = row_data[header_index["金额"]]
-            # 获取行中备注列单元中备注数据
-            remark = row_data[header_index["备注"]]
-            # 获取行中公司列单元中公司名数据
-            company_name = row_data[header_index["公司"]]
-            # 获取行中单名称列单元中单名数据
-            single_name = row_data[header_index["单名"]]
-            
-            # 更新指定公司sheet中的金额数据
-            update_company_sheet(main_workbook, company_name, amount)    
-            # 更新入库相关表中的条目信息
-            updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name)
-            # 更新食品收发库存表中的条目信息
-            update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
-            # 更新收发存表皮中的条目信息
-            update_receipt_storage_sheet(main_workbook, single_name, category_name, amount)
-            # 更新主副食明细账中的条目信息
-            update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
-
-        try:
-            # 保存工作簿
-            main_workbook.save()
-            # 关闭工作簿
-            main_workbook.close()
-            # 关闭应用对象
-            app.quit() # Learning：切记关闭应用对象，否则会造成下次创建一个同名应用对象时候发生对象名重复的冲突造成进程卡死
-            print(f"Notice: 主工作表保存成功，文件路径: {excel_file_path}")
-        
-        except Exception as e:
-            print(f"Error: 保存主表时出错 {e}")
-
+            except Exception as e:
+                print(f"Error: 保存主表时出错 {e}")
+    except Exception as e:
+        print("打开主表时？出错？", e)
 
 def update_company_sheet(main_workbook, company_name, amount):
     """
@@ -214,6 +216,7 @@ def update_company_sheet(main_workbook, company_name, amount):
     :param amount: 要增加的金额
     :return: None
     """
+    print("公司", company_name, amount)
     # 查找对应的公司sheet
     try:
         sheet = main_workbook.sheets[company_name]
@@ -281,9 +284,32 @@ def updata_import_sheet(main_workbook, single_name, row_data, header_index, mont
 
         # 尝试写入一行数据
         try:
-            # 写入序号数据,从空行的第一行起算
-            sheet.range((row_index + 1, 1)).value = row_index + 1
-            print(f"Notice: 在主表为入库类型 {single_name} 的第 {row_index} 行写入序号：{row_index + 1} 成功")
+            print("当前行", row_index)
+            # 获取当前列中所有的序号值，排除空值并转换为整数
+            # existing_numbers = [
+            #     int(sheet.range((i + 1, 1)).value)
+            #     for i in range(row_index)  # 只计算当前行之前的序号
+            #     if sheet.range((i + 1, 1)).value is not None and str(int(sheet.range((i + 1, 1)).value)).isdigit()
+            # ]
+            existing_numbers = []
+            for i in range(row_index):
+                box_value = sheet.range((i + 1, 1)).value
+                try:
+                    box_value = int(box_value)  # 尝试将值转换为整数
+                    if str(box_value).isdigit():
+                        existing_numbers.append(box_value)  # 如果转换成功，则添加到列表中
+                except:
+                    continue
+                    
+
+            # 计算新的序号值
+            print("序号序号序号")
+            print(existing_numbers)
+            new_number = max(existing_numbers) + 1 if existing_numbers else 1
+            print(new_number)
+            # 写入序号数据
+            sheet.range((row_index + 1, 1)).value = new_number
+            print(f"Notice: 在主表为入库类型 {single_name} 的第 {row_index} 行写入序号：{new_number} 成功")
 
             # 为B、C列写入月份日期数据
             sheet.range((row_index + 1, 2)).value = month

@@ -477,19 +477,17 @@ class Ui_Form(object):
         self.line7Right.textChanged.connect(self.auto_calc_amount)#单价数量绑定到一块儿
         self.line6Right.textChanged.connect(self.auto_calc_amount)#数量
 
-        """
-        测试用直接填充数据
+        
         self.line1Right.setText("2025-5-3")       # 日期
         self.line2Right.setText("副食")           # 类别
         self.line3Right.setText("豆油")           # 品名
         self.line4Right.setText("备注")           # 备注
-        self.line5Right.setText("2940.0")         # 金额
+        self.line5Right.setText("420.0")         # 金额
         self.line6Right.setText("420")            # 数量
-        self.line7Right.setText("7")              # 单价
+        self.line7Right.setText("1")              # 单价
         self.line8Right.setText("kg")             # 单位
-        self.line9Right.setText("汉付科技")       # 公司
-        self.line10Right.setText("扶贫主食入库")  # 单名
-        """
+        self.line9Right.setText("聚鑫干调")       # 公司
+        self.line10Right.setText("扶贫副食入库")  # 单名
 
 
 
@@ -508,7 +506,7 @@ class Ui_Form(object):
         text = ["入库/切换", "出库/切换"]
         t = text.index(self.tabWidget_2.tabText(index), 0)
         MODE = 1 - t
-        print(MODE)
+        #print(MODE)
         newText = text[1 - t]
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", newText, None))
 
