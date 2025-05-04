@@ -23,3 +23,27 @@ def is_visually_empty(cell):
         return False
     return cell.value in [None, "", "-"]
 
+def is_previous_rows_after_page_break(sheet, row_idx, max_check=3):
+    """
+    检查当前行之前的若干行是否存在“过次页”-连续空行的模式。
+    max_check：往前最多检查多少行。
+    """
+    empty_count = 0
+    for i in range(1, max_check + 1):
+        check_row = row_idx - i
+        if check_row <= 0:
+            break
+
+        # 如果这一行是空的
+        if all(is_visually_empty(sheet.range((check_row, col))) for col in range(1, 12)):
+            empty_count += 1
+            continue
+
+        # 如果这一行有“过次页”类词语
+        if any(sheet.range((check_row, col)).value in ["过次页"] for col in range(1, 12)):
+            return True  # 前面几行是空，且再前一行为“过次页”
+        else:
+            break  # 有非空内容，停止向前检查
+
+    return False
+

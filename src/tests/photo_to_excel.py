@@ -38,7 +38,7 @@ for i in range(start_idx, len(flat_texts), row_length):
 
 # 5. 存储为 Excel
 df = pd.DataFrame(data_rows, columns=columns)
-df.to_excel("./src/data/test/test.xlsx", index=False, encoding="utf-8-sig")
+df.to_excel("./src/data/test/test.xlsx", index=False)
 print("表格识别并导出成功")
 
 
