@@ -45,7 +45,7 @@ from src.gui.utils.detail_ui_button_utils import (
 )
 # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
-from src.core.excel_handler import clear_temp_excel, store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.core.excel_handler import clear_temp_xls_excel, store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
 TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 
@@ -577,7 +577,7 @@ if __name__ == "__main__":
     # 设置窗口标题
     Form.show()
     # 设置关闭事件
-    Form.closeEvent = lambda event: (clear_temp_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
+    Form.closeEvent = lambda event: (clear_temp_xls_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
     sys.exit(app.exec())
 
 # Summerize:
