@@ -13,7 +13,7 @@ import os
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
+    QSize, QTime, QUrl, Qt, QEvent)
 from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
@@ -31,7 +31,17 @@ project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..')
 # 将项目根目录添加到 sys.path
 sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
-from src.gui.utils.detail_ui_button_utils import commit_data_to_excel, get_current_date, manual_temp_storage, temp_list_rollback, show_setting_window, get_ini_setting, close_setting_window
+from src.gui.utils.detail_ui_button_utils import (
+    commit_data_to_excel,
+    get_current_date,
+    manual_temp_storage,
+    temp_list_rollback,
+    show_setting_window,
+    get_ini_setting,
+    close_setting_window,
+    convert_place_holder_to_text,
+    cancel_input_focus
+)
 # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
 from src.core.excel_handler import clear_temp_excel, store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
@@ -47,6 +57,26 @@ Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\子表\\"  # 子工作表�
 
 SERIALS_NUMBER = 1
 DEBUG_SIGN = False
+
+class KeyEventFilter(QObject):
+    def eventFilter(self, watched, event):
+        if event.type() == QEvent.KeyPress:
+            key = event.key()
+            modifiers = event.modifiers()
+            if key == Qt.Key_Return:
+                print("按下了 Enter")
+            elif key == Qt.Key_Escape:
+                cancel_input_focus(Form) # Learning3：取消输入框焦点
+            elif key == Qt.Key_I and modifiers == (Qt.ControlModifier | Qt.ShiftModifier):
+                #print("按下了 Ctrl+Shift+I")
+                convert_place_holder_to_text(Form)
+            elif key == Qt.Key_S and modifiers == Qt.ControlModifier:
+                ui.temp_store_inputs()
+            elif key == Qt.Key_D and modifiers == Qt.ControlModifier:
+                ui.show_current_date()
+        return super().eventFilter(watched, event)
+
+    
 
 class ClickableImage(QLabel):
     #chatgpt给的用于设置按钮的类
@@ -533,6 +563,8 @@ if __name__ == "__main__":
     Form = QWidget()
     # 创建Ui_Form对象
     ui = Ui_Form()
+    key_filter = KeyEventFilter()
+    app.installEventFilter(key_filter)  # 安装到整个应用程序，而不是 Form
     # 调用setupUi方法设置UI界面
     ui.setupUi(Form)
     # 设置窗口标题

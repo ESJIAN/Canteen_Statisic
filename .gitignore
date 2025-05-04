@@ -3,3 +3,5 @@ src/core/__pycache__/excel_handler.cpython-310.pyc
 src/core/__pycache__/excel_handler.cpython-310.pyc
 
 .vscode/settings.json
+
+*.pyc

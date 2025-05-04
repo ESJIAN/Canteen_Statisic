@@ -15,7 +15,7 @@ import shutil
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
+    QSize, QTime, QUrl, Qt, QEvent)
 from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
@@ -34,7 +34,17 @@ project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..')
 # 将项目根目录添加到 sys.path
 sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
-from src.gui.utils.detail_ui_button_utils import commit_data_to_excel, get_current_date, manual_temp_storage, temp_list_rollback, show_setting_window, get_ini_setting, close_setting_window
+from src.gui.utils.detail_ui_button_utils import (
+    commit_data_to_excel,
+    get_current_date,
+    manual_temp_storage,
+    temp_list_rollback,
+    show_setting_window,
+    get_ini_setting,
+    close_setting_window,
+    convert_place_holder_to_text,
+    cancel_input_focus
+)
  # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
 from configparser import ConfigParser
@@ -43,7 +53,7 @@ from src.gui.photo_preview_dialog import preview_image
 
 TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 
-TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(".", "temp_manual_input_data.xls") # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
+TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_manual_input_data.xls") # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
@@ -57,6 +67,26 @@ print(MAIN_WORK_EXCEL_PATH,Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对�
 
 SERIALS_NUMBER = 1
 DEBUG_SIGN = True
+
+
+
+class KeyEventFilter(QObject):
+    def eventFilter(self, watched, event):
+        if event.type() == QEvent.KeyPress:
+            key = event.key()
+            modifiers = event.modifiers()
+            if key == Qt.Key_Return:
+                print("按下了 Enter")
+            elif key == Qt.Key_Escape:
+                cancel_input_focus(Form) # Learning3：取消输入框焦点
+            elif key == Qt.Key_I and modifiers == (Qt.ControlModifier | Qt.ShiftModifier):
+                #print("按下了 Ctrl+Shift+I")
+                convert_place_holder_to_text(Form)
+            elif key == Qt.Key_S and modifiers == Qt.ControlModifier:
+                ui.temp_store_inputs()
+            elif key == Qt.Key_D and modifiers == Qt.ControlModifier:
+                ui.show_current_date()
+        return super().eventFilter(watched, event)
 
 class ClickableImage(QLabel):
     #chatgpt给的用于设置按钮的类
@@ -434,6 +464,25 @@ class Ui_Form(object):
         #绑定单价和数量文本框变化触发自动计算
         self.line7Right.textChanged.connect(self.auto_calc_amount)#单价数量绑定到一块儿
         self.line6Right.textChanged.connect(self.auto_calc_amount)#数量
+
+        """
+        测试用直接填充数据
+        """
+
+        self.line1Right.setText("2025-5-3")       # 日期
+        self.line2Right.setText("主食")           # 类别
+        self.line3Right.setText("大米")           # 品名
+        self.line4Right.setText("备注")           # 备注
+        self.line5Right.setText("2940.0")         # 金额
+        self.line6Right.setText("420")            # 数量
+        self.line7Right.setText("7")              # 单价
+        self.line8Right.setText("kg")             # 单位
+        self.line9Right.setText("汉付科技")       # 公司
+        self.line10Right.setText("扶贫主食入库")  # 单名
+
+
+
+
     # retranslateUi
         
     
@@ -483,6 +532,7 @@ class Ui_Form(object):
         :return: None
         """
         # 定义输入框的字典
+        """
         input_fields = {
             "日期": f"2025-5-2",
             "品名": "大米",
@@ -495,6 +545,34 @@ class Ui_Form(object):
             "公司": "聚鑫干调",
             "单名": "扶贫主食入库",
         }
+        """
+        input_fields = {
+            "日期": self.line1Right.text(),
+            "品名": self.line3Right.text(),
+            "类别": self.line2Right.text(),
+            "单位": self.line8Right.text(),
+            "单价": self.line7Right.text(),
+            "数量": self.line6Right.text(),
+            "金额": self.line5Right.text(),
+            "备注": self.line4Right.text(),
+            "公司": self.line9Right.text(),
+            "单名": self.line10Right.text(),
+        }
+        """
+        input_fields = {
+            "日期": "2025-5-3",..
+            "品名": "大米",..
+            "类别": "主食",..
+            "单位": "kg",
+            "单价": "7",
+            "数量": "420",..
+            "金额": "2940.0",..
+            "备注": "备注",
+            "公司": "汉付科技",..
+            "单名": "扶贫主食入库",..
+        }
+        """
+        print("输入的", input_fields)
 
         # 调用 manual_temp_storage 函数获取输入框内容
         manual_temp_storage(self,input_fields) # 传入self参数
@@ -613,12 +691,14 @@ if __name__ == "__main__":
     Form = QWidget()
     # 创建Ui_Form对象
     ui = Ui_Form()
+    key_filter = KeyEventFilter()
+    app.installEventFilter(key_filter)  # 安装到整个应用程序，而不是 Form
     # 调用setupUi方法设置UI界面
     ui.setupUi(Form)
     # 设置窗口标题
     Form.show()
     # 设置关闭事件
-    Form.closeEvent = lambda event: (clear_temp_excel(), print("Notice:清空暂存表格成功"), event.accept())
+    Form.closeEvent = lambda event: (clear_temp_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
     sys.exit(app.exec())
 
 # Summerize:

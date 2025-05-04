@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QApplication, QWidget
 import pandas as pd  
 import os
 from configparser import ConfigParser
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QLineEdit
 
 from src.gui.error_window import TagNumShortage,IndexOutOfRange                 # Learning1：子模块的导入相对路径的起算点是主模块
 from src.gui.check_window import ExcelCheckWindow               # Learning2:顶级脚本设定绝对倒入配置后不需要在子模块中重设
@@ -41,6 +41,23 @@ def manual_temp_storage(self,input_fields):
     :param input_fields: 输入框的字典或列表，键为字段名，值为对应的 QLineEdit 对象
     :return: 包含所有输入框内容的字典
     """
+    values_must_have = [
+        self.line1Right,  # 日期
+        self.line3Right,  # 品名
+        self.line2Right,  # 类别
+        self.line6Right,  # 数量
+        self.line5Right,  # 金额
+        self.line9Right,  # 公司
+        self.line10Right  # 单名
+    ]
+
+    for i in values_must_have:
+        if i.text() == "":
+            i.setPlaceholderText("该项必填")
+            #显示错误窗口
+            show_error_window(self)
+            return None
+
 
     __main__.TEMP_LIST_ROLLBACK_SIGNAL = False  # type: ignore # Learning3：信号量，标记是否需要回滚
     exsit_tag_number = 0                        # 统计有内容的输入框数量
@@ -71,6 +88,18 @@ def manual_temp_storage(self,input_fields):
             self.line8Right.setText("")
             self.line9Right.setText("")
             self.line10Right.setText("")
+
+            self.line1Right.setPlaceholderText(input_fields['日期'])
+            self.line2Right.setPlaceholderText(input_fields['类别'])
+            self.line3Right.setPlaceholderText(input_fields['品名'])
+            self.line4Right.setPlaceholderText(input_fields['备注'])
+            self.line5Right.setPlaceholderText(input_fields['金额'])
+            self.line6Right.setPlaceholderText(input_fields['数量'])
+            self.line7Right.setPlaceholderText(input_fields['单价'])
+            self.line8Right.setPlaceholderText(input_fields['单位'])
+            self.line9Right.setPlaceholderText(input_fields['公司'])
+            self.line10Right.setPlaceholderText(input_fields['单名'])
+            
 
             __main__.TEMP_STORAGED_NUMBER_LISTS +=1 # type: ignore # Learning5：形式参数传参进来的变量
             try:
@@ -359,6 +388,37 @@ def get_ini_setting(section, option, file_path='../../config/config.ini'):
         return "False"
 
     return config.get(section, option)
+
+def convert_place_holder_to_text(self):
+    """
+    将当前输入框的占位符转换为文本
+    :param: self
+    :return: None
+    """
+    #检查当前聚焦的输入框
+    current_widget = self.focusWidget()
+    if isinstance(current_widget, QLineEdit):
+        #获取当前输入框的占位符文本
+        placeholder_text = current_widget.placeholderText()
+        #将占位符文本设置为输入框的文本
+        current_widget.setText(placeholder_text)
+    
+def cancel_input_focus(self):
+    """
+    取消当前输入框的焦点
+    :param: self
+    :return: None
+    """
+    #检查当前聚焦的输入框
+    current_widget = self.focusWidget()
+    if isinstance(current_widget, QLineEdit):
+        #取消当前输入框的焦点
+        current_widget.clearFocus()
+
+
+
+
+
 
 # Summary：
 # 1. 抽象的看所有widget都是一个个的对象，都是有属性和方法的，属性就是它的状态，方法就是它能做的事情。

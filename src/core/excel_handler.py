@@ -20,6 +20,8 @@ from xlwt import Workbook
 import xlwings as xw
 import re
 
+from src.core.excel_handler_utils import is_single_punctuation, is_visually_empty
+
 def store_single_entry_to_temple_excel(data, file_path):
     """
     将单条目的数据追加存储到临时excel表格中
@@ -605,44 +607,62 @@ def update_sub_main_food_sheet(_sub_main_food_excel_file_path, read_temp_storage
                     print(f"未找到品名为 {product_name} 的sheet")
                     return
 
-                # 寻找没有内容的第一行
                 for sub_row_index in range(sheet.used_range.rows.count):
-                    if all(sheet.range((sub_row_index + 1, col)).value is None for col in range(1, 12)): # 通过检查每一行的1到11列
-                        print(f"Notice: 发现第 {sub_row_index + 1} 行为空行，开始写入数据")
+                    # 检查每行的1到11列是否都是空
+                    if all(is_visually_empty(sheet.range((sub_row_index + 1, col))) for col in range(1, 12)):
+                        # 检查前一行的每列是否有"过次页"
+                        if sub_row_index > 0 and any(sheet.range((sub_row_index, col)).value in ["过次页", "月计", "累计"] for col in range(1, 12)):
+                            continue
+                        print("这里开始执行", str(sub_row_index))   
+                        
+                        # 检查前一行是否符合某些条件（仅包含空格或单个标点符号）
+                        if sub_row_index > 0 and all(
+                            ((sheet.range((sub_row_index, col)).value is None) or 
+                            (is_single_punctuation(str(sheet.range((sub_row_index, col)).value).strip())))
+                            for col in range(1, 12)
+                        ):
+                            print(f"Notice: 发现第 {sub_row_index} 行可用(仅包含空格或单个标点)，开始写入数据")
+                            break
+
+                        print(f"Notice: 发现第 {sub_row_index} 行为空行，开始写入数据")
                         break
+
                 
                 # 往该没有内容的行的A列中写入月份、B列中写入日
+                """
+                !!!注意！！这里原为sub_row_index+1，改为sub_row_index, 因为上文for循环代码认为sub_row_index行已经是可用的了
+                """
                 try:
-                    sheet.range((sub_row_index + 1, 1)).value = month
-                    sheet.range((sub_row_index + 1, 2)).value = day
+                    sheet.range((sub_row_index, 1)).value = month
+                    sheet.range((sub_row_index, 2)).value = day
                     print(f"Notice: 子表主食表 {product_name} sheet 写入日期成功")
                 except Exception as e:
                     print(f"Error: 子表主食表 {product_name} sheet 写入日期失败{e}")
                     return
                 # 往该没有内容的行的D列中写入出入库摘要
                 try:
-                    sheet.range((sub_row_index + 1, 4)).value = "入库"
+                    sheet.range((sub_row_index, 4)).value = "入库"
                     print(f"Notice: 子表主食表 {product_name} sheet 写入出入库摘要成功")
                 except Exception as e:
                     print(f"Error: 子表主食表 {product_name} sheet 写入出入库摘要失败{e}")
                     return
                 # 往该没有内容的行中的E列写入单价
                 try:
-                    sheet.range((sub_row_index + 1, 5)).value = price
+                    sheet.range((sub_row_index, 5)).value = price
                     print(f"Notice: 子表主食表 {product_name} sheet 写入单价成功")
                 except Exception as e:
                     print(f"Error: 子表主食表 {product_name} sheet 写入单价失败{e}")
                     return
                 # 往该没有内容的行中的F列写入数量
                 try:
-                    sheet.range((sub_row_index + 1, 6)).value = quantity
+                    sheet.range((sub_row_index, 6)).value = quantity
                     print(f"Notice: 子表主食表 {product_name} sheet 写入数量成功")
                 except Exception as e:
                     print(f"Error: 子表主食表 {product_name} sheet 写入数量失败{e}")
                     return
                 # 往该没有内容的行中的G列写入金额
                 try:
-                    sheet.range((sub_row_index + 1, 7)).value = amount
+                    sheet.range((sub_row_index, 7)).value = amount
                     print(f"Notice: 子表主食表 {product_name} sheet 写入金额成功")
                 except Exception as e:
                     print(f"Error: 子表主食表 {product_name} sheet 写入金额失败{e}")
