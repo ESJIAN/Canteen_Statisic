@@ -243,19 +243,19 @@ class Ui_Form(object):
 
         self.verticalLayout.addLayout(self.formLayout)
 
+        "提交数据按钮创建配置"
         self.pushButton_6 = QPushButton(self.groupBox_3)
         self.buttonGroup = QButtonGroup(Form)
         self.buttonGroup.setObjectName(u"buttonGroup")
         self.buttonGroup.addButton(self.pushButton_6)
         self.pushButton_6.setObjectName(u"pushButton_6")
         self.pushButton_6.setGeometry(QRect(220, 240, 75, 24))
+        
         self.pushButton_7 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_7)
         self.pushButton_7.setObjectName(u"pushButton_7")
         self.pushButton_7.setGeometry(QRect(220, 100, 75, 24))
         self.pushButton_7.clicked.connect(self.temp_store_inputs)
-
-        # 提交数据按钮创建配置
 
         self.pushButton_5 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_5)
@@ -269,11 +269,13 @@ class Ui_Form(object):
         self.pushButton.setObjectName(u"pushButton")
         self.pushButton.setGeometry(QRect(220, 40, 75, 24))
         self.pushButton.clicked.connect(self.show_current_date)
-        self.pushButton_2 = QPushButton(self.groupBox_3) # Learing2：第一步创建按钮
+
+        self.pushButton_2 = QPushButton(self.groupBox_3)               # Learing2：第一步创建按钮
         self.buttonGroup.addButton(self.pushButton_2)
-        self.pushButton_2.setObjectName(u"pushButton_2") # 设置按钮的ObjectName
-        self.pushButton_2.setGeometry(QRect(220, 140, 75, 24)) # 设置按钮的几何位置 
+        self.pushButton_2.setObjectName(u"pushButton_2")               # 设置按钮的ObjectName
+        self.pushButton_2.setGeometry(QRect(220, 140, 75, 24))         # 设置按钮的几何位置 
         self.pushButton_2.clicked.connect(self.check_manual_input_data)# Learning3：第三步绑定按钮
+        
         self.groupBox_5 = QGroupBox(self.groupBox_3)
         self.groupBox_5.setObjectName(u"groupBox_5")
         self.groupBox_5.setGeometry(QRect(10, 290, 291, 81))
@@ -343,10 +345,10 @@ class Ui_Form(object):
 
         "输入界面右侧按钮创建"
         # 导入文件按钮 
-        self.pushButton_3 = QPushButton(self.groupBox_4)      # 创建按钮，设置其父组件为grounpBox_4
-        self.pushButton_3.setObjectName(u"pushButton_3")      # 设置该按钮的ObjectName
-        self.pushButton_3.setGeometry(QRect(210, 30, 75, 24)) # 设置按钮位置
-        self.pushButton_3.clicked.connect(self.photo_import)  # 绑定槽函数
+        self.pushButton_3 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_3.setObjectName(u"pushButton_3")                # 设置该按钮的ObjectName
+        self.pushButton_3.setGeometry(QRect(210, 30, 75, 24))           # 设置按钮位置
+        self.pushButton_3.clicked.connect(self.photo_import)            # 绑定槽函数
         
         # 暂存该条按钮
         self.pushButton_4 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
@@ -357,8 +359,20 @@ class Ui_Form(object):
         # 输入检查按钮
         self.pushButton_8 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
         self.pushButton_8.setObjectName(u"pushButton_8")                # 设置该按钮的ObjectName
-        self.pushButton_8.setGeometry(QRect(210, 110, 75, 24))           # 设置按钮位置
-        self.pushButton_8.clicked.connect(self.check_photo_input_data) # 绑定槽函数
+        self.pushButton_8.setGeometry(QRect(210, 110, 75, 24))          # 设置按钮位置
+        self.pushButton_8.clicked.connect(self.check_photo_input_data)  # 绑定槽函数
+
+        # 提交数据按钮
+        self.pushButton_9 = QPushButton(self.groupBox_4)                 # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_9.setObjectName(u"pushButton_9")                 # 设置该按钮的ObjectName
+        self.pushButton_9.setGeometry(QRect(210, 150, 75, 24))           # 设置按钮位置
+        self.pushButton_9.clicked.connect(self.commit_data)              # 绑定槽函数
+
+        # 导入清空按钮
+        self.pushButton_10 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_10.setObjectName(u"pushButton_10")               # 设置该按钮的ObjectName
+        self.pushButton_10.setGeometry(QRect(210, 190, 75, 24))          # 设置按钮位置
+        self.pushButton_10.clicked.connect(self.clear_temp_import_list)  # 绑定槽函数
 
 
         self.tabWidget_2.addTab(self.tab_3, "")
@@ -401,31 +415,35 @@ class Ui_Form(object):
         Sets the text and titles of the UI elements to their respective translations.
         This method is automatically generated and is used to support internationalization.
         """
-        Form.setWindowTitle(QCoreApplication.translate("Form", u"\u98df\u54c1\u7ba1\u7406\u7cfb\u7edf", None))  # 设置窗口标题：食品管理系统
-        self.groupBox_3.setTitle(QCoreApplication.translate("Form", u"\u624b\u52a8\u5bfc\u5165", None))  # 设置组框标题：手动导入
-        self.groupBox.setTitle(QCoreApplication.translate("Form", u"\u5f55\u5165\u4fe1\u606f", None))  # 设置组框标题：录入信息
+        Form.setWindowTitle(QCoreApplication.translate("Form", "食品管理系统", None))         # 设置窗口标题：食品管理系统
+        self.groupBox_3.setTitle(QCoreApplication.translate("Form","手动导入", None))         # 设置组框标题：手动导入
+        self.groupBox.setTitle(QCoreApplication.translate("Form", "录入信息", None))          # 设置组框标题：录入信息
 
         "输入框左侧Label名"
-        self.line1Left.setText(QCoreApplication.translate("Form", u"\u65e5\u671f", None))  # 设置左侧Label：日期
+        self.line1Left.setText(QCoreApplication.translate("Form", u"\u65e5\u671f", None))    # 设置左侧Label：日期
         self.line1Right.setText("")  # 设置右侧输入框为空
-        self.line2Left.setText(QCoreApplication.translate("Form", u"\u7c7b\u522b", None))  # 设置左侧Label：类别
-        self.line3Left.setText(QCoreApplication.translate("Form", u"\u54c1\u540d", None))  # 设置左侧Label：品名
-        self.line4Light.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None)) # 设置左侧Label：备注
-        self.line5Left.setText(QCoreApplication.translate("Form", u"\u91d1\u989d", None))  # 设置左侧Label：金额
-        self.line6Left.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None))  # 设置左侧Label：数量
-        self.line7Left.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))  # 设置左侧Label：单价
-        self.line8Left.setText(QCoreApplication.translate("Form", u"\u5355\u4f4d", None))  # 设置左侧Label：单位
-        self.line9Left.setText(QCoreApplication.translate("Form", u"\u516c\u53f8", None))  # 设置左侧Label：公司
-        self.line10Left.setText(QCoreApplication.translate("Form", "单名", None))           # 设置左侧Label：单名
+        self.line2Left.setText(QCoreApplication.translate("Form", u"\u7c7b\u522b", None))    # 设置左侧Label：类别
+        self.line3Left.setText(QCoreApplication.translate("Form", u"\u54c1\u540d", None))    # 设置左侧Label：品名
+        self.line4Light.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None))   # 设置左侧Label：备注
+        self.line5Left.setText(QCoreApplication.translate("Form", u"\u91d1\u989d", None))    # 设置左侧Label：金额
+        self.line6Left.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None))    # 设置左侧Label：数量
+        self.line7Left.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))    # 设置左侧Label：单价
+        self.line8Left.setText(QCoreApplication.translate("Form", u"\u5355\u4f4d", None))    # 设置左侧Label：单位
+        self.line9Left.setText(QCoreApplication.translate("Form", u"\u516c\u53f8", None))    # 设置左侧Label：公司
+        self.line10Left.setText(QCoreApplication.translate("Form", "单名", None))             # 设置左侧Label：单名
 
-        self.pushButton_6.setText(QCoreApplication.translate("Form", u"\u4fee\u8ba2\u63d0\u4ea4", None))  # 设置按钮文本：修改提交
-        self.pushButton_7.setText(QCoreApplication.translate("Form", u"\u6682\u5b58\u8be5\u6761", None))  # 设置按钮文本：暂存该条
-        self.pushButton_5.setText(QCoreApplication.translate("Form", u"\u63d0\u4ea4\u6570\u636e", None))  # 设置按钮文本：提交数据
-        self.pushButton.setText(QCoreApplication.translate("Form", u"\u83b7\u53d6\u65e5\u671f", None))    # 设置按钮文本：获取日期
-        self.pushButton_2.setText(QCoreApplication.translate("Form", u"\u8f93\u5165\u68c0\u67e5", None))  # 设置按钮文本：输入校验
-        self.groupBox_5.setTitle(QCoreApplication.translate("Form", u"\u4fe1\u606f\u680f", None))         # 设置组框标题：信息栏
-        self.label.setText(QCoreApplication.translate("Form", u"\u6b63\u5728\u7f16\u8f91\u7b2c", None))   # 设置标签文本：正在编辑第
-        self.label_2.setText(QCoreApplication.translate("Form", u"\u9879", None))                         # 设置标签文本：项目
+        "手动导入右侧按钮命名"
+        self.pushButton.setText(QCoreApplication.translate("Form", "获取日期", None))         # 设置按钮文本：获取日期
+        self.pushButton_7.setText(QCoreApplication.translate("Form", "暂存该条", None))       # 设置按钮文本：暂存该条
+        self.pushButton_2.setText(QCoreApplication.translate("Form", "输入校验", None))       # 设置按钮文本：输入校验
+        self.pushButton_5.setText(QCoreApplication.translate("Form", "提交数据", None))       # 设置按钮文本：提交数据
+        self.pushButton_6.setText(QCoreApplication.translate("Form", "条目清空", None))       # 设置按钮文本：条目清空
+        
+        
+        
+        self.groupBox_5.setTitle(QCoreApplication.translate("Form", u"信息栏", None))         # 设置组框标题：信息栏
+        self.label.setText(QCoreApplication.translate("Form", u"正在编辑第", None))           # 设置标签文本：正在编辑第
+        self.label_2.setText(QCoreApplication.translate("Form", u"项目", None))               # 设置标签文本：项目
 
         self.label_3.setText(QCoreApplication.translate("Form", "已暂存", None))
 
@@ -441,10 +459,10 @@ class Ui_Form(object):
         self.pushButton_3.setText(QCoreApplication.translate("Form", "导入文件", None))
         self.pushButton_4.setText(QCoreApplication.translate("Form", "暂存该条", None))
         self.pushButton_8.setText(QCoreApplication.translate("Form", "输入检查", None))
-        
+        self.pushButton_9.setText(QCoreApplication.translate("Form", "提交数据", None))
+        self.pushButton_10.setText(QCoreApplication.translate("Form", "条目清空", None))
 
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", u"入库/切换", None))
-        #self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), QCoreApplication.translate("Form", u"出库", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"填写数据", None))
 
         #自动填充日期
@@ -680,8 +698,10 @@ class Ui_Form(object):
         :return: None
         """
         if hasattr(self, "copied_paths") and self.copied_paths:
-            with multiprocessing.Pool(processes=min(2, len(self.copied_paths))) as pool:
+            with multiprocessing.Pool(processes=min(4, len(self.copied_paths))) as pool:
                 pool.map(image_to_excel, self.copied_paths)
+
+    
         
     def check_photo_input_data(self): # Learning3:传参参数名与某个全局变量同名，造成全局变量值无法被获取
         """
@@ -702,6 +722,14 @@ class Ui_Form(object):
         # 这里可以添加打开设置窗口的代码
         show_setting_window(self)
 
+    def clear_temp_import_list(self):
+        """
+        清空照片列表组件中的临时导入条目
+        :param: self
+        :return: None
+        """
+        self.scrollAreaWidgetContents.layout().takeAt(0).
+        
 
 
 class KeyEventFilter(QObject):
