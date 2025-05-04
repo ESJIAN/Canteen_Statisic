@@ -587,13 +587,12 @@ class Ui_Form(object):
                         border-radius: 4px;
                         color:blue; 
                         text-decoration:underline;
-                        box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
                     """)
                     # 绑定点击事件，弹窗预览图片
                     btn.clicked.connect(lambda checked, path=image_path: preview_image(self,path))
                     layout.addWidget(btn)
                 layout.addStretch(1)  # 保证紧凑排列
-
+            
 
     def show_settings(self):
         """
