@@ -64,6 +64,8 @@ MAIN_WORK_EXCEL_PATH = os.path.join(project_root, MAIN_WORK_EXCEL_PATH) # Fixed1
 Sub_WORK_EXCEL_PATH = os.path.join(project_root, Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 print(MAIN_WORK_EXCEL_PATH,Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
+#这个0/1用来表示是入库出库
+MODE = 0
 
 SERIALS_NUMBER = 1
 DEBUG_SIGN = True
@@ -128,7 +130,7 @@ class Ui_Form(object):
         self.tabWidget_2 = QTabWidget(self.tab)
         self.tabWidget_2.setObjectName(u"tabWidget_2")
 
-        self.horizontalLayout_2.setContentsMargins(0, 20, 0, 0)  # 设置顶部间距为 20 像素
+        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)  # 设置顶部间距为 0 像素(第二个0)
 
         self.tab_3 = QWidget()
         self.tab_3.setObjectName(u"tab_3")
@@ -371,9 +373,15 @@ class Ui_Form(object):
         self.pushButton_3.setGeometry(QRect(210, 30, 75, 24))
         self.pushButton_3.clicked.connect(self.photo_import)
         self.tabWidget_2.addTab(self.tab_3, "")
-        self.tab_4 = QWidget()
-        self.tab_4.setObjectName(u"tab_4")
-        self.tabWidget_2.addTab(self.tab_4, "")
+        #点击切换入库/出库(测试中0504 16:40)(一行)
+        self.tabWidget_2.tabBar().tabBarClicked.connect(self.on_tab_clicked)
+
+        #self.tab_4 = QWidget()
+        #self.tab_4.setObjectName(u"tab_4")
+        #self.tabWidget_2.addTab(self.tab_4, "")
+
+
+        
 
         self.horizontalLayout_2.addWidget(self.tabWidget_2)
 
@@ -409,36 +417,38 @@ class Ui_Form(object):
         QMetaObject.connectSlotsByName(Form)
     # setupUi
 
+
     def retranslateUi(self, Form):
         """
         Sets the text and titles of the UI elements to their respective translations.
         This method is automatically generated and is used to support internationalization.
         """
-        Form.setWindowTitle(QCoreApplication.translate("Form", u"\u98df\u54c1\u7ba1\u7406\u7cfb\u7edf", None))
-        self.groupBox_3.setTitle(QCoreApplication.translate("Form", u"\u624b\u52a8\u5bfc\u5165", None))
-        self.groupBox.setTitle(QCoreApplication.translate("Form", u"\u5f55\u5165\u4fe1\u606f", None))
-        
-        # 输入框左侧Label名
-        self.line1Left.setText(QCoreApplication.translate("Form", u"\u65e5\u671f", None))
-        self.line1Right.setText("")
-        self.line2Left.setText(QCoreApplication.translate("Form", u"\u7c7b\u522b", None))
-        self.line3Left.setText(QCoreApplication.translate("Form", u"\u54c1\u540d", None))
-        self.line4Light.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None))
-        self.line5Left.setText(QCoreApplication.translate("Form", u"\u91d1\u989d", None))
-        self.line6Left.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None)) # Learning2: unicode 编码,详情见 unicode.md 
-        self.line7Left.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))
-        self.line8Left.setText(QCoreApplication.translate("Form", u"\u5355\u4f4d", None))
-        self.line9Left.setText(QCoreApplication.translate("Form", u"\u516c\u53f8", None)) 
-        self.line10Left.setText(QCoreApplication.translate("Form", "单名", None))
+        Form.setWindowTitle(QCoreApplication.translate("Form", u"\u98df\u54c1\u7ba1\u7406\u7cfb\u7edf", None))  # 设置窗口标题：食品管理系统
+        self.groupBox_3.setTitle(QCoreApplication.translate("Form", u"\u624b\u52a8\u5bfc\u5165", None))  # 设置组框标题：手动导入
+        self.groupBox.setTitle(QCoreApplication.translate("Form", u"\u5f55\u5165\u4fe1\u606f", None))  # 设置组框标题：录入信息
 
-        self.pushButton_6.setText(QCoreApplication.translate("Form", u"\u4fee\u8ba2\u63d0\u4ea4", None))
-        self.pushButton_7.setText(QCoreApplication.translate("Form", u"\u6682\u5b58\u8be5\u6761", None))
-        self.pushButton_5.setText(QCoreApplication.translate("Form", u"\u63d0\u4ea4\u6570\u636e", None))
-        self.pushButton.setText(QCoreApplication.translate("Form", u"\u83b7\u53d6\u65e5\u671f", None))
-        self.pushButton_2.setText(QCoreApplication.translate("Form", u"\u8f93\u5165\u68c0\u67e5", None))
-        self.groupBox_5.setTitle(QCoreApplication.translate("Form", u"\u4fe1\u606f\u680f", None))
-        self.label.setText(QCoreApplication.translate("Form", u"\u6b63\u5728\u7f16\u8f91\u7b2c", None))
-        self.label_2.setText(QCoreApplication.translate("Form", u"\u9879", None))
+        # 输入框左侧Label名
+        self.line1Left.setText(QCoreApplication.translate("Form", u"\u65e5\u671f", None))  # 设置左侧Label：日期
+        self.line1Right.setText("")  # 设置右侧输入框为空
+        self.line2Left.setText(QCoreApplication.translate("Form", u"\u7c7b\u522b", None))  # 设置左侧Label：类别
+        self.line3Left.setText(QCoreApplication.translate("Form", u"\u54c1\u540d", None))  # 设置左侧Label：品名
+        self.line4Light.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None))  # 设置左侧Label：备注
+        self.line5Left.setText(QCoreApplication.translate("Form", u"\u91d1\u989d", None))  # 设置左侧Label：金额
+        self.line6Left.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None))  # 设置左侧Label：数量
+        self.line7Left.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))  # 设置左侧Label：单价
+        self.line8Left.setText(QCoreApplication.translate("Form", u"\u5355\u4f4d", None))  # 设置左侧Label：单位
+        self.line9Left.setText(QCoreApplication.translate("Form", u"\u516c\u53f8", None))  # 设置左侧Label：公司
+        self.line10Left.setText(QCoreApplication.translate("Form", "单名", None))  # 设置左侧Label：单名
+
+        self.pushButton_6.setText(QCoreApplication.translate("Form", u"\u4fee\u8ba2\u63d0\u4ea4", None))  # 设置按钮文本：修改提交
+        self.pushButton_7.setText(QCoreApplication.translate("Form", u"\u6682\u5b58\u8be5\u6761", None))  # 设置按钮文本：暂存该条
+        self.pushButton_5.setText(QCoreApplication.translate("Form", u"\u63d0\u4ea4\u6570\u636e", None))  # 设置按钮文本：提交数据
+        self.pushButton.setText(QCoreApplication.translate("Form", u"\u83b7\u53d6\u65e5\u671f", None))  # 设置按钮文本：获取日期
+        self.pushButton_2.setText(QCoreApplication.translate("Form", u"\u8f93\u5165\u68c0\u67e5", None))  # 设置按钮文本：输入校验
+        self.groupBox_5.setTitle(QCoreApplication.translate("Form", u"\u4fe1\u606f\u680f", None))  # 设置组框标题：信息栏
+        self.label.setText(QCoreApplication.translate("Form", u"\u6b63\u5728\u7f16\u8f91\u7b2c", None))  # 设置标签文本：正在编辑第
+        self.label_2.setText(QCoreApplication.translate("Form", u"\u9879", None))  # 设置标签文本：项目
+
         self.label_3.setText(QCoreApplication.translate("Form", "已暂存", None))
 
         self.spinBox.setValue(1)  # 重置SpinBox的值为1
@@ -452,9 +462,9 @@ class Ui_Form(object):
         self.pushButton_3.setText(QCoreApplication.translate("Form", "导入文件", None))
 
 
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", u"入库", None))
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), QCoreApplication.translate("Form", u"出库", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"显示别的什么", None))
+        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", u"入库/切换", None))
+        #self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), QCoreApplication.translate("Form", u"出库", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"填写数据", None))
         #self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_5), QCoreApplication.translate("Form", u"Tab 1", None))
         #self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_6), QCoreApplication.translate("Form", u"Tab 2", None))
         #self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("Form", u"Tab 2", None))
@@ -469,8 +479,6 @@ class Ui_Form(object):
 
         """
         测试用直接填充数据
-        """
-
         self.line1Right.setText("2025-5-3")       # 日期
         self.line2Right.setText("副食")           # 类别
         self.line3Right.setText("豆油")           # 品名
@@ -481,7 +489,7 @@ class Ui_Form(object):
         self.line8Right.setText("kg")             # 单位
         self.line9Right.setText("汉付科技")       # 公司
         self.line10Right.setText("扶贫主食入库")  # 单名
-
+        """
 
 
 
@@ -489,6 +497,20 @@ class Ui_Form(object):
     """
     下面是一些按钮的槽函数，但是核心的功能实现在detail_ui_button_utils.py中
     """
+
+    
+    def on_tab_clicked(self, index):
+        """
+        当点击标签时，切换入库出库
+        :param: self, index
+        :return: None
+        """
+        text = ["入库/切换", "出库/切换"]
+        t = text.index(self.tabWidget_2.tabText(index), 0)
+        MODE = 1 - t
+        print(MODE)
+        newText = text[1 - t]
+        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", newText, None))
 
     def auto_calc_amount(self):
         """
