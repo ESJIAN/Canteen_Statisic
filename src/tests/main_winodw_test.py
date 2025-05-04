@@ -43,7 +43,8 @@ from src.gui.utils.detail_ui_button_utils import (
     get_ini_setting,
     close_setting_window,
     convert_place_holder_to_text,
-    cancel_input_focus
+    cancel_input_focus,
+    mode_not_right
 )
 # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
@@ -487,7 +488,7 @@ class Ui_Form(object):
         self.line7Right.setText("1")              # 单价
         self.line8Right.setText("kg")             # 单位
         self.line9Right.setText("聚鑫干调")       # 公司
-        self.line10Right.setText("扶贫副食入库")  # 单名
+        self.line10Right.setText("扶贫副食出库")  # 单名
 
 
 
@@ -503,10 +504,11 @@ class Ui_Form(object):
         :param: self, index
         :return: None
         """
+        global MODE
         text = ["入库/切换", "出库/切换"]
         t = text.index(self.tabWidget_2.tabText(index), 0)
         MODE = 1 - t
-        #print(MODE)
+        print("当前模式", text[MODE], str(MODE))
         newText = text[1 - t]
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", newText, None))
 
@@ -587,7 +589,7 @@ class Ui_Form(object):
             "金额": "2940.0",..
             "备注": "备注",
             "公司": "汉付科技",..
-            "单名": "扶贫主食入库",..
+            "单名": "扶贫主食出库",..
         }
         """
         print("输入的", input_fields)
@@ -611,8 +613,13 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
-        main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
 
+        print("在mainwindow看模式是", MODE)
+        if mode_not_right(self, MODE):
+            self.line10Right.setText("模式不对, 确认入库出库")
+            return
+
+        main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
         #commit_data_to_excel(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)

@@ -191,7 +191,7 @@ def commit_data_to_excel(self,workbook_path,sub_main_food_workbook,sub_auxiliary
     :param: self
     :return: None
     """
-    
+    print("当前模式????????????????????????? ", __main__.MODE)
     commit_data_to_storage_excel(workbook_path,sub_main_food_workbook,sub_auxiliary_food_workbook)
 
 
@@ -416,6 +416,15 @@ def cancel_input_focus(self):
         #取消当前输入框的焦点
         current_widget.clearFocus()
 
+def mode_not_right(self, MODE):
+    text = self.line10Right.text()
+    if "入库" in text or "出库" in text:
+        # MODE == 0 表示当前系统是入库模式
+        if "出库" in text and MODE == 0:
+            return True  # 模式是入库，但写了出库
+        elif "入库" in text and MODE == 1:
+            return True  # 模式是出库，但写了入库
+    return False
 
 
 
