@@ -79,7 +79,7 @@ class KeyEventFilter(QObject):
                 print("按下了 Enter")
             elif key == Qt.Key_Escape:
                 cancel_input_focus(Form) # Learning3：取消输入框焦点
-            elif key == Qt.Key_I and modifiers == (Qt.ControlModifier | Qt.ShiftModifier):
+            elif key == Qt.Key_I and modifiers == Qt.ControlModifier:
                 #print("按下了 Ctrl+Shift+I")
                 convert_place_holder_to_text(Form)
             elif key == Qt.Key_S and modifiers == Qt.ControlModifier:
