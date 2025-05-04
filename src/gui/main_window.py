@@ -40,7 +40,8 @@ from src.gui.utils.detail_ui_button_utils import (
     get_ini_setting,
     close_setting_window,
     convert_place_holder_to_text,
-    cancel_input_focus
+    cancel_input_focus,
+    photo_import_utils
 )
 # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window

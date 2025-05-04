@@ -727,13 +727,26 @@ def update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_tem
                     print(f"未找到品名为 {product_name} 的sheet")
                     return
 
-                # 寻找没有内容的第一行，并检查后面五行是否有内容
                 for sub_row_index in range(sheet.used_range.rows.count):
-                    if all(sheet.range((sub_row_index + 1, col)).value is None for col in range(1, 12)) and \
-                       all(all(sheet.range((sub_row_index + offset + 1, col)).value is None for col in range(1, 12)) for offset in range(1, 6)):
-                        print(f"Notice: 发现第 {sub_row_index + 1} 行及其后五行为空行，开始写入数据")
+                    # 检查每行的1到11列是否都是空
+                    if all(is_visually_empty(sheet.range((sub_row_index + 1, col))) for col in range(1, 12)):
+                        # 检查前一行的每列是否有"过次页"
+                        if sub_row_index > 0 and any(sheet.range((sub_row_index, col)).value in ["过次页", "月计", "累计"] for col in range(1, 12)):
+                            continue
+                        print("这里开始执行", str(sub_row_index))   
+                        
+                        # 检查前一行是否符合某些条件（仅包含空格或单个标点符号）
+                        if sub_row_index > 0 and all(
+                            ((sheet.range((sub_row_index, col)).value is None) or 
+                            (is_single_punctuation(str(sheet.range((sub_row_index, col)).value).strip())))
+                            for col in range(1, 12)
+                        ):
+                            print(f"Notice: 发现第 {sub_row_index} 行可用(仅包含空格或单个标点)，开始写入数据")
+                            break
+
+                        print(f"Notice: 发现第 {sub_row_index + 1} 行为空行，开始写入数据")
                         break
-                
+
                 # 往该没有内容的行的A列中写入月份、B列中写入日
                 try:
                     sheet.range((sub_row_index + 1, 1)).value = month

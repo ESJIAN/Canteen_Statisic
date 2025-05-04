@@ -472,8 +472,8 @@ class Ui_Form(object):
         """
 
         self.line1Right.setText("2025-5-3")       # 日期
-        self.line2Right.setText("主食")           # 类别
-        self.line3Right.setText("大米")           # 品名
+        self.line2Right.setText("副食")           # 类别
+        self.line3Right.setText("豆油")           # 品名
         self.line4Right.setText("备注")           # 备注
         self.line5Right.setText("2940.0")         # 金额
         self.line6Right.setText("420")            # 数量
@@ -619,7 +619,6 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
-
         # 1. 弹出文件选择器，支持多选图片
         
         file_dialog = QFileDialog()
