@@ -56,6 +56,9 @@ TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回
 MIAN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表格路径
 Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\子表\\"  # 子工作表格路径
 
+#这个0/1用来表示是入库出库
+MODE = 0
+
 SERIALS_NUMBER = 1
 DEBUG_SIGN = False
 
@@ -65,7 +68,8 @@ class KeyEventFilter(QObject):
             key = event.key()
             modifiers = event.modifiers()
             if key == Qt.Key_Return:
-                print("按下了 Enter")
+                #print("按下了 Enter")
+                pass
             elif key == Qt.Key_Escape:
                 cancel_input_focus(Form) # Learning3：取消输入框焦点
             elif key == Qt.Key_I and modifiers == Qt.ControlModifier:
