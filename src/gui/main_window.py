@@ -71,7 +71,9 @@ class KeyEventFilter(QObject):
                 #print("按下了 Ctrl+Shift+I")
                 convert_place_holder_to_text(Form)
             elif key == Qt.Key_S and modifiers == Qt.ControlModifier:
-                ui.temp_store_inputs()
+                if not hasattr(self, '_last_run') or (QTime.currentTime().msecsSinceStartOfDay() - self._last_run > 2000):
+                    self._last_run = QTime.currentTime().msecsSinceStartOfDay()
+                    ui.temp_store_inputs()  # 这儿只运行一次
             elif key == Qt.Key_D and modifiers == Qt.ControlModifier:
                 ui.show_current_date()
         return super().eventFilter(watched, event)
