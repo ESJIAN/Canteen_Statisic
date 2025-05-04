@@ -85,9 +85,12 @@ def store_single_entry_to_temple_excel(data, file_path):
     except Exception as e: # Leraning2：不能操作Excel正在打开的表
         print(f"写入Excel文件时出错: {e}")
 
-def clear_temp_excel():
+def clear_temp_xls_excel(
+        
+):
     """
     清空暂存的 Excel 表格内容
+    
     :param: None
     :return: None
     """
@@ -108,6 +111,27 @@ def clear_temp_excel():
             writable_workbook.save(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
     except Exception as e:
         print(f"清空暂存表格时出错: {e}")
+
+def clear_temp_xlxs_excel():
+    """
+    清空暂存的 Excel 表格内容
+    :param: None
+    :return: None
+    """
+
+    # 将目标表格数据全部删除
+    temp_xlxs_excel_path = "./src/data/input/manual/temp_img_input.xlsx"
+    if os.path.exists(temp_xlxs_excel_path):
+        # 打开工作簿
+        workbook = load_workbook(temp_xlxs_excel_path)
+        # 获取第一个工作表
+        sheet = workbook.active
+        # 清空工作表内容
+        sheet.delete_rows(1, sheet.max_row)
+        # 保存工作簿
+        workbook.save(temp_xlxs_excel_path)
+
+
 
 
 
