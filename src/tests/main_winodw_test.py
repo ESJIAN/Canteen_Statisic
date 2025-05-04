@@ -10,7 +10,7 @@
 
 import sys
 import os
-import shutil
+import threading
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
@@ -46,8 +46,13 @@ TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(".", "temp_manual_input_data.xls")
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
-MIAN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表格路径
+MAIN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表格路径
 Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\子表\\"  # 子工作表格路径
+
+MAIN_WORK_EXCEL_PATH = os.path.join(project_root, MAIN_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+Sub_WORK_EXCEL_PATH = os.path.join(project_root, Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+print(MAIN_WORK_EXCEL_PATH,Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+
 
 SERIALS_NUMBER = 1
 DEBUG_SIGN = True
@@ -509,11 +514,13 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
-        mian_workbook = MIAN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
 
-        sub_mian_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
+        sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
-        commit_data_to_excel(self,mian_workbook,sub_mian_food_workbook,sub_auxiliary_food_workbook)
+        #commit_data_to_excel(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)
+        threading.Thread(target=commit_data_to_excel, args=(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
+        # Learning3：多线程提交数据，避免UI卡顿
 
 
     def information_edition_rollback(self): # Learning6：自定义方法一定要放一个self参数,不妨报错
