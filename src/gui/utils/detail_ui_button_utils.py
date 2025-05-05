@@ -191,7 +191,6 @@ def commit_data_to_excel(self,workbook_path,sub_main_food_workbook,sub_auxiliary
     :param: self
     :return: None
     """
-    print("当前模式????????????????????????? ", __main__.MODE)
     commit_data_to_storage_excel(workbook_path,sub_main_food_workbook,sub_auxiliary_food_workbook)
 
 

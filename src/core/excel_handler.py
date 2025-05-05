@@ -156,7 +156,7 @@ def commit_data_to_storage_excel(main_excel_file_path,sub_main_food_excel_file_p
     # 在主表中更新信息
     process_main_workbook(main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
 
-    
+
     # 在子表中更新信息
     #update_sub_tables(sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
 
@@ -223,8 +223,11 @@ def process_main_workbook(excel_file_path, read_temp_storage_workbook, read_temp
                     update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
                 else:
                     print("--------------------------------------------------出库")
+                    #搞定
                     export_updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name)
+                    #搞定
                     export_update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark)
+                    #搞定
                     export_update_receipt_storage_sheet(main_workbook, single_name, category_name, amount)
                     export_update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
 
@@ -472,7 +475,7 @@ def export_updata_import_sheet(main_workbook, single_name, row_data, header_inde
 
 def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark):
     """
-    更新或添加数据到食堂物品收发存库存表
+    更新或添加数据到食堂物品收发存库存表(入库)
     :param main_workbook: 主工作簿对象
     :param product_name: 物品名称
     :param unit_name: 计量单位
@@ -482,13 +485,12 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
     :param remark: 备注
     :return: None
     """
-    print("食堂物品收发存库存表", product_name, unit_name, quantity, price, amount, remark)
     # 尝试打开名为食堂物品收发库存表的 sheet
     if "食堂物品收发存库存表" in [s.name for s in main_workbook.sheets]:
         sheet = main_workbook.sheets["食堂物品收发存库存表"]
-        print(f"Notice: 找到入库类型名为 `食堂物品收发存库存表` 的sheet")
+        print(f"Notice: 找到出库类型名为 `食堂物品收发存库存表` 的sheet")
     else:
-        print(f"Error: 未找到入库类型名为 `食堂物品收发存库存表` 的sheet,可能存在空字符")
+        print(f"Error: 未找到出库类型名为 `食堂物品收发存库存表` 的sheet,可能存在空字符")
         return
 
     try:
@@ -508,11 +510,26 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
             print(f"Notice: 在表 食堂物品收发存库存表 找到名称为 {product_name} 的行,行号为{row_index}")
 
             # 判断quantity、price、amount的值是否为数值
+            try:
+                quantity = float(quantity)
+                price = float(price)
+                amount = float(amount)
+            except:
+                print(f"Error: quantity、price、amount的值必须为数值")
+                return
             if isinstance(quantity, (int, float)) and isinstance(price, (int, float)) and isinstance(amount, (int, float)):
                 # 在F列更新数量信息，G列更新单价信息，H列更新金额信息
-                sheet.range(f"F{row_index}").value = sheet.range(f"F{row_index}").value + quantity
-                sheet.range(f"G{row_index}").value = sheet.range(f"G{row_index}").value + price
-                sheet.range(f"H{row_index}").value = sheet.range(f"H{row_index}").value + amount
+                raw_value = []
+                for alpha in "FGH":
+                    if sheet.range(f"{alpha}{row_index}").value is None:
+                        raw_value.append(0)
+                    elif "." in str(sheet.range(f"{alpha}{row_index}").value):
+                        raw_value.append(float(sheet.range(f"{alpha}{row_index}").value))
+                    else:
+                        raw_value.append(int(sheet.range(f"{alpha}{row_index}").value))
+                sheet.range(f"F{row_index}").value = raw_value[0] + quantity
+                sheet.range(f"G{row_index}").value = raw_value[1] + price
+                sheet.range(f"H{row_index}").value = raw_value[2] + amount
 
                 print(f"Notice: 在表 食堂物品收发存库存表 更新行信息 数量、单价、金额 的列,行号为{row_index}")
             else:
@@ -551,7 +568,77 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
         print(f"Error: 更新食堂物品收发存库存表时出错 {e}")
 
 def export_update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark):
-    pass
+    """
+    更新或添加数据到食堂物品收发存库存表(出库)
+    :param main_workbook: 主工作簿对象
+    :param product_name: 物品名称
+    :param unit_name: 计量单位
+    :param quantity: 数量
+    :param price: 单价
+    :param amount: 金额
+    :param remark: 备注
+    :return: None
+    """
+    """
+    例食堂物品收发存库存表
+    2025/05/04 20:55 wjwcj测试没问题
+    """
+    # 尝试打开名为食堂物品收发库存表的 sheet
+    if "食堂物品收发存库存表" in [s.name for s in main_workbook.sheets]:
+        sheet = main_workbook.sheets["食堂物品收发存库存表"]
+        print(f"Notice: 找到出库类型名为 `食堂物品收发存库存表` 的sheet")
+    else:
+        print(f"Error: 未找到出库类型名为 `食堂物品收发存库存表` 的sheet,可能存在空字符")
+        return
+
+    try:
+        # 调用Excel VBA API 查找名为'名称'的 A列中是否存在该名称
+        found = sheet.range("A:A").api.Find(product_name)
+        if found is not None:
+            # 如果存在，则更新该行的数据
+            # 用遍历方式查找行索引，避免直接用 .row
+            row_index = None
+            for i in range(1, sheet.used_range.rows.count + 1):
+                if sheet.range(f"A{i}").value == product_name:
+                    row_index = i
+                    break
+            if row_index is None:
+                print(f"Error: 在表 食堂物品收发存库存表 未找到名称为 {product_name} 的行")
+                return
+            print(f"Notice: 在表 食堂物品收发存库存表 找到名称为 {product_name} 的行,行号为{row_index}")
+
+            # 判断quantity、price、amount的值是否为数值
+            try:
+                quantity = float(quantity)
+                price = float(price)
+                amount = float(amount)
+            except:
+                print(f"Error: quantity、price、amount的值必须为数值")
+                return
+            if isinstance(quantity, (int, float)) and isinstance(price, (int, float)) and isinstance(amount, (int, float)):
+                # 在I列更新数量信息，J列更新单价信息，K列更新金额信息
+                raw_value = []
+                for alpha in "IJK":
+                    if sheet.range(f"{alpha}{row_index}").value is None:
+                        raw_value.append(0)
+                    elif "." in str(sheet.range(f"{alpha}{row_index}").value):
+                        raw_value.append(float(sheet.range(f"{alpha}{row_index}").value))
+                    else:
+                        raw_value.append(int(sheet.range(f"{alpha}{row_index}").value))
+                sheet.range(f"I{row_index}").value = raw_value[0] + quantity
+                sheet.range(f"J{row_index}").value = raw_value[1] + price
+                sheet.range(f"K{row_index}").value = raw_value[2] + amount
+
+                print(f"Notice: 在表 食堂物品收发存库存表 更新行信息 数量、单价、金额 的列,行号为{row_index}")
+            else:
+                print(f"Error: quantity、price、amount的值必须为数值")
+                return
+        else:
+            print(f"Error: 在表 食堂物品收发存库存表 未找到名称为 {product_name} 的行, 直接退出 食堂物品收发存库存表 的出库函数")
+            return
+
+    except Exception as e:
+        print(f"Error: 更新食堂物品收发存库存表时出错 {e}")
 
 def update_receipt_storage_sheet(main_workbook, single_name, category_name, amount):
     """
@@ -609,18 +696,86 @@ def update_receipt_storage_sheet(main_workbook, single_name, category_name, amou
 
     # 更新H列的金额数据
     if found_row_index:
-        if sheet.range(found_row_index, 4).value is None:
-            sheet.range(found_row_index, 4).value = float(amount)
-            print(f"Notice: 发现 收发存表皮 Sheet 中 {row_index_name} 的金额数据不存在,现在添加数据为 {sheet.range(found_row_index, 4).value}")
+        if sheet.range(found_row_index, 8).value is None:
+            sheet.range(found_row_index, 8).value = float(amount)
+            print(f"Notice: 发现 收发存表皮 Sheet 中 {row_index_name} 的金额数据不存在,现在添加数据为 {sheet.range(found_row_index, 8).value}")
         else:
-            print(f"Notice: 在 收发存表皮 Sheet中 {row_index_name} 的金额原始数据为 {sheet.range(found_row_index, 4).value}")
-            sheet.range(found_row_index, 4).value = float(amount) + float(sheet.range(found_row_index, 4).value) # Fixed：修复了can only concatenate str (not "float") to str，遇到运算问题时尽可能的强制类型转换
-            print(f"Notice: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据成功,现在数据为 {sheet.range(found_row_index, 4).value}")
+            print(f"Notice: 在 收发存表皮 Sheet中 {row_index_name} 的金额原始数据为 {sheet.range(found_row_index, 8).value}")
+            sheet.range(found_row_index, 8).value = float(amount) + float(sheet.range(found_row_index, 8).value) # Fixed：修复了can only concatenate str (not "float") to str，遇到运算问题时尽可能的强制类型转换
+            print(f"Notice: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据成功,现在数据为 {sheet.range(found_row_index, 8).value}")
     else:
         print(f"Error: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据失败，请检查输入数据")
 
 def export_update_receipt_storage_sheet(main_workbook, single_name, category_name, amount):
-    pass
+    """
+    更新收发存表皮中的条目信息(出库)
+    :param main_workbook: 主工作簿对象
+    :param single_name: 单名信息
+    :param category_name: 类别信息
+    :param amount: 金额数据
+    :return: None
+    """
+    """
+    收发存表皮
+    wjwcj: 2025/05/04 21:31 测试没问题
+    """
+    # 尝试打开名为收发存表皮的 sheet
+    if "收发存表皮" in [s.name for s in main_workbook.sheets]:
+        sheet = main_workbook.sheets["收发存表皮"]
+        print(f"Notice: 找到出库类型名为 `收发存表皮` 的sheet")
+    else:
+        print(f"Error: 未找到出库类型名为 `收发存表皮` 的sheet,可能存在空字符")
+        return
+
+    # 提取输入数据的单名信息和类别信息进行行索引词匹配
+    row_index_name = None
+    if single_name == "扶贫主食出库":
+        row_index_name = "主食（帮扶食品）"
+    elif single_name == "扶贫副食出库":
+        row_index_name = "副食（帮扶食品）"
+    elif single_name == "自购主食出库":
+        if category_name == "主食":
+            row_index_name = "主食（自购）"
+        elif category_name == "副食":
+            row_index_name = "副食（自购）"
+        else:
+            print("Error: 自购主食出库 未找到类别信息，请检查输入数据")
+    elif single_name == "场调面食出库":
+        if category_name == "主食":
+            row_index_name = "正常厂主食"
+        elif category_name == "副食":
+            row_index_name = "正常厂主食"
+        else:
+            print("Error: 场调面食出库 未找到类别信息，请检查输入数据")
+    else:
+        print("Error: 未找到出库类型信息，请检查输入数据")
+        return
+
+    # 调用Excel API用行索引名匹配行索引
+    found_row = sheet.range("A:A").api.Find(row_index_name)
+    if found_row is not None:
+        try:
+            found_row_index = sheet.range("A:A").value.index(row_index_name) + 1
+            print(f"Notice: 在 收发存表皮 Sheet中找到 {row_index_name} 的行索引为 {found_row_index}")
+        except Exception as e:
+            print(f"Error: 获取行索引出错 {e}")
+            return
+    else:
+        print(f"Error: 在 收发存表皮 Sheet中未找到 {row_index_name} 的行索引，请检查输入数据")
+        return
+
+    # 更新K列的金额数据
+    if found_row_index:
+        if sheet.range(found_row_index, 11).value is None:
+            sheet.range(found_row_index, 11).value = float(amount)
+            print(f"Notice: 发现 收发存表皮 Sheet 中 {row_index_name} 的金额数据不存在,现在添加数据为 {sheet.range(found_row_index, 11).value}")
+        else:
+            print(f"Notice: 在 收发存表皮 Sheet中 {row_index_name} 的金额原始数据为 {sheet.range(found_row_index, 11).value}")
+            sheet.range(found_row_index, 11).value = float(amount) + float(sheet.range(found_row_index, 11).value) # Fixed：修复了can only concatenate str (not "float") to str，遇到运算问题时尽可能的强制类型转换
+            print(f"Notice: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据成功,现在数据为 {sheet.range(found_row_index, 11).value}")
+    else:
+        print(f"Error: 在 收发存表皮 Sheet中更新 {row_index_name} 的金额数据失败，请检查输入数据")
+
 
 def update_main_food_detail_sheet(main_workbook, single_name, category_name, amount):
     """
@@ -631,6 +786,10 @@ def update_main_food_detail_sheet(main_workbook, single_name, category_name, amo
     :param amount: 金额数据
     :return: None
     """
+
+    """注意！！这个函数只负责主副食品明细账"""
+
+    
     # 尝试打开名为主副食品明细账的 sheet
     if "主副食品明细账" in [s.name for s in main_workbook.sheets]:
         sheet = main_workbook.sheets["主副食品明细账"]
@@ -639,6 +798,7 @@ def update_main_food_detail_sheet(main_workbook, single_name, category_name, amo
         print(f"Error: 未找到入库类型名为 `主副食品明细账` 的sheet,可能存在空字符")
         return
 
+    print(single_name, category_name)
     # 提取输入数据的单名信息和类别信息进行行列索引词匹配
     if single_name == "扶贫主食入库":
         row_index_name = "（帮扶食品）主副食"
