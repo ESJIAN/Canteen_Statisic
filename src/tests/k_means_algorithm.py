@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 import numpy as np
 
@@ -16,41 +17,45 @@ def sort_ocr_results(data):
     # 计算每个文本框的中心点坐标
     centers = []
     for item in data[0]:
-        boxes = item[0] # 得到单个定位框四个坐标以及条目数据
-        texts = item[1][0]# 得到定位矩形的四个坐标点数据
+        boxes = item[0]                                # 得到单个定位框四个坐标以及条目数据
+        texts = item[1][0]                             # 得到定位矩形的四个坐标点数据
         
-        for box in boxes:
-            x_coords = [point[0] for point in box] # 获取矩形框x轴四坐标
-            y_coords = [point[1] for point in box] # 获取矩形框y轴四坐标
-            center_x = (min(x_coords) + max(x_coords)) / 2 # 计算代表中心点x坐标
-            center_y = (min(y_coords) + max(y_coords)) / 2 # 计算代表中心点y坐标
-            centers.append([center_x, center_y])
+        x_coords = [point[0] for point in boxes]       # 获取矩形框x轴四坐标
+        y_coords = [point[1] for point in boxes]       # 获取矩形框y轴四坐标
+        center_x = sum(x_coords) / 4                   # 四个点x坐标的平均值
+        center_y = sum(y_coords) / 4                   # 四个点y坐标的平均值
+        centers.append([center_x, center_y])
     
+    # 将点调用matplot绘出来
+    x_plots = [x[0] for x in centers]
+    y_plots = [y[1] for y in centers]
+    plt.scatter(x_plots, y_plots)
+    plt.show()
+
     # 转换为numpy数组
     centers = np.array(centers)
 
     # 2. 行聚类
-    # 使用K-均值聚类将文本框聚类成不同的行
-    kmeans = KMeans(n_clusters=5, random_state=0, n_init = 'auto')  # 假设有5行，可以根据实际情况调整
-    row_labels = kmeans.fit_predict(centers[:, 1].reshape(-1, 1))  # 只使用y坐标进行聚类
+    kmeans_rows = KMeans(n_clusters=len(data[0]), init='k-means++', n_init='auto')
+    row_labels = kmeans_rows.fit_predict(centers[:, 1].reshape(-1, 1))
 
     # 3. 行内排序
-    # 对每一行内的文本框，根据x坐标进行排序
     rows = {}
-    for i, label in enumerate(row_labels):
-        if label not in rows:
-            rows[label] = []
-        rows[label].append((centers[i][0], texts[i]))  # 存储x坐标和文本
+    for i, row_label in enumerate(row_labels):
+        if row_label not in rows:
+            rows[row_label] = []
+        rows[row_label].append((centers[i][0], centers[i][1], texts[i]))
 
-    sorted_rows = {}
-    for label, items in rows.items():
-        sorted_rows[label] = sorted(items, key=lambda x: x[0])  # 根据x坐标排序
+    # 排序行（按Y坐标从上到下）
+    sorted_rows = sorted(rows.items(), key=lambda x: np.mean([pt[1] for pt in x[1]]))
 
     # 4. 结果输出
-    # 将排序后的文本框按照行列顺序输出
-    sorted_texts = []
-    for label in sorted(sorted_rows.keys()):  # 按照行号排序
-        for _, text in sorted_rows[label]:
-            sorted_texts.append(text)
+    final_result = []
+    for _, items in sorted_rows:
+        # 行内按X排序
+        sorted_items = sorted(items, key=lambda x: x[0])
+        final_result.append([t[2] for t in sorted_items])  # 每行一个列表
 
-    return sorted_texts
+    return final_result
+
+
