@@ -477,17 +477,16 @@ class Ui_Form(object):
         self.line6Right.textChanged.connect(self.auto_calc_amount)#数量
 
         
-        self.line1Right.setText("2025-5-3")       # 日期
+        self.line1Right.setText("2025-5-5")       # 日期
         self.line2Right.setText("主食")           # 类别
-        self.line3Right.setText("菠菜")           # 品名
+        self.line3Right.setText("菠菜饼")           # 品名
         self.line4Right.setText("备注")           # 备注
         self.line5Right.setText("420.0")         # 金额
         self.line6Right.setText("420")            # 数量
         self.line7Right.setText("1")              # 单价
         self.line8Right.setText("斤")             # 单位
-        self.line9Right.setText("聚鑫干调")       # 公司
-        self.line10Right.setText("自购主食出库")  # 单名
-
+        self.line9Right.setText("嘉亿格")       # 公司
+        self.line10Right.setText("自购主食入库")  # 单名
 
 
     # retranslateUi
@@ -495,7 +494,7 @@ class Ui_Form(object):
     下面是一些按钮的槽函数，但是核心的功能实现在detail_ui_button_utils.py中
     """
 
-    
+
     def on_tab_clicked(self, index):
         """
         当点击标签时，切换入库出库
