@@ -19,7 +19,7 @@ result = ocr.ocr(image_path, cls=True)
 
 # 4. 从第OCR扫描到的第三 3个对象开始
 try:
-    sort_ocr_results(result)
+    table = sort_ocr_results(result)
     # table = []
     # row_index = 1
     # row = []

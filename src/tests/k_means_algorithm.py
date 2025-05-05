@@ -13,16 +13,20 @@ def sort_ocr_results(data):
     """
 
     # 1. 数据预处理
-    boxes = [item[0] for item in data]
-    texts = [item[1][0] for item in data]
     # 计算每个文本框的中心点坐标
     centers = []
-    for box in boxes:
-        x_coords = [point[0] for point in box]
-        y_coords = [point[1] for point in box]
-        center_x = (min(x_coords) + max(x_coords)) / 2
-        center_y = (min(y_coords) + max(y_coords)) / 2
-        centers.append([center_x, center_y])
+    for item in data[0]:
+        boxes = item[0] # 得到单个定位框四个坐标以及条目数据
+        texts = item[1][0]# 得到定位矩形的四个坐标点数据
+        
+        for box in boxes:
+            x_coords = [point[0] for point in box] # 获取矩形框x轴四坐标
+            y_coords = [point[1] for point in box] # 获取矩形框y轴四坐标
+            center_x = (min(x_coords) + max(x_coords)) / 2 # 计算代表中心点x坐标
+            center_y = (min(y_coords) + max(y_coords)) / 2 # 计算代表中心点y坐标
+            centers.append([center_x, center_y])
+    
+    # 转换为numpy数组
     centers = np.array(centers)
 
     # 2. 行聚类
