@@ -478,15 +478,15 @@ class Ui_Form(object):
 
         
         self.line1Right.setText("2025-5-5")       # 日期
-        self.line2Right.setText("主食")           # 类别
-        self.line3Right.setText("菠菜饼")           # 品名
+        self.line2Right.setText("副食")           # 类别
+        self.line3Right.setText("土豆")           # 品名
         self.line4Right.setText("备注")           # 备注
         self.line5Right.setText("420.0")         # 金额
         self.line6Right.setText("420")            # 数量
         self.line7Right.setText("1")              # 单价
         self.line8Right.setText("斤")             # 单位
         self.line9Right.setText("嘉亿格")       # 公司
-        self.line10Right.setText("自购主食入库")  # 单名
+        self.line10Right.setText("自购副食入库")  # 单名
 
 
     # retranslateUi
@@ -610,12 +610,15 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
-
-        print("在mainwindow看模式是", MODE)
-        if mode_not_right(self, MODE):
-            self.line10Right.setText("模式不对, 确认入库出库")
-            return
-
+        global MODE
+        modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
+        if "入库" in modeText and MODE == 1:
+            print("自动切换为入库")
+            MODE = 0
+        elif "出库" in modeText and MODE == 0:
+            print("自动切换为出库")
+            MODE = 1
+        
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
