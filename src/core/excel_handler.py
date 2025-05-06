@@ -6,15 +6,19 @@
 # @Software: VsCode
 
 
+from PySide6.QtWidgets import QMessageBox
+
 
 from openpyxl import load_workbook
 from datetime import datetime
 
 import os
 import __main__
+import openpyxl
 import xlrd
 from xlutils.copy import copy
 from xlwt.Style import  XFStyle
+
 
 from xlwt import Workbook
 import xlwings as xw
@@ -1456,6 +1460,32 @@ def export_update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, r
         except Exception as e:
             print(f"Error: {e}")
             return  
+
+def img_excel_after_process(self,img_to_excel_file_path:str = os.path.abspath("./src/data/input/manual/temp_img_input.xlsx")):
+    # 弹窗提示表格初步转录完成
+    self.reply = QMessageBox.information(None, "提示", "图片转表格完成", QMessageBox.Ok | QMessageBox.Cancel)
+    if self.reply == QMessageBox.Ok:
+
+        # 调用 openpyxl 读取 Excel 文件
+        try:
+            workbook = openpyxl.load_workbook(img_to_excel_file_path)
+            sheet = workbook.active
+            # 将第二行第一列单元覆写成日期文本
+            sheet['A2'] = '日期'
+            # 为G2列加上备注
+            sheet['G2'] = '备注'
+            # 为H2列加上公司
+            sheet['H2'] = '公司'
+            # 为I2列加上单名
+            sheet['I2'] = '单名'
+            print("Notice: 图片转录表格后处理完成")
+
+        except Exception as e:
+            print(f"Error:后处理 {img_to_excel_file_path} 失败,错误信息 {e}")
+    
+    
+        
+
 
     
 # Summerize：

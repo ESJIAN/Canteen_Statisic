@@ -49,7 +49,7 @@ from src.gui.utils.detail_ui_button_utils import (
 # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
 from configparser import ConfigParser
-from src.core.excel_handler import clear_temp_xls_excel, clear_temp_xlxs_excel,store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.core.excel_handler import clear_temp_xls_excel, clear_temp_xlxs_excel, img_excel_after_process,store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.core.image_handler import image_to_excel
 from src.gui.photo_preview_dialog import preview_image
 import multiprocessing
@@ -714,12 +714,19 @@ class Ui_Form(object):
         :return: None
         """
         if hasattr(self, "copied_paths") and self.copied_paths:
-            pool = multiprocessing.Pool(processes=min(4, len(self.copied_paths)))
-            # 调用pool的 apply_async 方法而不是 map 方法，防止主进程因为等待子线程的完成导致UI无响应
-            for path in self.copied_paths:
-                pool.apply_async(image_to_excel, args=(path,))
-            pool.close()
+            def run_in_background(self):
+                pool = multiprocessing.Pool(processes=min(4, len(self.copied_paths)))
+                for path in self.copied_paths:
+                    pool.apply_async(image_to_excel, args=(path,))
+                pool.close()
+                pool.join()  # 在后台线程中等待，不会阻塞UI
+                img_excel_after_process(self)
+
+        # 启动后台线程
+        threading.Thread(target=run_in_background(self), daemon=True).start()
             
+        
+        
     
         
     def check_photo_input_data(self): 
@@ -731,7 +738,7 @@ class Ui_Form(object):
         output_path = os.path.abspath("./src/data/input/manual/temp_img_input.xlsx")
         folder_path = os.path.dirname(output_path)
         # 弹窗提示，等待用户确认
-        reply = QMessageBox.information(None, "提示", "即将打开 temp_img_input.xlsx 文件所在文件夹，请手动校核数据", QMessageBox.Ok | QMessageBox.Cancel)
+        reply = QMessageBox.information(None, "提示", "请打开 temp_img_input.xlsx ，手动校核并保存数据", QMessageBox.Ok | QMessageBox.Cancel)
         if reply == QMessageBox.Ok:
             # 打开文件夹
             if sys.platform.startswith('win'):
@@ -740,7 +747,7 @@ class Ui_Form(object):
                 subprocess.Popen(['open', folder_path])
             else:
                 subprocess.Popen(['xdg-open', folder_path])
-
+        
     def show_settings(self):
         """
         显示设置窗口
