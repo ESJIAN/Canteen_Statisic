@@ -8,6 +8,7 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
+import os
 import pandas as pd  # 用于读取 Excel 文件
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
@@ -20,11 +21,12 @@ from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QHeaderView, QSizePolicy,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
-
 from src.gui.data_save_dialog import data_save_success
 
 class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写进去
-
+    """
+    Excel 数据查看弹窗类
+    """
     def set_up_Ui(self, Form):
         """
         表格窗口初始化
@@ -58,23 +60,28 @@ class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写
         :param file_path: Excel 文件路径
         """
         try:
-            # 使用 pandas 读取 Excel 文件
-            data = pd.read_excel(file_path)
+            # 如果表格存在打开表格
+            if os.path.exists(file_path):
+                # 使用 pandas 读取 Excel 文件
+                data = pd.read_excel(file_path)
 
-            # 设置表格行列数
-            self.tableWidget.setRowCount(data.shape[0])  # 行数
-            self.tableWidget.setColumnCount(data.shape[1])  # 列数
-            self.tableWidget.setHorizontalHeaderLabels(data.columns)  # 设置表头
+                # 设置表格行列数
+                self.tableWidget.setRowCount(data.shape[0])  # 行数
+                self.tableWidget.setColumnCount(data.shape[1])  # 列数
+                self.tableWidget.setHorizontalHeaderLabels(data.columns)  # 设置表头
 
-            # 填充表格数据
-            for row in range(data.shape[0]):
-                for col in range(data.shape[1]):
-                    item = QTableWidgetItem(str(data.iloc[row, col]))
-                    self.tableWidget.setItem(row, col, item)
+                # 填充表格数据
+                for row in range(data.shape[0]):
+                    for col in range(data.shape[1]):
+                        item = QTableWidgetItem(str(data.iloc[row, col]))
+                        self.tableWidget.setItem(row, col, item)
 
-            print("表格数据加载成功！")
+                print("Notice:表格数据加载成功！")
+            # 如果表格不存在则打印错误信息
+            else:
+                print(f"Error:Excel文件不存在: {file_path}")
         except Exception as e:
-            print(f"加载表格数据时出错: {e}")
+            print(f"Error:加载表格数据时出错,报错信息为{e}")
 
     def retranslateUi(self, Form):
         Form.setWindowTitle(QCoreApplication.translate("Form", u"Excel 数据查看", None))
@@ -108,11 +115,14 @@ class ExcelCheckWindow(object): # Learning3:类定义时候是不能把 self 写
             from src.gui.main_window import TEMP_SINGLE_STORAGE_EXCEL_PATH # Learning4:延迟导入
             save_path = TEMP_SINGLE_STORAGE_EXCEL_PATH  # 保存路径
             df.to_excel(save_path, index=False)
-            print(f"表格数据已成功保存到 {save_path}")
+            print(f"Notice:表格数据已成功保存到 {save_path}")
             data_save_success(self)
 
         except Exception as e:
-            print(f"保存表格数据时出错: {e}")
+            print(f"Error:保存表格数据时出错: {e}")
+
+
+    
 
 
 if __name__ == "__main__":

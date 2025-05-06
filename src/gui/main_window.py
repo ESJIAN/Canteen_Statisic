@@ -13,7 +13,7 @@ import os
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
+    QSize, QTime, QUrl, Qt, QEvent)
 from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
@@ -31,17 +31,73 @@ project_root = os.path.abspath(os.path.join(current_file_path, '..', '..', '..')
 # 将项目根目录添加到 sys.path
 sys.path.insert(0, project_root) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
-from src.gui.utils.detail_ui_button_utils import get_current_date, manual_temp_storage # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.gui.utils.detail_ui_button_utils import (
+    commit_data_to_excel,
+    get_current_date,
+    manual_temp_storage,
+    temp_list_rollback,
+    show_setting_window,
+    get_ini_setting,
+    close_setting_window,
+    convert_place_holder_to_text,
+    cancel_input_focus,
+    photo_import_utils
+)
+# Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
-from src.core.excel_handler import store_single_entry_to_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.core.excel_handler import clear_temp_xls_excel, store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
+TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 
-TEMP_SINGLE_STORAGE_EXCEL_PATH = ".\\src\\data\\input\\manual\\temp_manual_input_data.xlsx"
+TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(".", "temp_manual_input_data.xls") # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
+TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
+TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
+MIAN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表格路径
+Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\子表\\"  # 子工作表格路径
+
+#这个0/1用来表示是入库出库
+MODE = 0
+
+SERIALS_NUMBER = 1
+DEBUG_SIGN = False
+
+class KeyEventFilter(QObject):
+    def eventFilter(self, watched, event):
+        if event.type() == QEvent.KeyPress:
+            key = event.key()
+            modifiers = event.modifiers()
+            if key == Qt.Key_Return:
+                #print("按下了 Enter")
+                pass
+            elif key == Qt.Key_Escape:
+                cancel_input_focus(Form) # Learning3：取消输入框焦点
+            elif key == Qt.Key_I and modifiers == Qt.ControlModifier:
+                #print("按下了 Ctrl+Shift+I")
+                convert_place_holder_to_text(Form)
+            elif key == Qt.Key_S and modifiers == Qt.ControlModifier:
+                if not hasattr(self, '_last_run') or (QTime.currentTime().msecsSinceStartOfDay() - self._last_run > 2000):
+                    self._last_run = QTime.currentTime().msecsSinceStartOfDay()
+                    ui.temp_store_inputs()  # 这儿只运行一次
+            elif key == Qt.Key_D and modifiers == Qt.ControlModifier:
+                ui.show_current_date()
+        return super().eventFilter(watched, event)
+
+    
+
+class ClickableImage(QLabel):
+    #chatgpt给的用于设置按钮的类
+    def __init__(self, image_path):
+        super().__init__()
+        self.setPixmap(QPixmap(image_path).scaled(QSize(200, 200), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.setCursor(QCursor(Qt.PointingHandCursor))
+        self.setAlignment(Qt.AlignCenter)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            print("图片被点击")
 
 class Ui_Form(object):
- 
-
 
     def setupUi(self, Form):
         if not Form.objectName():
@@ -78,85 +134,128 @@ class Ui_Form(object):
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.formLayout = QFormLayout()
         self.formLayout.setObjectName(u"formLayout")
-        self.date = QLabel(self.groupBox)
-        self.date.setObjectName(u"date")
 
-        self.formLayout.setWidget(1, QFormLayout.ItemRole.LabelRole, self.date)
+        self.setting = ClickableImage("")  # Use the ClickableImage class for clickable functionality
+        self.setting.setObjectName("settingLabel")
+        self.setting.setAlignment(Qt.AlignRight | Qt.AlignTop)  # Align to the top-right corner
+        self.setting.setFixedSize(30, 30)  # Increase the size of the label
+        self.setting.setText("⚙️")  # Use a gear emoji as a placeholder
+        self.setting.setStyleSheet("font-size: 25px;")  # Make the gear emoji larger
+        self.gridLayout_3.addWidget(self.setting, 0, 0, Qt.AlignRight | Qt.AlignTop)  # Add to the top-right corner of the main layout
+        self.setting.mousePressEvent = lambda event: self.show_settings()  # Connect the click event to a function
 
-        self.date_2 = QLineEdit(self.groupBox)
-        self.date_2.setObjectName(u"date_2")
+        # Learning4：标签-输入框组的开始
+        # 日期输入行
+        self.line1Left = QLabel(self.groupBox)
+        self.line1Left.setObjectName(u"date")
 
-        self.formLayout.setWidget(1, QFormLayout.ItemRole.FieldRole, self.date_2)
+        self.formLayout.setWidget(1, QFormLayout.ItemRole.LabelRole, self.line1Left)
 
-        self.foodType = QLabel(self.groupBox)
-        self.foodType.setObjectName(u"foodType")
+        self.line1Right = QLineEdit(self.groupBox)
+        self.line1Right.setObjectName(u"date_2")
 
-        self.formLayout.setWidget(2, QFormLayout.ItemRole.LabelRole, self.foodType)
+        self.formLayout.setWidget(1, QFormLayout.ItemRole.FieldRole, self.line1Right)
+        # Learning4：标签-输入框组的结束
 
-        self.foodType_2 = QLineEdit(self.groupBox)
-        self.foodType_2.setObjectName(u"foodType_2")
+        # 类别输入行
+        self.line2Left = QLabel(self.groupBox)
+        self.line2Left.setObjectName(u"foodType")
 
-        self.formLayout.setWidget(2, QFormLayout.ItemRole.FieldRole, self.foodType_2)
+        self.formLayout.setWidget(2, QFormLayout.ItemRole.LabelRole, self.line2Left)
 
-        self.name = QLabel(self.groupBox)
-        self.name.setObjectName(u"name")
+        self.line2Right = QLineEdit(self.groupBox)
+        self.line2Right.setObjectName(u"foodType_2")
 
-        self.formLayout.setWidget(3, QFormLayout.ItemRole.LabelRole, self.name)
+        self.formLayout.setWidget(2, QFormLayout.ItemRole.FieldRole, self.line2Right)
 
-        self.name_2 = QLineEdit(self.groupBox)
-        self.name_2.setObjectName(u"name_2")
+        # 品名输入行
+        self.line3Left = QLabel(self.groupBox)
+        self.line3Left.setObjectName(u"name")
 
-        self.formLayout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.name_2)
+        self.formLayout.setWidget(3, QFormLayout.ItemRole.LabelRole, self.line3Left)
 
-        self.info = QLabel(self.groupBox)
-        self.info.setObjectName(u"info")
+        self.line3Right = QLineEdit(self.groupBox)
+        self.line3Right.setObjectName(u"name_2")
 
-        self.formLayout.setWidget(5, QFormLayout.ItemRole.LabelRole, self.info)
+        self.formLayout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.line3Right)
 
-        self.info_2 = QLineEdit(self.groupBox)
-        self.info_2.setObjectName(u"info_2")
+        # 单位输入行
+        self.line8Left = QLabel(self.groupBox)
+        self.line8Left.setObjectName(u"Label_3")
 
-        self.formLayout.setWidget(5, QFormLayout.ItemRole.FieldRole, self.info_2)
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.LabelRole, self.line8Left)
 
-        self.amount = QLabel(self.groupBox)
-        self.amount.setObjectName(u"amount")
+        self.line8Right = QLineEdit(self.groupBox)
+        self.line8Right.setObjectName(u"LineEdit_3")
 
-        self.formLayout.setWidget(6, QFormLayout.ItemRole.LabelRole, self.amount)
+        self.formLayout.setWidget(4, QFormLayout.ItemRole.FieldRole, self.line8Right)
+        
+        # 单价输入行
+        self.line7Left = QLabel(self.groupBox)
+        self.line7Left.setObjectName(u"Label_2")
 
-        self.amount_2 = QLineEdit(self.groupBox)
-        self.amount_2.setObjectName(u"amount_2")
+        self.formLayout.setWidget(5, QFormLayout.ItemRole.LabelRole, self.line7Left)
 
-        self.formLayout.setWidget(6, QFormLayout.ItemRole.FieldRole, self.amount_2)
+        self.line7Right = QLineEdit(self.groupBox)
+        self.line7Right.setObjectName(u"LineEdit_2")
 
-        self.Label = QLabel(self.groupBox)
-        self.Label.setObjectName(u"Label")
+        self.formLayout.setWidget(5, QFormLayout.ItemRole.FieldRole, self.line7Right)
 
-        self.formLayout.setWidget(7, QFormLayout.ItemRole.LabelRole, self.Label)
 
-        self.LineEdit = QLineEdit(self.groupBox)
-        self.LineEdit.setObjectName(u"LineEdit")
+        # 数量输入行
+        self.line6Left = QLabel(self.groupBox)
+        self.line6Left.setObjectName(u"Label")
 
-        self.formLayout.setWidget(7, QFormLayout.ItemRole.FieldRole, self.LineEdit)
+        self.formLayout.setWidget(6, QFormLayout.ItemRole.LabelRole, self.line6Left)
 
-        self.Label_2 = QLabel(self.groupBox)
-        self.Label_2.setObjectName(u"Label_2")
+        self.line6Right = QLineEdit(self.groupBox)
+        self.line6Right.setObjectName(u"LineEdit")
 
-        self.formLayout.setWidget(8, QFormLayout.ItemRole.LabelRole, self.Label_2)
+        self.formLayout.setWidget(6, QFormLayout.ItemRole.FieldRole, self.line6Right)
 
-        self.LineEdit_2 = QLineEdit(self.groupBox)
-        self.LineEdit_2.setObjectName(u"LineEdit_2")
+        # 金额输入行
+        self.line5Left = QLabel(self.groupBox)
+        self.line5Left.setObjectName(u"amount")
 
-        self.formLayout.setWidget(8, QFormLayout.ItemRole.FieldRole, self.LineEdit_2)
+        self.formLayout.setWidget(7, QFormLayout.ItemRole.LabelRole, self.line5Left)
 
-        self.Label_3 = QLabel(self.groupBox)
-        self.Label_3.setObjectName(u"Label_3")
+        self.line5Right = QLineEdit(self.groupBox)
+        self.line5Right.setObjectName(u"amount_2")
 
-        self.formLayout.setWidget(9, QFormLayout.ItemRole.LabelRole, self.Label_3)
+        self.formLayout.setWidget(7, QFormLayout.ItemRole.FieldRole, self.line5Right)
 
-        self.LineEdit_3 = QLineEdit(self.groupBox)
-        self.LineEdit_3.setObjectName(u"LineEdit_3")
+        # 备注输入行
+        self.line4Light = QLabel(self.groupBox)
+        self.line4Light.setObjectName(u"info")
 
-        self.formLayout.setWidget(9, QFormLayout.ItemRole.FieldRole, self.LineEdit_3)
+        self.formLayout.setWidget(8, QFormLayout.ItemRole.LabelRole, self.line4Light)
+
+        self.line4Right = QLineEdit(self.groupBox)
+        self.line4Right.setObjectName(u"info_2")
+
+        self.formLayout.setWidget(8, QFormLayout.ItemRole.FieldRole, self.line4Right)
+
+        # 公司输入行
+        self.line9Left = QLabel(self.groupBox)
+        self.line9Left.setObjectName(u"info_3")
+
+        self.formLayout.setWidget(9, QFormLayout.ItemRole.LabelRole, self.line9Left) # Learning5：使用QFormLayout.ItemRole.LabelRole 来设置标签
+
+        self.line9Right = QLineEdit(self.groupBox)
+        self.line9Right.setObjectName(u"info_4")    
+
+        self.formLayout.setWidget(9, QFormLayout.ItemRole.FieldRole, self.line9Right) # Learning5：使用QFormLayout.ItemRole.FieldRole 来设置输入框
+
+        # 主表入库类型单名输入行
+        self.line10Left = QLabel(self.groupBox)
+        self.line10Left.setObjectName(u"info_5")
+
+        self.formLayout.setWidget(10, QFormLayout.ItemRole.LabelRole, self.line10Left)
+        
+        self.line10Right = QLineEdit(self.groupBox)
+        self.line10Right.setObjectName(u"info_6")
+        
+        self.formLayout.setWidget(10, QFormLayout.ItemRole.FieldRole, self.line10Right)
 
 
         self.verticalLayout.addLayout(self.formLayout)
@@ -172,10 +271,16 @@ class Ui_Form(object):
         self.pushButton_7.setObjectName(u"pushButton_7")
         self.pushButton_7.setGeometry(QRect(220, 100, 75, 24))
         self.pushButton_7.clicked.connect(self.temp_store_inputs)
+
+        # 提交数据按钮创建配置
+
         self.pushButton_5 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_5)
         self.pushButton_5.setObjectName(u"pushButton_5")
         self.pushButton_5.setGeometry(QRect(220, 190, 75, 24))
+        self.pushButton_5.clicked.connect(self.commit_data)
+
+
         self.pushButton = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton)
         self.pushButton.setObjectName(u"pushButton")
@@ -198,11 +303,15 @@ class Ui_Form(object):
         self.label = QLabel(self.widget_5)
         self.label.setObjectName(u"label")
 
+
+
         self.horizontalLayout.addWidget(self.label)
 
         self.spinBox = QSpinBox(self.widget_5)
         self.spinBox.setObjectName(u"spinBox")
-
+        self.spinBox.valueChanged.connect(self.information_edition_rollback) # Learning5：将SpinBox的值变化与信息栏回滚函数连接
+                                                                             # Learning7：槽函数若有括号，则会立即执行，而不是在信号触发时执行
+                                                                             # Learning8：valueChanged时候去获取起变化的值是变化之后的值           
         self.horizontalLayout.addWidget(self.spinBox)
 
         self.label_2 = QLabel(self.widget_5)
@@ -210,20 +319,23 @@ class Ui_Form(object):
 
         self.horizontalLayout.addWidget(self.label_2)
 
+
         self.label_3 = QLabel(self.widget_5)
         self.label_3.setObjectName(u"label_3")
 
         self.horizontalLayout.addWidget(self.label_3)
 
-        self.plainTextEdit = QPlainTextEdit(self.widget_5)
-        self.plainTextEdit.setObjectName(u"plainTextEdit")
+        self.storageNum = QLabel(self.widget_5)
+        self.storageNum.setObjectName(u"plainTextEdit")
 
-        self.horizontalLayout.addWidget(self.plainTextEdit)
+        self.horizontalLayout.addWidget(self.storageNum)
+
 
         self.label_4 = QLabel(self.widget_5)
         self.label_4.setObjectName(u"label_4")
 
         self.horizontalLayout.addWidget(self.label_4)
+
 
 
         self.horizontalLayout_3.addWidget(self.widget_5)
@@ -257,22 +369,22 @@ class Ui_Form(object):
         self.horizontalLayout_2.addWidget(self.tabWidget_2)
 
         self.tabWidget.addTab(self.tab, "")
-        self.tab_2 = QWidget()
-        self.tab_2.setObjectName(u"tab_2")
-        self.gridLayout_2 = QGridLayout(self.tab_2)
-        self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.tabWidget_3 = QTabWidget(self.tab_2)
-        self.tabWidget_3.setObjectName(u"tabWidget_3")
+        #self.tab_2 = QWidget()
+        #self.tab_2.setObjectName(u"tab_2")
+        #self.gridLayout_2 = QGridLayout(self.tab_2)
+        #self.gridLayout_2.setObjectName(u"gridLayout_2")
+        #self.tabWidget_3 = QTabWidget(self.tab_2)
+        #self.tabWidget_3.setObjectName(u"tabWidget_3")
         self.tab_5 = QWidget()
         self.tab_5.setObjectName(u"tab_5")
-        self.tabWidget_3.addTab(self.tab_5, "")
+        #self.tabWidget_3.addTab(self.tab_5, "")
         self.tab_6 = QWidget()
         self.tab_6.setObjectName(u"tab_6")
-        self.tabWidget_3.addTab(self.tab_6, "")
+        #self.tabWidget_3.addTab(self.tab_6, "")
 
-        self.gridLayout_2.addWidget(self.tabWidget_3, 0, 0, 1, 1)
+        #self.gridLayout_2.addWidget(self.tabWidget_3, 0, 0, 1, 1)
 
-        self.tabWidget.addTab(self.tab_2, "")
+        #elf.tabWidget.addTab(self.tab_2, "")
 
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
@@ -289,18 +401,27 @@ class Ui_Form(object):
     # setupUi
 
     def retranslateUi(self, Form):
+        """
+        Sets the text and titles of the UI elements to their respective translations.
+        This method is automatically generated and is used to support internationalization.
+        """
         Form.setWindowTitle(QCoreApplication.translate("Form", u"\u98df\u54c1\u7ba1\u7406\u7cfb\u7edf", None))
         self.groupBox_3.setTitle(QCoreApplication.translate("Form", u"\u624b\u52a8\u5bfc\u5165", None))
         self.groupBox.setTitle(QCoreApplication.translate("Form", u"\u5f55\u5165\u4fe1\u606f", None))
-        self.date.setText(QCoreApplication.translate("Form", u"\u65e5\u671f", None))
-        self.date_2.setText("")
-        self.foodType.setText(QCoreApplication.translate("Form", u"\u7c7b\u522b", None))
-        self.name.setText(QCoreApplication.translate("Form", u"\u54c1\u540d", None))
-        self.info.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None))
-        self.amount.setText(QCoreApplication.translate("Form", u"\u91d1\u989d", None))
-        self.Label.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None)) # Learning2: unicode 编码,详情见 unicode.md 
-        self.Label_2.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))
-        self.Label_3.setText(QCoreApplication.translate("Form", u"\u5355\u4f4d", None))
+        
+        # 输入框左侧Label名
+        self.line1Left.setText(QCoreApplication.translate("Form", u"\u65e5\u671f", None))
+        self.line1Right.setText("")
+        self.line2Left.setText(QCoreApplication.translate("Form", u"\u7c7b\u522b", None))
+        self.line3Left.setText(QCoreApplication.translate("Form", u"\u54c1\u540d", None))
+        self.line4Light.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None))
+        self.line5Left.setText(QCoreApplication.translate("Form", u"\u91d1\u989d", None))
+        self.line6Left.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None)) # Learning2: unicode 编码,详情见 unicode.md 
+        self.line7Left.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))
+        self.line8Left.setText(QCoreApplication.translate("Form", u"\u5355\u4f4d", None))
+        self.line9Left.setText(QCoreApplication.translate("Form", u"\u516c\u53f8", None)) 
+        self.line10Left.setText(QCoreApplication.translate("Form", "单名", None))
+
         self.pushButton_6.setText(QCoreApplication.translate("Form", u"\u4fee\u8ba2\u63d0\u4ea4", None))
         self.pushButton_7.setText(QCoreApplication.translate("Form", u"\u6682\u5b58\u8be5\u6761", None))
         self.pushButton_5.setText(QCoreApplication.translate("Form", u"\u63d0\u4ea4\u6570\u636e", None))
@@ -309,37 +430,71 @@ class Ui_Form(object):
         self.groupBox_5.setTitle(QCoreApplication.translate("Form", u"\u4fe1\u606f\u680f", None))
         self.label.setText(QCoreApplication.translate("Form", u"\u6b63\u5728\u7f16\u8f91\u7b2c", None))
         self.label_2.setText(QCoreApplication.translate("Form", u"\u9879", None))
-        self.label_3.setText(QCoreApplication.translate("Form", u"\u6682\u5b58", None))
+        self.label_3.setText(QCoreApplication.translate("Form", "已暂存", None))
+
+        self.spinBox.setValue(1)  # 重置SpinBox的值为1
+        self.storageNum.setText(QCoreApplication.translate("Form",str(TEMP_STORAGED_NUMBER_LISTS-1), None))
+        
         self.label_4.setText(QCoreApplication.translate("Form", u"\u9879", None))
         self.groupBox_4.setTitle(QCoreApplication.translate("Form", u"PDF\u5bfc\u5165", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("Form", u"\u5bfc\u5165\u9884\u89c8", None))
         self.pushButton_3.setText(QCoreApplication.translate("Form", u"\u8f7d\u5165\u6587\u4ef6", None))
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", u"Tab 1", None))
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), QCoreApplication.translate("Form", u"Tab 2", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"Tab 1", None))
-        self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_5), QCoreApplication.translate("Form", u"Tab 1", None))
-        self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_6), QCoreApplication.translate("Form", u"Tab 2", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("Form", u"Tab 2", None))
+        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", u"入库", None))
+        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), QCoreApplication.translate("Form", u"出库", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"显示别的什么东西", None))
+        #self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_5), QCoreApplication.translate("Form", u"Tab 1", None))
+        #self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_6), QCoreApplication.translate("Form", u"Tab 2", None))
+        #self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("Form", u"Tab 2", None))
+        
+        #自动填充日期
+        if get_ini_setting("Settings", "auto_fill_date") == "True":
+            self.show_current_date()
+
+        #绑定单价和数量文本框变化触发自动计算
+        self.line7Right.textChanged.connect(self.auto_calc_amount)#单价数量绑定到一块儿
+        self.line6Right.textChanged.connect(self.auto_calc_amount)#数量
     # retranslateUi
     
     
+
+
     """
     下面是一些按钮的槽函数，但是核心的功能实现在detail_ui_button_utils.py中
     """
 
 
+    def auto_calc_amount(self):
+        """
+        当单价与数量都有的时候自动计算金额
+        :param: self
+        :return: None
+        """
+        #这里的代码不会太多，多了我就像你一样放到detail_ui_button_utils.py
+        if get_ini_setting("Settings", "auto_calc_price") == "False":
+            return
+        try:
+            if (self.line7Right.text() == "" or self.line6Right.text() == ""):
+                self.line5Right.setText("")
+            unitPrice = round(float(self.line7Right.text()), 2)
+            amount = round(float(self.line6Right.text()), 2)
+            totalPrice = str(round(unitPrice * amount, 2))
+            self.line5Right.setText(totalPrice)
+        except Exception as e:
+            print(e)
+
+
     def show_current_date(self):
         """
-        显示当前日期
+        显示当前日期, 
         :param: self
         :return: None
         """
         # 获取当前日期
         current_date = get_current_date()
         # 设置QLineEdit的文本为当前日期
-        self.date_2.setText(current_date)
+        self.line1Right.setText(current_date)
         # 设置QLineEdit为可写
-        self.date_2.setReadOnly(False)
+        self.line1Right.setReadOnly(False)
     
     def temp_store_inputs(self):
         """
@@ -349,24 +504,21 @@ class Ui_Form(object):
         """
         # 定义输入框的字典
         input_fields = {
-            "日期": self.date_2,
-            "类别": self.foodType_2,
-            "品名": self.name_2,
-            "备注": self.info_2,
-            "金额": self.amount_2,
-            "数量": self.LineEdit,
-            "单价": self.LineEdit_2,
-            "单位": self.LineEdit_3,
+            "日期": self.line1Right,
+            "品名": self.line3Right,
+            "类别": self.line2Right,
+            "单位": self.line8Right,
+            "单价": self.line7Right,
+            "数量": self.line6Right,
+            "金额": self.line5Right,
+            "备注": self.line4Right,
+            "公司": self.line9Right,
+            "单名": self.line10Right,
         }
 
         # 调用 manual_temp_storage 函数获取输入框内容
-        manual_input_data = manual_temp_storage(self,input_fields) # 传入self参数
+        manual_temp_storage(self,input_fields) # 传入self参数
 
-        # 打印暂存数据（可以替换为其他逻辑，如保存到文件或数据库）
-        print("暂存数据:", manual_input_data)
-        # 调用 store_single_entry_to_excel 函数存储数据到Excel文件
-        store_single_entry_to_excel(manual_input_data, TEMP_SINGLE_STORAGE_EXCEL_PATH)
-        
 
     def check_manual_input_data(self): # Learning3:传参参数名与某个全局变量同名，造成全局变量值无法被获取
         """
@@ -383,11 +535,28 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
+        mian_workbook = MIAN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        commit_data_to_excel(self,mian_workbook)
+
+
+    def information_edition_rollback(self): # Learning6：自定义方法一定要放一个self参数,不妨报错
+        """
+        信息栏，编辑条目回滚
+        :param: self
+        :return: None
+        """
+        # 调用 temp_list_rollback 函数实现条目回滚
+        temp_list_rollback(self)
 
         
-
-        
-
+    def show_settings(self):
+        """
+        显示设置窗口
+        :param: self
+        :return: None
+        """
+        # 这里可以添加打开设置窗口的代码
+        show_setting_window(self)
         
 
 
@@ -401,12 +570,19 @@ if __name__ == "__main__":
     Form = QWidget()
     # 创建Ui_Form对象
     ui = Ui_Form()
+    key_filter = KeyEventFilter()
+    app.installEventFilter(key_filter)  # 安装到整个应用程序，而不是 Form
     # 调用setupUi方法设置UI界面
     ui.setupUi(Form)
     # 设置窗口标题
     Form.show()
+    # 设置关闭事件
+    Form.closeEvent = lambda event: (clear_temp_xls_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
     sys.exit(app.exec())
 
+# Summerize:
+# 1. 创建Widget时候的对于该widget的属性设置,包括名称,大小,布局，槽函数等放在一块
+# 2. 代码中的GUI组件代码尽可能取分组，且要放置批注以便后续定位代码-GUI组件的匹配
 
 
 # Learning:
@@ -416,7 +592,13 @@ if __name__ == "__main__":
 #    这个逻辑是基于事件驱动的哲学
 # 3. 对于函数内部来讲，如果产生形参名与实参名撞名的情况，则在函数内访问该变量，实际上实在访问
 #    传入的形参名，如果形参未传入则返回的是布尔值 False
-
+# 4. Qtcreator 生成的ui代码块默认张这样的格式：
+# 5.
+# 6. 
+# 7. 
+# 8.
 # TODO：
-# [ ] 2025.4.30 实现暂存栏暂存条目数的动态更新
-# [ ] 2025.4.30 实现信息栏正在编辑第几项的跳转逻辑
+# [x] 2025.4.30 实现暂存栏暂存条目数的动态更新
+# [x] 2025.4.30 实现窗口关闭时自动清空临时存储表格的数据
+# [x] 2025.4.30 实现spinBox控件值变化时，录入信息窗口更新相应项的条目信息
+# [x] 2025.4.30 实现信息栏正在编辑第几项的跳转逻辑

@@ -1,5 +1,4 @@
-```ImportError: cannot import name 'get_current_date' from partially initialized module 'src.gui.utils.ui_utils' (most likely due to a circular import) (c:\Users\Administrator\Documents\CODE\VsCode\python\Canteen_Statisic\src\gui\utils\ui_utils.py)```
-
+``ImportError: cannot import name 'get_current_date' from partially initialized module 'src.gui.utils.ui_utils' (most likely due to a circular import) (c:\Users\Administrator\Documents\CODE\VsCode\python\Canteen_Statisic\src\gui\utils\ui_utils.py)``
 
 ### GitHub Copilot
 

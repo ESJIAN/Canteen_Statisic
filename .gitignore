@@ -1,1 +1,8 @@
 src/gui/utils/__pycache__/ui_utils.cpython-310.pyc
+src/core/__pycache__/excel_handler.cpython-310.pyc
+src/core/__pycache__/excel_handler.cpython-310.pyc
+src/data/input/manual/temp_manual_input_data.xls
+.vscode/settings.json
+
+*.pyc
+
