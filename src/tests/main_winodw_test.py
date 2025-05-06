@@ -712,9 +712,12 @@ class Ui_Form(object):
         :return: None
         """
         if hasattr(self, "copied_paths") and self.copied_paths:
-            with multiprocessing.Pool(processes=min(4, len(self.copied_paths))) as pool:
-                pool.map(image_to_excel, self.copied_paths)
-
+            pool = multiprocessing.Pool(processes=min(4, len(self.copied_paths)))
+            # 调用pool的 apply_async 方法而不是 map 方法，防止主进程因为等待子线程的完成导致UI无响应
+            for path in self.copied_paths:
+                pool.apply_async(image_to_excel, args=(path,))
+            pool.close()
+            
     
         
     def check_photo_input_data(self): # Learning3:传参参数名与某个全局变量同名，造成全局变量值无法被获取
@@ -829,4 +832,6 @@ if __name__ == "__main__":
 # [x] 2025.4.30 实现信息栏正在编辑第几项的跳转逻辑
 # [x] 2025.5.3 实现加载图片功能
 #    [x] 2025.5.3. 实现点击滚动窗口中的文件条目实现以弹出的方式预览图片
-# [ ] 2025.5.4 实现导入图片区的暂存按钮功能
+# [x] 2025.5.4 实现导入图片区的暂存按钮功能
+# [x] 2025.5.6 解决多线程识别图片时候主线程未响应的问题
+# [ ] 2025.5.6 解决多线程识别图片功能对图片的覆写问题
