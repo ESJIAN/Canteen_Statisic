@@ -1,4 +1,5 @@
 import os
+import threading
 import cv2
 import pandas as pd
 from paddleocr import PaddleOCR
@@ -57,9 +58,7 @@ def image_to_excel(
 
     # 保存到Excel
     final_df.to_excel(excel_path, index=False)
-    print("全部表格已识别并追加导出到Excel文件。")
-
+    print(f"Notice: 线程 {threading.current_thread().name}（ID={threading.get_ident()}）已完成 {image_path} 的表格识别并追加导出到Excel文件。")
 # TODO:
 # [x] 2025.5.4:修复因为后续条目没有编号造成的错位现象
 # [x] 2025.5.5:实现追加写入表格逻辑
-#   [ ] 2025.5.6 解决多线程工作模式下造成的写入覆盖问题

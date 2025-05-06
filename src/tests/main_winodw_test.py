@@ -53,6 +53,8 @@ from src.core.excel_handler import clear_temp_xls_excel, clear_temp_xlxs_excel,s
 from src.core.image_handler import image_to_excel
 from src.gui.photo_preview_dialog import preview_image
 import multiprocessing
+import subprocess
+from PySide6.QtWidgets import QMessageBox
 
 TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 
@@ -720,15 +722,24 @@ class Ui_Form(object):
             
     
         
-    def check_photo_input_data(self): # Learning3:传参参数名与某个全局变量同名，造成全局变量值无法被获取
+    def check_photo_input_data(self): 
         """
-        弹窗且以EXCEL表格的形式检查照片OCR转录后的数据
-        :param: self,excel_path
+        自动打开照片OCR转录后的数据所在文件夹，并弹窗提示用户手动打开表格检查数据
+        :param: self
         :return: None
         """
-        output_path = "./src/data/input/manual/temp_img_input.xlsx"
-        show_check_window(self,output_path) 
-        
+        output_path = os.path.abspath("./src/data/input/manual/temp_img_input.xlsx")
+        folder_path = os.path.dirname(output_path)
+        # 弹窗提示，等待用户确认
+        reply = QMessageBox.information(None, "提示", "即将打开 temp_img_input.xlsx 文件所在文件夹，请手动校核数据", QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            # 打开文件夹
+            if sys.platform.startswith('win'):
+                os.startfile(folder_path)
+            elif sys.platform.startswith('darwin'):
+                subprocess.Popen(['open', folder_path])
+            else:
+                subprocess.Popen(['xdg-open', folder_path])
 
     def show_settings(self):
         """
