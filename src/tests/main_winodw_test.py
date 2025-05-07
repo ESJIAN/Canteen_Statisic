@@ -255,32 +255,32 @@ class Ui_Form(object):
         self.pushButton_6 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_6)
         self.pushButton_6.setObjectName(u"pushButton_6")
-        self.pushButton_6.setGeometry(QRect(220, 240, 75, 24))
+        self.pushButton_6.setGeometry(QRect(220, 190, 75, 24))
         self.pushButton_6.clicked.connect(self.clear_temp_manual_list)
         
         self.pushButton_7 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_7)
         self.pushButton_7.setObjectName(u"pushButton_7")
-        self.pushButton_7.setGeometry(QRect(220, 100, 75, 24))
+        self.pushButton_7.setGeometry(QRect(220, 70, 75, 24))
         self.pushButton_7.clicked.connect(self.temp_store_inputs)
 
         self.pushButton_5 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_5)
         self.pushButton_5.setObjectName(u"pushButton_5")
-        self.pushButton_5.setGeometry(QRect(220, 190, 75, 24))
+        self.pushButton_5.setGeometry(QRect(220, 150, 75, 24))
         self.pushButton_5.clicked.connect(self.commit_data)
 
 
         self.pushButton = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton)
         self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setGeometry(QRect(220, 40, 75, 24))
+        self.pushButton.setGeometry(QRect(220, 30, 75, 24))
         self.pushButton.clicked.connect(self.show_current_date)
 
         self.pushButton_2 = QPushButton(self.groupBox_3)               # Learing2：第一步创建按钮
         self.buttonGroup.addButton(self.pushButton_2)
         self.pushButton_2.setObjectName(u"pushButton_2")               # 设置按钮的ObjectName
-        self.pushButton_2.setGeometry(QRect(220, 140, 75, 24))         # 设置按钮的几何位置 
+        self.pushButton_2.setGeometry(QRect(220, 110, 75, 24))         # 设置按钮的几何位置 
         self.pushButton_2.clicked.connect(self.check_manual_input_data)# Learning3：第三步绑定按钮
         
         self.groupBox_5 = QGroupBox(self.groupBox_3)
