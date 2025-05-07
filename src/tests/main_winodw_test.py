@@ -65,6 +65,9 @@ TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 global TEMP_SINGLE_STORAGE_EXCEL_PATH  # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
 TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_manual_input_data.xls")
 
+PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_img_input.xlsx")
+PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2= os.path.join("src", "data", "input", "manual", "temp_img_input.xls")
+
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
@@ -406,7 +409,7 @@ class Ui_Form(object):
         self.pushButton_9 = QPushButton(self.groupBox_4)                 # 创建按钮，设置其父组件为grounpBox_4
         self.pushButton_9.setObjectName(u"pushButton_9")                 # 设置该按钮的ObjectName
         self.pushButton_9.setGeometry(QRect(210, 150, 75, 24))           # 设置按钮位置
-        self.pushButton_9.clicked.connect(self.commit_data)              # 绑定槽函数
+        self.pushButton_9.clicked.connect(self.commit_photo_data)              # 绑定槽函数
 
         # 导入清空按钮
         self.pushButton_10 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
@@ -513,17 +516,18 @@ class Ui_Form(object):
         self.line7Right.textChanged.connect(self.auto_calc_amount)#单价数量绑定到一块儿
         self.line6Right.textChanged.connect(self.auto_calc_amount)#数量
 
+        "开发测试数据，注释掉即取消开发模式"
         
-        self.line1Right.setText("2025-5-5")       # 日期
-        self.line2Right.setText("副食")           # 类别
-        self.line3Right.setText("土豆")           # 品名
-        self.line4Right.setText("备注")           # 备注
-        self.line5Right.setText("420.0")         # 金额
-        self.line6Right.setText("420")            # 数量
-        self.line7Right.setText("1")              # 单价
-        self.line8Right.setText("斤")             # 单位
-        self.line9Right.setText("嘉亿格")       # 公司
-        self.line10Right.setText("自购副食入库")  # 单名
+        # self.line1Right.setText("2025-5-5")       # 日期
+        # self.line2Right.setText("副食")           # 类别
+        # self.line3Right.setText("土豆")           # 品名
+        # self.line4Right.setText("备注")           # 备注
+        # self.line5Right.setText("420.0")         # 金额
+        # self.line6Right.setText("420")            # 数量
+        # self.line7Right.setText("1")              # 单价
+        # self.line8Right.setText("斤")             # 单位
+        # self.line9Right.setText("嘉亿格")       # 公司
+        # self.line10Right.setText("自购副食入库")  # 单名
 
 
     # retranslateUi
@@ -656,14 +660,13 @@ class Ui_Form(object):
             print("自动切换为出库")
             MODE = 1
             
-        # global TEMP_SINGLE_STORAGE_EXCEL_PATH
-        # TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_manual_input_data.xls")
+       
         
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
-        # commit_data_to_excel(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)
-        threading.Thread(target=commit_data_to_excel, args=(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
+        model = "manual"
+        threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
 
     def clear_temp_manual_list(self):
@@ -744,8 +747,7 @@ class Ui_Form(object):
                     layout.addWidget(btn)
                 layout.addStretch(1)  # 保证紧凑排列
             
-    def photo_input(self):
-        if 
+
     def temp_store_photo_inputs(self):
         """
         将图片导入到临时存储区
@@ -803,13 +805,12 @@ class Ui_Form(object):
             print("自动切换为出库")
             MODE = 1
         
-        #TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.abspath("./src/data/input/manual/temp_img_input.xlsx")
 
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
-        #commit_data_to_excel(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)
-        threading.Thread(target=commit_data_to_excel, args=(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
+        model = 'photo'
+        threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
     def show_settings(self):
         """

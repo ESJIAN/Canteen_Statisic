@@ -143,18 +143,36 @@ def clear_temp_xlxs_excel():
 
 
 
-def commit_data_to_storage_excel(self,main_excel_file_path,sub_main_food_excel_file_path,sub_auxiliary_food_excel_file_path):
+def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_excel_file_path,sub_auxiliary_food_excel_file_path):
     """
     提交暂存 Excel 数据到主表、副表 Excel 文件
     :param: temp_excel_file: 要存储的暂存表
     """
-    # 读取暂存表格
-    try:
-        # 读取暂存工作簿
-        read_temp_storage_workbook = xlrd.open_workbook(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
-    except Exception as e:
-        print(f"Error: 打开暂存表工作簿出错 {e}")
-        return
+    # 根据触发该函数的是手动还是照片输入模式去读取不同的表格
+    if modle == "manual":
+        # 读取手动模式暂存表格
+        try:
+            # 读取暂存工作簿
+            read_temp_storage_workbook = xlrd.open_workbook(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+        except Exception as e:
+            print(f"Error: 打开暂存表工作簿出错 {e}")
+            return
+        
+    elif modle == "photo":
+        # 读取照片模式暂存表格
+        try:
+            # 调用xlwings库将 xlsx 文件转换为 xls 格式（无头模式）
+            with xw.App(visible=False) as app:
+                book = app.books.open(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
+                book.save(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH.replace('.xlsx', '.xls'))
+                book.close()
+            # 读取暂存工作簿
+            read_temp_storage_workbook = xlrd.open_workbook(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2)
+        
+        except Exception as e:
+            print(f"Error: 打开暂存表工作簿出错 {e}")
+            return
+
     # 获取表头数据
     read_temp_storage_workbook_headers = read_temp_storage_workbook.sheet_by_index(0).row_values(0)  # 获取表头的第一行数据
     # 确保表头是一个扁平的列表

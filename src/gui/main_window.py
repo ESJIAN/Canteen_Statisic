@@ -10,6 +10,8 @@
 
 import sys
 import os
+import threading
+import shutil
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
@@ -17,12 +19,13 @@ from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
 from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
+    QPalette, QPixmap, QRadialGradient, QTransform, Qt)
 from PySide6.QtWidgets import (QApplication, QButtonGroup, QFormLayout, QGridLayout,
     QGroupBox, QHBoxLayout, QLabel, QLayout,
     QLineEdit, QPlainTextEdit, QPushButton, QScrollArea,
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
-    QWidget)
+    QWidget, QFileDialog, QDialog, QVBoxLayout)
+
 
 # 获取当前文件的绝对路径
 current_file_path = os.path.abspath(__file__) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
@@ -41,65 +44,82 @@ from src.gui.utils.detail_ui_button_utils import (
     close_setting_window,
     convert_place_holder_to_text,
     cancel_input_focus,
-    photo_import_utils
+    mode_not_right
 )
 # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
-from src.core.excel_handler import clear_temp_xls_excel, store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from configparser import ConfigParser
+from src.core.excel_handler import clear_temp_xls_excel, clear_temp_xlxs_excel, img_excel_after_process,store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+from src.core.image_handler import image_to_excel
+from src.gui.photo_preview_dialog import preview_image
+import multiprocessing
+import subprocess
+from PySide6.QtWidgets import QMessageBox
+
+
+
+
 
 TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 
-TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join(".", "temp_manual_input_data.xls") # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
+global TEMP_SINGLE_STORAGE_EXCEL_PATH  # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
+TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_manual_input_data.xls")
+
+PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_img_input.xlsx")
+PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2= os.path.join("src", "data", "input", "manual", "temp_img_input.xls")
+
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
-MIAN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表格路径
+MAIN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表格路径
 Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\子表\\"  # 子工作表格路径
+
+MAIN_WORK_EXCEL_PATH = os.path.join(project_root, MAIN_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+Sub_WORK_EXCEL_PATH = os.path.join(project_root, Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
+print(MAIN_WORK_EXCEL_PATH,Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 
 #这个0/1用来表示是入库出库
 MODE = 0
 
 SERIALS_NUMBER = 1
-DEBUG_SIGN = False
+DEBUG_SIGN = True
 
-class KeyEventFilter(QObject):
-    def eventFilter(self, watched, event):
-        if event.type() == QEvent.KeyPress:
-            key = event.key()
-            modifiers = event.modifiers()
-            if key == Qt.Key_Return:
-                #print("按下了 Enter")
-                pass
-            elif key == Qt.Key_Escape:
-                cancel_input_focus(Form) # Learning3：取消输入框焦点
-            elif key == Qt.Key_I and modifiers == Qt.ControlModifier:
-                #print("按下了 Ctrl+Shift+I")
-                convert_place_holder_to_text(Form)
-            elif key == Qt.Key_S and modifiers == Qt.ControlModifier:
-                if not hasattr(self, '_last_run') or (QTime.currentTime().msecsSinceStartOfDay() - self._last_run > 2000):
-                    self._last_run = QTime.currentTime().msecsSinceStartOfDay()
-                    ui.temp_store_inputs()  # 这儿只运行一次
-            elif key == Qt.Key_D and modifiers == Qt.ControlModifier:
-                ui.show_current_date()
-        return super().eventFilter(watched, event)
 
-    
+#这个用来测试,wjwcj 0507 12:54, 13:08测试完毕
+from PySide6.QtCore import QObject, Signal
 
-class ClickableImage(QLabel):
-    #chatgpt给的用于设置按钮的类
-    def __init__(self, image_path):
-        super().__init__()
-        self.setPixmap(QPixmap(image_path).scaled(QSize(200, 200), Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        self.setCursor(QCursor(Qt.PointingHandCursor))
-        self.setAlignment(Qt.AlignCenter)
+class Worker(QObject):
+    """
+    用于解决存表结束弹窗卡死的问题
+    下文的done可用于线程向主线程发送信号, excel_handler.py中commit_data_to_storage_excel函数存表结束时发送信号执行self.show_message()
+    此类实例化在Ui_Form类中, 通过self.worker = Worker()来实例化, 然后通过self.worker.done.connect(self.worker.show_message)来连接信号和槽函数
+    """
+    done = Signal()  # 定义一个不带参数的信号
 
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            print("图片被点击")
+    def show_message(self):
+        """
+        显示消息框
+        :param: self
+        :return: None
+        """
+        self.reply = QMessageBox.information(None, "提示", "数据写入完成,请再次打开主表和子表下的文件确认数据是否正确", QMessageBox.Ok | QMessageBox.Cancel)
+        if self.reply == QMessageBox.Ok:
+            # 自动打开项目目录下的 cache 文件夹以供确认文件
+            folder_path = os.path.join(os.path.abspath(os.path.join("src", "data", "storage")), 'cache')
+            if sys.platform.startswith('win'):
+                os.startfile(folder_path)
+            elif sys.platform.startswith('darwin'):
+                subprocess.Popen(['open', folder_path])
+            else:
+                subprocess.Popen(['xdg-open', folder_path])
+
 
 class Ui_Form(object):
 
     def setupUi(self, Form):
+        self.worker = Worker()
+        self.worker.done.connect(self.worker.show_message)  # 当信号发出时，执行 show_message()
+
         if not Form.objectName():
             Form.setObjectName(u"Form")
         Form.resize(779, 533)
@@ -122,6 +142,9 @@ class Ui_Form(object):
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.tabWidget_2 = QTabWidget(self.tab)
         self.tabWidget_2.setObjectName(u"tabWidget_2")
+
+        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)  # 设置顶部间距为 0 像素(第二个0)
+
         self.tab_3 = QWidget()
         self.tab_3.setObjectName(u"tab_3")
         self.groupBox_3 = QGroupBox(self.tab_3)
@@ -137,11 +160,11 @@ class Ui_Form(object):
 
         self.setting = ClickableImage("")  # Use the ClickableImage class for clickable functionality
         self.setting.setObjectName("settingLabel")
-        self.setting.setAlignment(Qt.AlignRight | Qt.AlignTop)  # Align to the top-right corner
+        self.setting.setAlignment(Qt.AlignRight | Qt.AlignTop)  # type: ignore # Align to the top-right corner
         self.setting.setFixedSize(30, 30)  # Increase the size of the label
         self.setting.setText("⚙️")  # Use a gear emoji as a placeholder
         self.setting.setStyleSheet("font-size: 25px;")  # Make the gear emoji larger
-        self.gridLayout_3.addWidget(self.setting, 0, 0, Qt.AlignRight | Qt.AlignTop)  # Add to the top-right corner of the main layout
+        self.gridLayout_3.addWidget(self.setting, 0, 0, Qt.AlignRight | Qt.AlignTop)  # type: ignore # Add to the top-right corner of the main layout
         self.setting.mousePressEvent = lambda event: self.show_settings()  # Connect the click event to a function
 
         # Learning4：标签-输入框组的开始
@@ -260,37 +283,42 @@ class Ui_Form(object):
 
         self.verticalLayout.addLayout(self.formLayout)
 
-        self.pushButton_6 = QPushButton(self.groupBox_3)
+        "提交数据按钮创建配置"
+        
         self.buttonGroup = QButtonGroup(Form)
         self.buttonGroup.setObjectName(u"buttonGroup")
+
+        self.pushButton_6 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_6)
         self.pushButton_6.setObjectName(u"pushButton_6")
-        self.pushButton_6.setGeometry(QRect(220, 240, 75, 24))
+        self.pushButton_6.setGeometry(QRect(220, 190, 75, 24))
+        self.pushButton_6.clicked.connect(self.clear_temp_manual_list)
+        
         self.pushButton_7 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_7)
         self.pushButton_7.setObjectName(u"pushButton_7")
-        self.pushButton_7.setGeometry(QRect(220, 100, 75, 24))
+        self.pushButton_7.setGeometry(QRect(220, 70, 75, 24))
         self.pushButton_7.clicked.connect(self.temp_store_inputs)
-
-        # 提交数据按钮创建配置
 
         self.pushButton_5 = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton_5)
         self.pushButton_5.setObjectName(u"pushButton_5")
-        self.pushButton_5.setGeometry(QRect(220, 190, 75, 24))
+        self.pushButton_5.setGeometry(QRect(220, 150, 75, 24))
         self.pushButton_5.clicked.connect(self.commit_data)
 
 
         self.pushButton = QPushButton(self.groupBox_3)
         self.buttonGroup.addButton(self.pushButton)
         self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setGeometry(QRect(220, 40, 75, 24))
+        self.pushButton.setGeometry(QRect(220, 30, 75, 24))
         self.pushButton.clicked.connect(self.show_current_date)
-        self.pushButton_2 = QPushButton(self.groupBox_3) # Learing2：第一步创建按钮
+
+        self.pushButton_2 = QPushButton(self.groupBox_3)               # Learing2：第一步创建按钮
         self.buttonGroup.addButton(self.pushButton_2)
-        self.pushButton_2.setObjectName(u"pushButton_2") # 设置按钮的ObjectName
-        self.pushButton_2.setGeometry(QRect(220, 140, 75, 24)) # 设置按钮的几何位置 
+        self.pushButton_2.setObjectName(u"pushButton_2")               # 设置按钮的ObjectName
+        self.pushButton_2.setGeometry(QRect(220, 110, 75, 24))         # 设置按钮的几何位置 
         self.pushButton_2.clicked.connect(self.check_manual_input_data)# Learning3：第三步绑定按钮
+        
         self.groupBox_5 = QGroupBox(self.groupBox_3)
         self.groupBox_5.setObjectName(u"groupBox_5")
         self.groupBox_5.setGeometry(QRect(10, 290, 291, 81))
@@ -358,33 +386,57 @@ class Ui_Form(object):
 
         self.verticalLayout_2.addWidget(self.scrollArea)
 
-        self.pushButton_3 = QPushButton(self.groupBox_4)
-        self.pushButton_3.setObjectName(u"pushButton_3")
-        self.pushButton_3.setGeometry(QRect(210, 30, 75, 24))
+        "输入界面右侧按钮创建"
+        # 导入文件按钮 
+        self.pushButton_3 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_3.setObjectName(u"pushButton_3")                # 设置该按钮的ObjectName
+        self.pushButton_3.setGeometry(QRect(210, 30, 75, 24))           # 设置按钮位置
+        self.pushButton_3.clicked.connect(self.photo_import)            # 绑定槽函数
+        
+        # 暂存该条按钮
+        self.pushButton_4 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_4.setObjectName(u"pushButton_4")                # 设置该按钮的ObjectName
+        self.pushButton_4.setGeometry(QRect(210, 70, 75, 24))           # 设置按钮位置
+        self.pushButton_4.clicked.connect(self.temp_store_photo_inputs) # 绑定槽函数
+        
+        # 输入检查按钮
+        self.pushButton_8 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_8.setObjectName(u"pushButton_8")                # 设置该按钮的ObjectName
+        self.pushButton_8.setGeometry(QRect(210, 110, 75, 24))          # 设置按钮位置
+        self.pushButton_8.clicked.connect(self.check_photo_input_data)  # 绑定槽函数
+
+        # 提交数据按钮
+        self.pushButton_9 = QPushButton(self.groupBox_4)                 # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_9.setObjectName(u"pushButton_9")                 # 设置该按钮的ObjectName
+        self.pushButton_9.setGeometry(QRect(210, 150, 75, 24))           # 设置按钮位置
+        self.pushButton_9.clicked.connect(self.commit_photo_data)              # 绑定槽函数
+
+        # 导入清空按钮
+        self.pushButton_10 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_10.setObjectName(u"pushButton_10")               # 设置该按钮的ObjectName
+        self.pushButton_10.setGeometry(QRect(210, 190, 75, 24))          # 设置按钮位置
+        self.pushButton_10.clicked.connect(self.clear_temp_photo_import_list)  # 绑定槽函数
+
+
         self.tabWidget_2.addTab(self.tab_3, "")
-        self.tab_4 = QWidget()
-        self.tab_4.setObjectName(u"tab_4")
-        self.tabWidget_2.addTab(self.tab_4, "")
+        #点击切换入库/出库(测试中0504 16:40)(一行)
+        self.tabWidget_2.tabBar().tabBarClicked.connect(self.on_tab_clicked)
+
+
+
+
+        
 
         self.horizontalLayout_2.addWidget(self.tabWidget_2)
 
         self.tabWidget.addTab(self.tab, "")
-        #self.tab_2 = QWidget()
-        #self.tab_2.setObjectName(u"tab_2")
-        #self.gridLayout_2 = QGridLayout(self.tab_2)
-        #self.gridLayout_2.setObjectName(u"gridLayout_2")
-        #self.tabWidget_3 = QTabWidget(self.tab_2)
-        #self.tabWidget_3.setObjectName(u"tabWidget_3")
+
         self.tab_5 = QWidget()
         self.tab_5.setObjectName(u"tab_5")
-        #self.tabWidget_3.addTab(self.tab_5, "")
+
         self.tab_6 = QWidget()
         self.tab_6.setObjectName(u"tab_6")
-        #self.tabWidget_3.addTab(self.tab_6, "")
 
-        #self.gridLayout_2.addWidget(self.tabWidget_3, 0, 0, 1, 1)
-
-        #elf.tabWidget.addTab(self.tab_2, "")
 
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
@@ -400,52 +452,62 @@ class Ui_Form(object):
         QMetaObject.connectSlotsByName(Form)
     # setupUi
 
+
     def retranslateUi(self, Form):
         """
         Sets the text and titles of the UI elements to their respective translations.
         This method is automatically generated and is used to support internationalization.
         """
-        Form.setWindowTitle(QCoreApplication.translate("Form", u"\u98df\u54c1\u7ba1\u7406\u7cfb\u7edf", None))
-        self.groupBox_3.setTitle(QCoreApplication.translate("Form", u"\u624b\u52a8\u5bfc\u5165", None))
-        self.groupBox.setTitle(QCoreApplication.translate("Form", u"\u5f55\u5165\u4fe1\u606f", None))
-        
-        # 输入框左侧Label名
-        self.line1Left.setText(QCoreApplication.translate("Form", u"\u65e5\u671f", None))
-        self.line1Right.setText("")
-        self.line2Left.setText(QCoreApplication.translate("Form", u"\u7c7b\u522b", None))
-        self.line3Left.setText(QCoreApplication.translate("Form", u"\u54c1\u540d", None))
-        self.line4Light.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None))
-        self.line5Left.setText(QCoreApplication.translate("Form", u"\u91d1\u989d", None))
-        self.line6Left.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None)) # Learning2: unicode 编码,详情见 unicode.md 
-        self.line7Left.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))
-        self.line8Left.setText(QCoreApplication.translate("Form", u"\u5355\u4f4d", None))
-        self.line9Left.setText(QCoreApplication.translate("Form", u"\u516c\u53f8", None)) 
-        self.line10Left.setText(QCoreApplication.translate("Form", "单名", None))
+        Form.setWindowTitle(QCoreApplication.translate("Form", "食品管理系统", None))         # 设置窗口标题：食品管理系统
+        self.groupBox_3.setTitle(QCoreApplication.translate("Form","手动导入", None))         # 设置组框标题：手动导入
+        self.groupBox.setTitle(QCoreApplication.translate("Form", "录入信息", None))          # 设置组框标题：录入信息
 
-        self.pushButton_6.setText(QCoreApplication.translate("Form", u"\u4fee\u8ba2\u63d0\u4ea4", None))
-        self.pushButton_7.setText(QCoreApplication.translate("Form", u"\u6682\u5b58\u8be5\u6761", None))
-        self.pushButton_5.setText(QCoreApplication.translate("Form", u"\u63d0\u4ea4\u6570\u636e", None))
-        self.pushButton.setText(QCoreApplication.translate("Form", u"\u83b7\u53d6\u65e5\u671f", None))
-        self.pushButton_2.setText(QCoreApplication.translate("Form", u"\u8f93\u5165\u68c0\u67e5", None))
-        self.groupBox_5.setTitle(QCoreApplication.translate("Form", u"\u4fe1\u606f\u680f", None))
-        self.label.setText(QCoreApplication.translate("Form", u"\u6b63\u5728\u7f16\u8f91\u7b2c", None))
-        self.label_2.setText(QCoreApplication.translate("Form", u"\u9879", None))
+        "输入框左侧Label名"
+        self.line1Left.setText(QCoreApplication.translate("Form", u"\u65e5\u671f", None))    # 设置左侧Label：日期
+        self.line1Right.setText("")  # 设置右侧输入框为空
+        self.line2Left.setText(QCoreApplication.translate("Form", u"\u7c7b\u522b", None))    # 设置左侧Label：类别
+        self.line3Left.setText(QCoreApplication.translate("Form", u"\u54c1\u540d", None))    # 设置左侧Label：品名
+        self.line4Light.setText(QCoreApplication.translate("Form", u"\u5907\u6ce8", None))   # 设置左侧Label：备注
+        self.line5Left.setText(QCoreApplication.translate("Form", u"\u91d1\u989d", None))    # 设置左侧Label：金额
+        self.line6Left.setText(QCoreApplication.translate("Form", u"\u6570\u91cf", None))    # 设置左侧Label：数量
+        self.line7Left.setText(QCoreApplication.translate("Form", u"\u5355\u4ef7", None))    # 设置左侧Label：单价
+        self.line8Left.setText(QCoreApplication.translate("Form", u"\u5355\u4f4d", None))    # 设置左侧Label：单位
+        self.line9Left.setText(QCoreApplication.translate("Form", u"\u516c\u53f8", None))    # 设置左侧Label：公司
+        self.line10Left.setText(QCoreApplication.translate("Form", "单名", None))             # 设置左侧Label：单名
+
+        "手动导入右侧按钮命名"
+        self.pushButton.setText(QCoreApplication.translate("Form", "获取日期", None))         # 设置按钮文本：获取日期
+        self.pushButton_7.setText(QCoreApplication.translate("Form", "暂存该条", None))       # 设置按钮文本：暂存该条
+        self.pushButton_2.setText(QCoreApplication.translate("Form", "输入校验", None))       # 设置按钮文本：输入校验
+        self.pushButton_5.setText(QCoreApplication.translate("Form", "提交数据", None))       # 设置按钮文本：提交数据
+        self.pushButton_6.setText(QCoreApplication.translate("Form", "条目清空", None))       # 设置按钮文本：条目清空
+        
+        
+        
+        self.groupBox_5.setTitle(QCoreApplication.translate("Form", u"信息栏", None))         # 设置组框标题：信息栏
+        self.label.setText(QCoreApplication.translate("Form", u"正在编辑第", None))           # 设置标签文本：正在编辑第
+        self.label_2.setText(QCoreApplication.translate("Form", u"项目", None))               # 设置标签文本：项目
+
         self.label_3.setText(QCoreApplication.translate("Form", "已暂存", None))
 
         self.spinBox.setValue(1)  # 重置SpinBox的值为1
         self.storageNum.setText(QCoreApplication.translate("Form",str(TEMP_STORAGED_NUMBER_LISTS-1), None))
         
         self.label_4.setText(QCoreApplication.translate("Form", u"\u9879", None))
-        self.groupBox_4.setTitle(QCoreApplication.translate("Form", u"PDF\u5bfc\u5165", None))
-        self.groupBox_2.setTitle(QCoreApplication.translate("Form", u"\u5bfc\u5165\u9884\u89c8", None))
-        self.pushButton_3.setText(QCoreApplication.translate("Form", u"\u8f7d\u5165\u6587\u4ef6", None))
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", u"入库", None))
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), QCoreApplication.translate("Form", u"出库", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"显示别的什么东西", None))
-        #self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_5), QCoreApplication.translate("Form", u"Tab 1", None))
-        #self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_6), QCoreApplication.translate("Form", u"Tab 2", None))
-        #self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("Form", u"Tab 2", None))
         
+        "照片导入右侧按钮命名"
+        self.groupBox_4.setTitle(QCoreApplication.translate("Form", "照片导入", None))
+        self.groupBox_2.setTitle(QCoreApplication.translate("Form", "照片列表", None))
+        
+        self.pushButton_3.setText(QCoreApplication.translate("Form", "导入文件", None))
+        self.pushButton_4.setText(QCoreApplication.translate("Form", "暂存该条", None))
+        self.pushButton_8.setText(QCoreApplication.translate("Form", "输入检查", None))
+        self.pushButton_9.setText(QCoreApplication.translate("Form", "提交数据", None))
+        self.pushButton_10.setText(QCoreApplication.translate("Form", "条目清空", None))
+
+        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", u"入库/切换", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"填写数据", None))
+
         #自动填充日期
         if get_ini_setting("Settings", "auto_fill_date") == "True":
             self.show_current_date()
@@ -453,15 +515,40 @@ class Ui_Form(object):
         #绑定单价和数量文本框变化触发自动计算
         self.line7Right.textChanged.connect(self.auto_calc_amount)#单价数量绑定到一块儿
         self.line6Right.textChanged.connect(self.auto_calc_amount)#数量
+
+        "开发测试数据，注释掉即取消开发模式"
+        
+        # self.line1Right.setText("2025-5-5")       # 日期
+        # self.line2Right.setText("副食")           # 类别
+        # self.line3Right.setText("土豆")           # 品名
+        # self.line4Right.setText("备注")           # 备注
+        # self.line5Right.setText("420.0")         # 金额
+        # self.line6Right.setText("420")            # 数量
+        # self.line7Right.setText("1")              # 单价
+        # self.line8Right.setText("斤")             # 单位
+        # self.line9Right.setText("嘉亿格")       # 公司
+        # self.line10Right.setText("自购副食入库")  # 单名
+
+
     # retranslateUi
-    
-    
-
-
     """
     下面是一些按钮的槽函数，但是核心的功能实现在detail_ui_button_utils.py中
     """
 
+
+    def on_tab_clicked(self, index):
+        """
+        当点击标签时，切换入库出库
+        :param: self, index
+        :return: None
+        """
+        global MODE
+        text = ["入库/切换", "出库/切换"]
+        t = text.index(self.tabWidget_2.tabText(index), 0)
+        MODE = 1 - t
+        print("当前模式", text[MODE], str(MODE))
+        newText = text[1 - t]
+        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", newText, None))
 
     def auto_calc_amount(self):
         """
@@ -503,18 +590,47 @@ class Ui_Form(object):
         :return: None
         """
         # 定义输入框的字典
+        """
         input_fields = {
-            "日期": self.line1Right,
-            "品名": self.line3Right,
-            "类别": self.line2Right,
-            "单位": self.line8Right,
-            "单价": self.line7Right,
-            "数量": self.line6Right,
-            "金额": self.line5Right,
-            "备注": self.line4Right,
-            "公司": self.line9Right,
-            "单名": self.line10Right,
+            "日期": f"2025-5-2",
+            "品名": "大米",
+            "类别": "主食",
+            "单位": f"单位{SERIALS_NUMBER}",
+            "单价": SERIALS_NUMBER+1,
+            "数量": SERIALS_NUMBER+2,
+            "金额": SERIALS_NUMBER+3,
+            "备注": f"备注{SERIALS_NUMBER}",
+            "公司": "聚鑫干调",
+            "单名": "扶贫主食入库",
         }
+        """
+        input_fields = {
+            "日期": self.line1Right.text(),
+            "品名": self.line3Right.text(),
+            "类别": self.line2Right.text(),
+            "单位": self.line8Right.text(),
+            "单价": self.line7Right.text(),
+            "数量": self.line6Right.text(),
+            "金额": self.line5Right.text(),
+            "备注": self.line4Right.text(),
+            "公司": self.line9Right.text(),
+            "单名": self.line10Right.text(),
+        }
+        """
+        input_fields = {
+            "日期": "2025-5-3",..
+            "品名": "大米",..
+            "类别": "主食",..
+            "单位": "kg",
+            "单价": "7",
+            "数量": "420",..
+            "金额": "2940.0",..
+            "备注": "备注",
+            "公司": "汉付科技",..
+            "单名": "扶贫主食出库",..
+        }
+        """
+        print("输入的", input_fields)
 
         # 调用 manual_temp_storage 函数获取输入框内容
         manual_temp_storage(self,input_fields) # 传入self参数
@@ -535,8 +651,32 @@ class Ui_Form(object):
         :param: self
         :return: None
         """
-        mian_workbook = MIAN_WORK_EXCEL_PATH + "2025.4.20.xls"
-        commit_data_to_excel(self,mian_workbook)
+        global MODE
+        modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
+        if "入库" in modeText and MODE == 1:
+            print("自动切换为入库")
+            MODE = 0
+        elif "出库" in modeText and MODE == 0:
+            print("自动切换为出库")
+            MODE = 1
+            
+       
+        
+        main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
+        sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
+        model = "manual"
+        threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
+        # Learning3：多线程提交数据，避免UI卡顿
+
+    def clear_temp_manual_list(self):
+        """
+        清空手动输入条目
+        :param: self
+        :return: None
+
+        """
+        clear_temp_xls_excel()
 
 
     def information_edition_rollback(self): # Learning6：自定义方法一定要放一个self参数,不妨报错
@@ -548,7 +688,130 @@ class Ui_Form(object):
         # 调用 temp_list_rollback 函数实现条目回滚
         temp_list_rollback(self)
 
+    def photo_import(self):
+        """
+        照片导入功能实现，支持批量导入和显示多张图片
+        :param: self
+        :return: None
+        """
+        # 1. 弹出文件选择器，支持多选图片
         
+        file_dialog = QFileDialog()
+        file_dialog.setFileMode(QFileDialog.ExistingFiles)
+        file_dialog.setNameFilter("Images (*.png *.jpg *.jpeg )")
+        
+        "检查选择的文件路径是否有效，加载文件到程序图片暂存文件夹，并且展示到界面上"
+        if file_dialog.exec():
+            # 获取选择的文件路径列表
+            file_paths = file_dialog.selectedFiles()
+            
+            "将文件复制到 ./src/data/input/img 目录下"
+            dest_dir = os.path.join(".", "src", "data", "input", "img")         # 目标目录
+            os.makedirs(dest_dir, exist_ok=True)                                # 如果目标目录不存在，则创建它
+            self.copied_paths = []                                              # 用于记录复制成功的文件路径列表，保存为属性
+            for src_path in file_paths:                                         # 遍历每个文件路径
+                dest_path = os.path.join(dest_dir, os.path.basename(src_path))  # 拼接目标路径已经文件名
+                try: # 文件操作使用try和if进行容错考虑
+                    shutil.copy2(src_path, dest_path)                           # 复制文件到目标路径
+                    self.copied_paths.append(dest_path)                              # 记录复制成功的文件路径
+                except Exception as e:
+                    print(f"Error: 复制文件失败: {src_path} -> {dest_path}, 错误: {e}")
+           
+            "遍历复制后的文件路径,在父组件的容器布局中调用QLabel显示"
+            if self.copied_paths:
+                if not self.scrollAreaWidgetContents.layout():                  # 如果容器布局不存在，则创建它
+                    self.scrollAreaWidgetContents.setLayout(QVBoxLayout())      # 为scrollAreaWidgetContents组件创建垂直布局
+                layout = self.scrollAreaWidgetContents.layout()                 # 获取容器布局对象
+                # 清空之前的内容，避免多次导入重复显示
+                while layout.count():                                           # 清空布局
+                    child = layout.takeAt(0)                                    # 从布局中移除子组件
+                    if child.widget():                                          # 如果子组件是widget，则删除它
+                        child.widget().deleteLater()                            # 删除子组件
+                # 添加新图片文件名按钮，垂直紧凑排列
+                for image_path in self.copied_paths:
+                    btn = QPushButton(os.path.basename(image_path), self.scrollAreaWidgetContents)
+                    btn.setFixedHeight(24)
+                    # 增加轮廓阴影效果
+                    btn.setStyleSheet("""
+                        margin:0; 
+                        padding:0; 
+                        text-align:left; 
+                        background:transparent; 
+                        border: 1px solid #888; 
+                        border-radius: 4px;
+                        color:blue; 
+                        text-decoration:underline;
+                    """)
+                    # 绑定点击事件，弹窗预览图片
+                    btn.clicked.connect(lambda checked, path=image_path: preview_image(self,path))
+                    layout.addWidget(btn)
+                layout.addStretch(1)  # 保证紧凑排列
+            
+
+    def temp_store_photo_inputs(self):
+        """
+        将图片导入到临时存储区
+        :param: self
+        :return: None
+        """
+        if hasattr(self, "copied_paths") and self.copied_paths:
+            def run_in_background(self):
+                pool = multiprocessing.Pool(processes=min(4, len(self.copied_paths)))
+                for path in self.copied_paths:
+                    pool.apply_async(image_to_excel, args=(path,))
+                pool.close()
+                pool.join()  # 等待线程完成
+                img_excel_after_process(self)
+
+        # 启动后台线程
+        threading.Thread(target=run_in_background(self), daemon=True).start()
+            
+        
+        
+    
+        
+    def check_photo_input_data(self): 
+        """
+        自动打开照片OCR转录后的数据所在文件夹，并弹窗提示用户手动打开表格检查数据
+        :param: self
+        :return: None
+        """
+        output_path = os.path.abspath("./src/data/input/manual/temp_img_input.xlsx")
+        folder_path = os.path.dirname(output_path)
+        # 弹窗提示，等待用户确认
+        reply = QMessageBox.information(None, "提示", "请打开 temp_img_input.xlsx ，手动校核并保存数据", QMessageBox.Ok | QMessageBox.Cancel)
+        if reply == QMessageBox.Ok:
+            # 打开文件夹
+            if sys.platform.startswith('win'):
+                os.startfile(folder_path)
+            elif sys.platform.startswith('darwin'):
+                subprocess.Popen(['open', folder_path])
+            else:
+                subprocess.Popen(['xdg-open', folder_path])
+        
+    def commit_photo_data(self):
+        """
+        提交照片转录处理好的excel数据到主表和子标
+        :param: self
+        :return: None
+        """
+        global MODE
+        #global TEMP_SINGLE_STORAGE_EXCEL_PATH
+        modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
+        if "入库" in modeText and MODE == 1:
+            print("自动切换为入库")
+            MODE = 0
+        elif "出库" in modeText and MODE == 0:
+            print("自动切换为出库")
+            MODE = 1
+        
+
+        main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
+        sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
+        model = 'photo'
+        threading.Thread(target=commit_data_to_excel, args=(self,model,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
+        # Learning3：多线程提交数据，避免UI卡顿
     def show_settings(self):
         """
         显示设置窗口
@@ -557,10 +820,57 @@ class Ui_Form(object):
         """
         # 这里可以添加打开设置窗口的代码
         show_setting_window(self)
+
+    def clear_temp_photo_import_list(self):
+        """
+        清空照片列表组件中的临时导入条目
+        :param: self
+        :return: None
+        """
+        # 一次性清空所有条目
+        layout = self.scrollAreaWidgetContents.layout()
+        if layout:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget:
+                    widget.deleteLater()
         
 
 
-        
+class KeyEventFilter(QObject):
+    def eventFilter(self, watched, event):
+        if event.type() == QEvent.KeyPress:
+            key = event.key()
+            modifiers = event.modifiers()
+            if key == Qt.Key_Return:
+                print("按下了 Enter")
+            elif key == Qt.Key_Escape:
+                cancel_input_focus(Form) # Learning3：取消输入框焦点
+            elif key == Qt.Key_I and modifiers == Qt.ControlModifier:
+                #print("按下了 Ctrl+Shift+I")
+                convert_place_holder_to_text(Form)
+            elif key == Qt.Key_S and modifiers == Qt.ControlModifier:
+                if not hasattr(self, '_last_run') or (QTime.currentTime().msecsSinceStartOfDay() - self._last_run > 2000):
+                    self._last_run = QTime.currentTime().msecsSinceStartOfDay()
+                    ui.temp_store_inputs()  # 这儿只运行一次
+            elif key == Qt.Key_D and modifiers == Qt.ControlModifier:
+                ui.show_current_date()
+        return super().eventFilter(watched, event)
+
+class ClickableImage(QLabel):
+    #chatgpt给的用于设置按钮的类
+    def __init__(self, image_path):
+        super().__init__()
+        self.setPixmap(QPixmap(image_path).scaled(QSize(200, 200), Qt.KeepAspectRatio, Qt.SmoothTransformation)) # type: ignore
+        self.setCursor(QCursor(Qt.PointingHandCursor)) # type: ignore
+        self.setAlignment(Qt.AlignCenter) # type: ignore
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton: # type: ignore
+            print("图片被点击")
+
+
 
 if __name__ == "__main__":
 
@@ -577,7 +887,7 @@ if __name__ == "__main__":
     # 设置窗口标题
     Form.show()
     # 设置关闭事件
-    Form.closeEvent = lambda event: (clear_temp_xls_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
+    Form.closeEvent = lambda event: (clear_temp_xls_excel(),clear_temp_xlxs_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
     sys.exit(app.exec())
 
 # Summerize:
@@ -602,3 +912,8 @@ if __name__ == "__main__":
 # [x] 2025.4.30 实现窗口关闭时自动清空临时存储表格的数据
 # [x] 2025.4.30 实现spinBox控件值变化时，录入信息窗口更新相应项的条目信息
 # [x] 2025.4.30 实现信息栏正在编辑第几项的跳转逻辑
+# [x] 2025.5.3 实现加载图片功能
+#    [x] 2025.5.3. 实现点击滚动窗口中的文件条目实现以弹出的方式预览图片
+# [x] 2025.5.4 实现导入图片区的暂存按钮功能
+# [x] 2025.5.6 解决多线程识别图片时候主线程未响应的问题
+# [ ] 2025.5.6 解决多线程识别图片功能对图片的覆写问题
