@@ -56,10 +56,14 @@ import multiprocessing
 import subprocess
 from PySide6.QtWidgets import QMessageBox
 
+
+
+
+
 TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 
 global TEMP_SINGLE_STORAGE_EXCEL_PATH  # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
-TEMP_SINGLE_STORAGE_EXCEL_PATH = ""
+TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_manual_input_data.xls")
 
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
@@ -78,12 +82,41 @@ SERIALS_NUMBER = 1
 DEBUG_SIGN = True
 
 
+#这个用来测试,wjwcj 0507 12:54, 13:08测试完毕
+from PySide6.QtCore import QObject, Signal
 
+class Worker(QObject):
+    """
+    用于解决存表结束弹窗卡死的问题
+    下文的done可用于线程向主线程发送信号, excel_handler.py中commit_data_to_storage_excel函数存表结束时发送信号执行self.show_message()
+    此类实例化在Ui_Form类中, 通过self.worker = Worker()来实例化, 然后通过self.worker.done.connect(self.worker.show_message)来连接信号和槽函数
+    """
+    done = Signal()  # 定义一个不带参数的信号
+
+    def show_message(self):
+        """
+        显示消息框
+        :param: self
+        :return: None
+        """
+        self.reply = QMessageBox.information(None, "提示", "数据写入完成,请再次打开主表和子表下的文件确认数据是否正确", QMessageBox.Ok | QMessageBox.Cancel)
+        if self.reply == QMessageBox.Ok:
+            # 自动打开项目目录下的 cache 文件夹以供确认文件
+            folder_path = os.path.join(os.path.abspath(os.path.join("src", "data", "storage")), 'cache')
+            if sys.platform.startswith('win'):
+                os.startfile(folder_path)
+            elif sys.platform.startswith('darwin'):
+                subprocess.Popen(['open', folder_path])
+            else:
+                subprocess.Popen(['xdg-open', folder_path])
 
 
 class Ui_Form(object):
 
     def setupUi(self, Form):
+        self.worker = Worker()
+        self.worker.done.connect(self.worker.show_message)  # 当信号发出时，执行 show_message()
+
         if not Form.objectName():
             Form.setObjectName(u"Form")
         Form.resize(779, 533)
@@ -623,8 +656,8 @@ class Ui_Form(object):
             print("自动切换为出库")
             MODE = 1
             
-        global TEMP_SINGLE_STORAGE_EXCEL_PATH
-        TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_manual_input_data.xls")
+        # global TEMP_SINGLE_STORAGE_EXCEL_PATH
+        # TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_manual_input_data.xls")
         
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
@@ -761,7 +794,7 @@ class Ui_Form(object):
         :return: None
         """
         global MODE
-        global TEMP_SINGLE_STORAGE_EXCEL_PATH
+        #global TEMP_SINGLE_STORAGE_EXCEL_PATH
         modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
         if "入库" in modeText and MODE == 1:
             print("自动切换为入库")
@@ -770,7 +803,7 @@ class Ui_Form(object):
             print("自动切换为出库")
             MODE = 1
         
-        TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.abspath("./src/data/input/manual/temp_img_input.xlsx")
+        #TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.abspath("./src/data/input/manual/temp_img_input.xlsx")
 
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"

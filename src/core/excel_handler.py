@@ -9,6 +9,8 @@
 from PySide6.QtWidgets import QMessageBox
 
 
+
+
 from openpyxl import load_workbook
 from datetime import datetime
 import os
@@ -34,6 +36,7 @@ def store_single_entry_to_temple_excel(data, file_path):
     :param file_path: 存储的文件路径
     :return: None
     """
+    print("这个路径是", file_path)
 
     if not isinstance(data, dict):
         raise ValueError("数据必须是字典类型")
@@ -165,16 +168,7 @@ def commit_data_to_storage_excel(self,main_excel_file_path,sub_main_food_excel_f
     
     # 调用弹窗显示保存完成信息，终端同步显示信息
     print(f"Notice: 文件读取保存工作完成")
-    self.reply = QMessageBox.information(None, "提示", "数据写入完成,请再次打开主表和子表下的文件确认数据是否正确", QMessageBox.Ok | QMessageBox.Cancel)
-    if self.reply == QMessageBox.Ok:
-        # 自动打开项目目录下的 cache 文件夹以供确认文件
-        folder_path = os.path.join(os.path.dirname(__file__), 'cache')
-        if sys.platform.startswith('win'):
-            os.startfile(folder_path)
-        elif sys.platform.startswith('darwin'):
-            subprocess.Popen(['open', folder_path])
-        else:
-            subprocess.Popen(['xdg-open', folder_path])
+    self.worker.done.emit()  # 比如写完数据后调用
 
 def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
