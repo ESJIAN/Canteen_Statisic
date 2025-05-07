@@ -58,7 +58,9 @@ from PySide6.QtWidgets import QMessageBox
 
 TOTAL_FIELD_NUMBER = 10 # 录入信息总条目数
 
-TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_manual_input_data.xls") # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
+global TEMP_SINGLE_STORAGE_EXCEL_PATH  # Learning9：路径读取常用相对路径读取方式，这与包的导入方式不同
+TEMP_SINGLE_STORAGE_EXCEL_PATH = ""
+
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
@@ -620,6 +622,9 @@ class Ui_Form(object):
         elif "出库" in modeText and MODE == 0:
             print("自动切换为出库")
             MODE = 1
+            
+        global TEMP_SINGLE_STORAGE_EXCEL_PATH
+        TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.join("src", "data", "input", "manual", "temp_manual_input_data.xls")
         
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
@@ -719,7 +724,7 @@ class Ui_Form(object):
                 for path in self.copied_paths:
                     pool.apply_async(image_to_excel, args=(path,))
                 pool.close()
-                pool.join()  # 在后台线程中等待，不会阻塞UI
+                pool.join()  # 等待线程完成
                 img_excel_after_process(self)
 
         # 启动后台线程
@@ -747,7 +752,31 @@ class Ui_Form(object):
                 subprocess.Popen(['open', folder_path])
             else:
                 subprocess.Popen(['xdg-open', folder_path])
+    
+    def commit_photo_data(self):
+        """
+        提交照片转录处理好的excel数据到主表和子标
+        :param: self
+        :return: None
+        """
+        global MODE
+        global TEMP_SINGLE_STORAGE_EXCEL_PATH
+        modeText = self.line10Right.text() if self.line10Right.text() != "" else self.line10Right.placeholderText()
+        if "入库" in modeText and MODE == 1:
+            print("自动切换为入库")
+            MODE = 0
+        elif "出库" in modeText and MODE == 0:
+            print("自动切换为出库")
+            MODE = 1
         
+        TEMP_SINGLE_STORAGE_EXCEL_PATH = os.path.abspath("./src/data/input/manual/temp_img_input.xlsx")
+
+        main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
+        sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
+        sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
+        #commit_data_to_excel(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)
+        threading.Thread(target=commit_data_to_excel, args=(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
+        # Learning3：多线程提交数据，避免UI卡顿
     def show_settings(self):
         """
         显示设置窗口

@@ -11,8 +11,9 @@ from PySide6.QtWidgets import QMessageBox
 
 from openpyxl import load_workbook
 from datetime import datetime
-
 import os
+import subprocess
+import sys
 import __main__
 import openpyxl
 import xlrd
@@ -139,7 +140,7 @@ def clear_temp_xlxs_excel():
 
 
 
-def commit_data_to_storage_excel(main_excel_file_path,sub_main_food_excel_file_path,sub_auxiliary_food_excel_file_path):
+def commit_data_to_storage_excel(self,main_excel_file_path,sub_main_food_excel_file_path,sub_auxiliary_food_excel_file_path):
     """
     提交暂存 Excel 数据到主表、副表 Excel 文件
     :param: temp_excel_file: 要存储的暂存表
@@ -158,13 +159,24 @@ def commit_data_to_storage_excel(main_excel_file_path,sub_main_food_excel_file_p
         raise ValueError("表头必须是字符串类型")
     
     # 在主表中更新信息
-    process_main_workbook(main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
-
-
+    update_main_table(self,main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
     # 在子表中更新信息
-    update_sub_tables(sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+    update_sub_tables(self,sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
+    
+    # 调用弹窗显示保存完成信息，终端同步显示信息
+    print(f"Notice: 文件读取保存工作完成")
+    self.reply = QMessageBox.information(None, "提示", "数据写入完成,请再次打开主表和子表下的文件确认数据是否正确", QMessageBox.Ok | QMessageBox.Cancel)
+    if self.reply == QMessageBox.Ok:
+        # 自动打开项目目录下的 cache 文件夹以供确认文件
+        folder_path = os.path.join(os.path.dirname(__file__), 'cache')
+        if sys.platform.startswith('win'):
+            os.startfile(folder_path)
+        elif sys.platform.startswith('darwin'):
+            subprocess.Popen(['open', folder_path])
+        else:
+            subprocess.Popen(['xdg-open', folder_path])
 
-def process_main_workbook(excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
+def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
     处理主工作簿，更新相关表格信息
     :param excel_file_path: 主工作簿路径
@@ -172,6 +184,7 @@ def process_main_workbook(excel_file_path, read_temp_storage_workbook, read_temp
     :param read_temp_storage_workbook_headers: 暂存表格表头
     :return: None
     """
+
     try:
         # 调用xlwings打开 excel 应用对象
         with xw.App(visible=False) as app:
@@ -245,10 +258,10 @@ def process_main_workbook(excel_file_path, read_temp_storage_workbook, read_temp
                 main_workbook.close()
                 # 关闭应用对象
                 app.quit() # Learning：切记关闭应用对象，否则会造成下次创建一个同名应用对象时候发生对象名重复的冲突造成进程卡死
-                print(f"Notice: 主工作表保存成功，文件路径: {excel_file_path}")
-            
+                
             except Exception as e:
                 print(f"Error: 保存主表时出错 {e}")
+                
     except Exception as e:
         print("打开主表时？出错？", e)
 
@@ -897,7 +910,7 @@ def export_update_main_food_detail_sheet(main_workbook, single_name, category_na
             print(f"Notice: 在 主副食品明细账 Sheet中的 {row_index_name} {column_index_name} 的现在金额数据为 {sheet.range(found_row_index, found_column_index).value}")
 
 
-def update_sub_tables(sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
+def update_sub_tables(self,sub_main_food_excel_file_path, sub_auxiliary_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers):
     """
     同时更新子表主食表和副食表
     :param sub_main_food_excel_file_path: 子表主食表路径
@@ -907,7 +920,7 @@ def update_sub_tables(sub_main_food_excel_file_path, sub_auxiliary_food_excel_fi
     :return: None
     """
     if not __main__.MODE:
-        print("入库更新子表")
+        print("Notice:入库更新子表")
         # 在子表主食表中更新信息
         update_sub_main_food_sheet(sub_main_food_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
         # 在子表副食表中更新信息
@@ -1470,6 +1483,8 @@ def img_excel_after_process(self,img_to_excel_file_path:str = os.path.abspath(".
         try:
             workbook = openpyxl.load_workbook(img_to_excel_file_path)
             sheet = workbook.active
+            # 将B2单元覆写为品名
+            sheet['B2'] = '品名'
             # 将第二行第一列单元覆写成日期文本
             sheet['A2'] = '日期'
             # 为G2列加上备注
@@ -1478,6 +1493,14 @@ def img_excel_after_process(self,img_to_excel_file_path:str = os.path.abspath(".
             sheet['H2'] = '公司'
             # 为I2列加上单名
             sheet['I2'] = '单名'
+            # 在B列前插入一列，并且在该列的第二行中插入'类别'
+            sheet.insert_cols(2)
+            sheet.cell(row=2, column=2).value = '类别'
+            # 删除第一行
+            sheet.delete_rows(1)
+            # 保存并关闭文件
+            workbook.save(img_to_excel_file_path)
+            workbook.close()
             print("Notice: 图片转录表格后处理完成")
 
         except Exception as e:

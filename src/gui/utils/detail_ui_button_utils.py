@@ -191,7 +191,7 @@ def commit_data_to_excel(self,workbook_path,sub_main_food_workbook,sub_auxiliary
     :param: self
     :return: None
     """
-    commit_data_to_storage_excel(workbook_path,sub_main_food_workbook,sub_auxiliary_food_workbook)
+    commit_data_to_storage_excel(self,workbook_path,sub_main_food_workbook,sub_auxiliary_food_workbook)
 
 
 def temp_list_rollback(self):
