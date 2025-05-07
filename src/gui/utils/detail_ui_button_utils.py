@@ -15,7 +15,7 @@ import pandas as pd
 import os
 
 from configparser import ConfigParser
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QLineEdit
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QLineEdit,QHBoxLayout
 
 from src.gui.error_window import TagNumShortage,IndexOutOfRange                 # Learning1：子模块的导入相对路径的起算点是主模块
 from src.gui.check_window import ExcelCheckWindow               # Learning2:顶级脚本设定绝对倒入配置后不需要在子模块中重设
@@ -276,30 +276,66 @@ def show_setting_window(self):
     self.settings_window.setWindowTitle("设置")
     self.settings_window.resize(400, 300)
 
-    layout = QVBoxLayout(self.settings_window)
-    #label = QLabel("设置")
-    #layout.addWidget(label)
+    # 将此布局与父widget关联
+    main_layout = QHBoxLayout(self.settings_window)
+    
+    # 创建子布局
+    sub_left_layout = QVBoxLayout()
+    sub_right_layout = QVBoxLayout()
+    
 
+    "设定手动导入管理选项"
     # Add toggle for "Auto-fill Date"
     self.auto_fill_date_toggle = QPushButton("自动填充日期")
     self.auto_fill_date_toggle.setCheckable(True)
     self.auto_fill_date_toggle.setChecked(get_ini_setting("Settings", "auto_fill_date", file_path='../../config/config.ini') == 'True')
     print(get_ini_setting("Settings", "auto_fill_date", file_path='../../config.ini') == 'True')
     self.auto_fill_date_toggle.clicked.connect(lambda: modify_ini_setting("Settings", "auto_fill_date", self.auto_fill_date_toggle.isChecked()))
-    layout.addWidget(self.auto_fill_date_toggle)
+    
+    sub_left_layout.addWidget(self.auto_fill_date_toggle)
 
     # Add toggle for "Auto-calculate Total Price"
     self.auto_calc_price_toggle = QPushButton("自动根据单价数量计算总价")
     self.auto_calc_price_toggle.setCheckable(True)
     self.auto_calc_price_toggle.setChecked(get_ini_setting("Settings", "auto_calc_price", file_path='../../config/config.ini') == 'True')
     self.auto_calc_price_toggle.clicked.connect(lambda: modify_ini_setting("Settings", "auto_calc_price", self.auto_calc_price_toggle.isChecked()))
-    layout.addWidget(self.auto_calc_price_toggle)
+    
+    sub_left_layout.addWidget(self.auto_calc_price_toggle)
 
     close_button = QPushButton("点击关闭")
     close_button.clicked.connect(self.settings_window.close)
-    layout.addWidget(close_button)
+    
+    sub_left_layout.addWidget(close_button)
 
-    self.settings_window.setLayout(layout)
+    "设定照片导入管理选项"
+    # Add toggle for "Auto-fill Date"
+    self.auto_fill_date_toggle = QPushButton("自动填充日期")
+    self.auto_fill_date_toggle.setCheckable(True)
+    self.auto_fill_date_toggle.setChecked(get_ini_setting("Settings", "auto_fill_date", file_path='../../config/config.ini') == 'True')
+    print(get_ini_setting("Settings", "auto_fill_date", file_path='../../config.ini') == 'True')
+    self.auto_fill_date_toggle.clicked.connect(lambda: modify_ini_setting("Settings", "auto_fill_date", self.auto_fill_date_toggle.isChecked()))
+    
+    sub_right_layout.addWidget(self.auto_fill_date_toggle)
+
+    # Add toggle for "Auto-calculate Total Price"
+    self.auto_calc_price_toggle = QPushButton("自动根据单价数量计算总价")
+    self.auto_calc_price_toggle.setCheckable(True)
+    self.auto_calc_price_toggle.setChecked(get_ini_setting("Settings", "auto_calc_price", file_path='../../config/config.ini') == 'True')
+    self.auto_calc_price_toggle.clicked.connect(lambda: modify_ini_setting("Settings", "auto_calc_price", self.auto_calc_price_toggle.isChecked()))
+    
+    sub_right_layout.addWidget(self.auto_calc_price_toggle)
+
+    close_button = QPushButton("点击关闭")
+    close_button.clicked.connect(self.settings_window.close)
+    
+    sub_right_layout.addWidget(close_button)
+
+    # 在主布局中设定子布局
+    main_layout.addChildLayout(sub_left_layout)
+    main_layout.addChildLayout(sub_right_layout)
+    # 设定主窗口的布局
+    self.settings_window.setLayout(main_layout)
+    # 显示窗口
     self.settings_window.show()
 
 def close_setting_window(self):

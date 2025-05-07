@@ -629,7 +629,7 @@ class Ui_Form(object):
         main_workbook = MAIN_WORK_EXCEL_PATH + "2025.4.20.xls"
         sub_main_food_workbook = Sub_WORK_EXCEL_PATH + "2025年主副食-三矿版主食.xls"
         sub_auxiliary_food_workbook = Sub_WORK_EXCEL_PATH + "2025年 主副食-三矿版副食.xls"
-        #commit_data_to_excel(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)
+        # commit_data_to_excel(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)
         threading.Thread(target=commit_data_to_excel, args=(self,main_workbook,sub_main_food_workbook,sub_auxiliary_food_workbook)).start() # Learning3：多线程提交数据，避免UI卡顿
         # Learning3：多线程提交数据，避免UI卡顿
 
@@ -711,7 +711,8 @@ class Ui_Form(object):
                     layout.addWidget(btn)
                 layout.addStretch(1)  # 保证紧凑排列
             
-    
+    def photo_input(self):
+        if 
     def temp_store_photo_inputs(self):
         """
         将图片导入到临时存储区
@@ -752,7 +753,7 @@ class Ui_Form(object):
                 subprocess.Popen(['open', folder_path])
             else:
                 subprocess.Popen(['xdg-open', folder_path])
-    
+        
     def commit_photo_data(self):
         """
         提交照片转录处理好的excel数据到主表和子标
