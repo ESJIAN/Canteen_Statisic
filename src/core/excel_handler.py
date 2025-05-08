@@ -101,20 +101,21 @@ def clear_temp_xls_excel():
     :return: None
     """
     try:
-        if os.path.exists(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH) :
-            # 打开现有文件
-            workbook = xlrd.open_workbook(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH, formatting_info=True)
-            writable_workbook = copy(workbook)
-            sheet = writable_workbook.get_sheet(0)
-            original_sheet = workbook.sheet_by_index(0)
+        for i in [__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH, __main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH]:
+            if os.path.exists(i) :
+                # 打开现有文件
+                workbook = xlrd.open_workbook(i, formatting_info=True)
+                writable_workbook = copy(workbook)
+                sheet = writable_workbook.get_sheet(0)
+                original_sheet = workbook.sheet_by_index(0)
 
-            # 清空内容，只保留表头
-            for row_index in range(1, original_sheet.nrows):
-                for col_index in range(original_sheet.ncols):
-                    sheet.write(row_index, col_index, "")  # 清空单元格内容
+                # 清空内容，只保留表头
+                for row_index in range(1, original_sheet.nrows):
+                    for col_index in range(original_sheet.ncols):
+                        sheet.write(row_index, col_index, "")  # 清空单元格内容
 
-            # 保存文件
-            writable_workbook.save(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+                # 保存文件
+                writable_workbook.save(i)
     except Exception as e:
         print(f"清空暂存表格时出错: {e}")
 
