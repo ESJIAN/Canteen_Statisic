@@ -12,15 +12,6 @@ import sys
 import os
 import threading
 import shutil
-import pandas # 显式导包，防止 pyinstall 打包的时候因为 from import 语法导致无法导入pyinstaller src\gui\main_window.py -w --name CanteenApp --add-data "src;src"
-import numpy
-import xlutils
-import xlrd
-import xlwt
-import xlwings
-import cv2
-import paddle
-
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
@@ -53,6 +44,7 @@ from src.gui.utils.detail_ui_button_utils import (
     close_setting_window,
     convert_place_holder_to_text,
     cancel_input_focus,
+    mode_not_right
 )
 # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.gui.utils.detail_ui_button_utils import show_check_window
@@ -79,8 +71,8 @@ PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH2= os.path.join("src", "data", "input", "man
 TEMP_STORAGED_NUMBER_LISTS = 1 # 初始编辑条目索引号
 TEMP_LIST_ROLLBACK_SIGNAL = True # Learning3：信号量，标记是否需要回滚
 
-MAIN_WORK_EXCEL_PATH = "src\\data\\storage\\cache\\主表\\" # 主工作表格路径
-Sub_WORK_EXCEL_PATH = "src\\data\\storage\\cache\\子表\\"  # 子工作表格路径
+MAIN_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\主表\\" # 主工作表格路径
+Sub_WORK_EXCEL_PATH = ".\\src\\data\\storage\\cache\\子表\\"  # 子工作表格路径
 
 MAIN_WORK_EXCEL_PATH = os.path.join(project_root, MAIN_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 Sub_WORK_EXCEL_PATH = os.path.join(project_root, Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
@@ -684,6 +676,9 @@ class Ui_Form(object):
         :return: None
 
         """
+        for i in range(1, 11):
+            eval(f"self.line{i}Right.setText(\"\")")
+        print("清空输入项目成功")
         clear_temp_xls_excel()
 
 
