@@ -102,6 +102,7 @@ def clear_temp_xls_excel():
     """
     try:
         for i in [__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH, __main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH]:
+            print("正在清空" + i)
             if os.path.exists(i) :
                 # 打开现有文件
                 workbook = xlrd.open_workbook(i, formatting_info=True)

@@ -838,6 +838,10 @@ class Ui_Form(object):
                 widget = item.widget()
                 if widget:
                     widget.deleteLater()
+        try:
+            clear_temp_xlxs_excel()
+        except Exception:
+            print("Error in clear_temp_photo_import_list: 清空图片的暂存表格出错")
         
 
 
