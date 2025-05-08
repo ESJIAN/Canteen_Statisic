@@ -93,9 +93,7 @@ def store_single_entry_to_temple_excel(data, file_path):
     except Exception as e: # Leraning2：不能操作Excel正在打开的表
         print(f"写入Excel文件时出错: {e}")
 
-def clear_temp_xls_excel(
-        
-):
+def clear_temp_xls_excel():
     """
     清空暂存的 Excel 表格内容
     

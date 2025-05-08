@@ -676,6 +676,9 @@ class Ui_Form(object):
         :return: None
 
         """
+        for i in range(1, 11):
+            eval(f"self.line{i}Right.setText(\"\")")
+        print("清空输入项目成功")
         clear_temp_xls_excel()
 
 
