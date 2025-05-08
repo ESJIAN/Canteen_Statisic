@@ -7,9 +7,9 @@
 
 
 
-import sys
+
 from datetime import datetime
-from email.mime import application
+
 from PySide6.QtWidgets import QApplication, QWidget
 import pandas as pd  
 import os

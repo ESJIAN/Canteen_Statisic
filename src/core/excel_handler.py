@@ -177,7 +177,7 @@ def commit_data_to_storage_excel(self,modle,main_excel_file_path,sub_main_food_e
     read_temp_storage_workbook_headers = read_temp_storage_workbook.sheet_by_index(0).row_values(0)  # 获取表头的第一行数据
     # 确保表头是一个扁平的列表
     if not all(isinstance(header, str) for header in read_temp_storage_workbook_headers):
-        raise ValueError("表头必须是字符串类型")
+        raise ValueError("Error: 暂存表头必须是字符串类型")
     
     # 在主表中更新信息
     update_main_table(self,main_excel_file_path, read_temp_storage_workbook, read_temp_storage_workbook_headers)
@@ -238,7 +238,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                 single_name = row_data[header_index["单名"]]
 
                 if not __main__.MODE:
-                    print("--------------------------------------------------入库")
+                    print("Notice: 正在入库")
                     # 更新指定公司sheet中的金额数据
                     # 这个好像只在入库的时候用到
                     update_company_sheet(main_workbook, company_name, amount)
@@ -251,7 +251,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                     # 更新主副食明细账中的条目信息
                     update_main_food_detail_sheet(main_workbook, single_name, category_name, amount)
                 else:
-                    print("--------------------------------------------------出库")
+                    print("Notice: 正在出库")
                     #搞定
                     #此函数不带"export"头，没打错
                     updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name)
@@ -275,7 +275,7 @@ def update_main_table(self,excel_file_path, read_temp_storage_workbook, read_tem
                 print(f"Error: 保存主表时出错 {e}")
                 
     except Exception as e:
-        print("打开主表时？出错？", e)
+        print(f"Error: 打开或处理该表 {excel_file_path} 出错,出错信息{e}")
 
 def update_company_sheet(main_workbook, company_name, amount):
     """
@@ -285,46 +285,52 @@ def update_company_sheet(main_workbook, company_name, amount):
     :param amount: 要增加的金额
     :return: None
     """
-    print("公司", company_name, amount)
+    print(f"Notice: 正在表中名为查询 {company_name} 公司的Sheet页")
+    
     # 查找对应的公司sheet
     try:
         sheet = main_workbook.sheets[company_name]
-    except KeyError:
-        print(f"未找到公司名为 {company_name} 的sheet")
-        return
+        
+        "更新阿拉伯数字的值"
+        # 获取当前值
+        current_value = sheet.range("D8").value  # 一般公司 Sheet 金额单元格是 D8（Excel索引从1开始）
+        if current_value is None or current_value == "":
+            current_value = 0
 
-    #更新阿拉伯数字的值
-    # 获取当前值
-    current_value = sheet.range("D8").value  # 假设目标单元格是 D8（Excel索引从1开始）
-    if current_value is None or current_value == "":
-        current_value = 0
-
-    # 读取金额
-    if amount is None or amount == "":
-        amount = 0
-    try:
-        amount = float(amount)
-    except Exception:
-        print(f"Error: 公司 Sheet 的传入金额数据格式错误，请检查输入金额是否正确")
-        amount = 0
-
-    # 计算新值
-    if isinstance(current_value, (int, float)):
-        new_value = current_value + amount
-    else:
+        # 读取金额
+        if amount is None or amount == "":
+            amount = 0
         try:
-            new_value = float(current_value) + amount
+            amount = float(amount)
         except Exception:
-            new_value = amount
-    new_value = round(new_value, 2)  # 保留两位小数
-    print("当前值", current_value, "新值", new_value)
-    # 写入新值
-    sheet.range("D8").value = new_value
-    #更新汉字大写数字的值
-    new_value_chinese = convert_number_to_chinese(new_value)  # 转换为中文大写金额
-    print("当前值", current_value, "新值", new_value_chinese)
-    sheet.range("L8").value = new_value_chinese
-    print(f"Notice: 在公司名为 {company_name} 的sheet中更新金额数据成功, 新值为 {new_value_chinese}")
+            print(f"Error: 公司 Sheet 的传入金额数据格式错误，请检查输入金额是否正确")
+            amount = 0
+
+        # 计算新值
+        if isinstance(current_value, (int, float)):
+            new_value = current_value + amount
+        else:
+            try:
+                new_value = float(current_value) + amount
+            except Exception:
+                new_value = amount
+        
+        new_value = round(new_value, 2)  # 保留两位小数
+        print("当前值", current_value, "新值", new_value)
+        
+        # 写入新值
+        sheet.range("D8").value = new_value
+
+        #更新汉字大写数字的值
+        new_value_chinese = convert_number_to_chinese(new_value)  # 转换为中文大写金额
+        print("Notice: 当前值", current_value, "新值", new_value_chinese)
+        
+        sheet.range("L8").value = new_value_chinese
+        print(f"Notice: 在公司名为 {company_name} 的sheet中更新金额数据成功, 新值为 {new_value_chinese}")
+
+
+    except Exception: # KeyError 会造成直接退出该函数步骤
+        print(f"Warning: 未找到公司名为 {company_name} 的sheet,已跳过公司Sheet写入")
 
 
 def updata_import_sheet(main_workbook, single_name, row_data, header_index, month, day, unit_name):
@@ -353,7 +359,7 @@ def updata_import_sheet(main_workbook, single_name, row_data, header_index, mont
             sheet = main_workbook.sheets[f"{single_name} "]
             print(f"Notice: 找到入/出库类型名为 `{single_name} ` 的sheet")
         else:
-            print(f"Error: 未找到入/出库类型名为 `{single_name}` 的sheet,可能存在空字符")
+            print(f"Error: 未找到入/出库类型名为 `{single_name}` 的sheet,可能存在空字符,已跳过写入")
             return
 
         
@@ -451,8 +457,8 @@ def updata_import_sheet(main_workbook, single_name, row_data, header_index, mont
         except Exception as e:
             print(f"Error: 写入主表时出错 {e}")
 
-    except KeyError:
-        print(f"未找到入/出库类型名为 {single_name} 的sheet")
+    except Exception:
+        print(f"Warning: 未找到入/出库类型名为 {single_name} 的sheet,已跳过将数据写入指定的入库类型sheet中")
 
 
 def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, price, amount, remark):
@@ -478,6 +484,7 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
     try:
         # 调用Excel VBA API 查找名为'名称'的 A列中是否存在该名称
         found = sheet.range("A:A").api.Find(product_name)
+
         if found is not None:
             # 如果存在，则更新该行的数据
             # 用遍历方式查找行索引，避免直接用 .row
@@ -499,9 +506,11 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
             except:
                 print(f"Error: quantity、price、amount的值必须为数值")
                 return
+            
             if isinstance(quantity, (int, float)) and isinstance(price, (int, float)) and isinstance(amount, (int, float)):
                 # 在F列更新数量信息，G列更新单价信息，H列更新金额信息
                 raw_value = []
+
                 for alpha in "FGH":
                     if sheet.range(f"{alpha}{row_index}").value is None:
                         raw_value.append(0)
@@ -509,6 +518,7 @@ def update_inventory_sheet(main_workbook, product_name, unit_name, quantity, pri
                         raw_value.append(float(sheet.range(f"{alpha}{row_index}").value))
                     else:
                         raw_value.append(int(sheet.range(f"{alpha}{row_index}").value))
+
                 sheet.range(f"F{row_index}").value = raw_value[0] + quantity
                 sheet.range(f"G{row_index}").value = raw_value[1] + price
                 sheet.range(f"H{row_index}").value = raw_value[2] + amount
@@ -1001,7 +1011,7 @@ def update_sub_main_food_sheet(_sub_main_food_excel_file_path, read_temp_storage
                         print(f"未找到合适的sheet匹配品名 {product_name}")
                         return
                 else:
-                    print(f"未找到品名为 {product_name} 的sheet")
+                    print(f"Warning: 未找到品名为 {product_name} 的sheet")
                     return
 
                 #暂时感觉这个for循环没什么问题
@@ -1140,7 +1150,7 @@ def export_update_sub_main_food_sheet(_sub_main_food_excel_file_path, read_temp_
                         print(f"未找到合适的sheet匹配品名 {product_name}")
                         return
                 else:
-                    print(f"未找到品名为 {product_name} 的sheet")
+                    print(f"Warning: 未找到品名为 {product_name} 的sheet")
                     return
 
                 #暂时感觉这个for循环没什么问题
@@ -1272,10 +1282,10 @@ def update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_tem
                     if sheet_name:
                         sheet = main_workbook.sheets[sheet_name]
                     else:
-                        print(f"未找到合适的sheet匹配品名 {product_name}")
+                        print(f"Warning: 未找到合适的sheet匹配品名 {product_name}")
                         return
                 else:
-                    print(f"未找到品名为 {product_name} 的sheet")
+                    print(f"Warning: 未找到品名为 {product_name} 的sheet")
                     return
                 print(f"Notice: 找到副食表sheet {sheet.name}")
                 #暂时感觉这个for循环没什么问题
@@ -1286,10 +1296,10 @@ def update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, read_tem
 
                         # 向前检查是否是“过次页 + 空行 + 空行”的模式
                         if is_previous_rows_after_page_break(sheet, sub_row_index + 1):
-                            print(f"忽略第 {sub_row_index + 1} 行（前面是‘过次页’+连续空行）")
+                            print(f"Warning: 忽略第 {sub_row_index + 1} 行（前面是‘过次页’+连续空行）")
                             continue
 
-                        print("这里开始执行", str(sub_row_index + 1))   
+                        print("Notice: 这里开始执行", str(sub_row_index + 1))   
 
                         # 检查前一行是否符合某些条件（仅包含空格或单个标点符号）
                         if sub_row_index > 0 and all(
@@ -1408,10 +1418,10 @@ def export_update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, r
                     if sheet_name:
                         sheet = main_workbook.sheets[sheet_name]
                     else:
-                        print(f"未找到合适的sheet匹配品名 {product_name}")
+                        print(f"Warning: 未找到合适的sheet匹配品名 {product_name}")
                         return
                 else:
-                    print(f"未找到品名为 {product_name} 的sheet")
+                    print(f"Warning: 未找到品名为 {product_name} 的sheet")
                     return
                 
                 #暂时感觉这个for循环没什么问题
@@ -1422,10 +1432,10 @@ def export_update_sub_auxiliary_food_sheet(sub_auxiliary_food_excel_file_path, r
 
                         # 向前检查是否是“过次页 + 空行 + 空行”的模式
                         if is_previous_rows_after_page_break(sheet, sub_row_index + 1):
-                            print(f"忽略第 {sub_row_index + 1} 行（前面是‘过次页’+连续空行）")
+                            print(f"Warning: 忽略第 {sub_row_index + 1} 行（前面是‘过次页’+连续空行）")
                             continue
 
-                        print("这里开始执行", str(sub_row_index + 1))   
+                        print("Notice: 这里开始执行", str(sub_row_index + 1))   
 
                         # 检查前一行是否符合某些条件（仅包含空格或单个标点符号）
                         if sub_row_index > 0 and all(

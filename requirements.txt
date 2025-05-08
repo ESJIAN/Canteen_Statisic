@@ -1,1 +1,23 @@
 # python == 3.10
+
+# 第三方库
+PySide6
+pandas
+numpy
+xlrd
+xlwt
+xlutils
+xlwings
+torch==2.2.0 
+torchvision==0.17.0 
+torchaudio==2.2.0
+paddlepaddle==2.6.0
+scipy
+openpyxl
+matplotlib
+
+numpy==1.24.4 
+opencv-python==4.6.0.66 
+opencv-contrib-python==4.6.0.66
+paddleocr==2.7.0
+
