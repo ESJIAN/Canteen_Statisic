@@ -530,8 +530,8 @@ class Ui_Form(object):
         "开发测试数据，注释掉即取消开发模式"
         
         self.line1Right.setText("2025-5-5")       # 日期
-        self.line2Right.setText("主食")           # 类别
-        self.line3Right.setText("大米")           # 品名
+        self.line2Right.setText("副食")           # 类别
+        self.line3Right.setText("土豆")           # 品名
         self.line4Right.setText("备注")           # 备注
         self.line5Right.setText("420.0")         # 金额
         self.line6Right.setText("420")            # 数量
