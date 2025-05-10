@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFormLayout, QGridLay
     QGroupBox, QHBoxLayout, QLabel, QLayout,
     QLineEdit, QPlainTextEdit, QPushButton, QScrollArea,
     QSizePolicy, QSpinBox, QTabWidget, QVBoxLayout,
-    QWidget, QFileDialog, QDialog, QVBoxLayout)
+    QWidget, QFileDialog, QDialog, QVBoxLayout, QCheckBox)
 
 
 # 获取当前文件的绝对路径
@@ -80,6 +80,8 @@ print(MAIN_WORK_EXCEL_PATH,Sub_WORK_EXCEL_PATH) # Fixed1:将项目包以绝对�
 
 #这个0/1用来表示是入库出库
 MODE = 0
+ADD_DAY_SUMMARY = False
+ADD_MONTH_SUMMARY = False
 
 SERIALS_NUMBER = 1
 DEBUG_SIGN = True
@@ -331,7 +333,16 @@ class Ui_Form(object):
         self.label = QLabel(self.widget_5)
         self.label.setObjectName(u"label")
 
-
+        # 创建复选框
+        self.checkbox1 = QCheckBox("添加日计")
+        self.checkbox2 = QCheckBox("添加月计")
+        self.checkbox1.toggled.connect(self.on_checkbox_toggled)
+        self.checkbox2.toggled.connect(self.on_checkbox_toggled)
+        # 添加复选框到左下角布局，排成同一行
+        checkbox_layout = QHBoxLayout()
+        checkbox_layout.addWidget(self.checkbox1)
+        checkbox_layout.addWidget(self.checkbox2)
+        self.gridLayout_3.addLayout(checkbox_layout, 1, 0, Qt.AlignLeft | Qt.AlignBottom)  # 左下角对齐
 
         self.horizontalLayout.addWidget(self.label)
 
@@ -518,16 +529,17 @@ class Ui_Form(object):
 
         "开发测试数据，注释掉即取消开发模式"
         
-        # self.line1Right.setText("2025-5-5")       # 日期
-        # self.line2Right.setText("副食")           # 类别
-        # self.line3Right.setText("土豆")           # 品名
-        # self.line4Right.setText("备注")           # 备注
-        # self.line5Right.setText("420.0")         # 金额
-        # self.line6Right.setText("420")            # 数量
-        # self.line7Right.setText("1")              # 单价
-        # self.line8Right.setText("斤")             # 单位
-        # self.line9Right.setText("嘉亿格")       # 公司
-        # self.line10Right.setText("自购副食入库")  # 单名
+        self.line1Right.setText("2025-5-5")       # 日期
+        self.line2Right.setText("主食")           # 类别
+        self.line3Right.setText("大米")           # 品名
+        self.line4Right.setText("备注")           # 备注
+        self.line5Right.setText("420.0")         # 金额
+        self.line6Right.setText("420")            # 数量
+        self.line7Right.setText("1")              # 单价
+        self.line8Right.setText("斤")             # 单位
+        self.line9Right.setText("嘉亿格")       # 公司
+        self.line10Right.setText("自购主食入库等")  # 单名
+
 
 
     # retranslateUi
@@ -535,6 +547,16 @@ class Ui_Form(object):
     下面是一些按钮的槽函数，但是核心的功能实现在detail_ui_button_utils.py中
     """
 
+    def on_checkbox_toggled(self):
+        """
+        监听复选框修改其对应的全局变量
+        """
+        global ADD_DAY_SUMMARY
+        global ADD_MONTH_SUMMARY
+        #添加日计
+        ADD_DAY_SUMMARY = self.checkbox1.isChecked()
+        #添加月计
+        ADD_MONTH_SUMMARY = self.checkbox2.isChecked()
 
     def on_tab_clicked(self, index):
         """
@@ -590,20 +612,7 @@ class Ui_Form(object):
         :return: None
         """
         # 定义输入框的字典
-        """
-        input_fields = {
-            "日期": f"2025-5-2",
-            "品名": "大米",
-            "类别": "主食",
-            "单位": f"单位{SERIALS_NUMBER}",
-            "单价": SERIALS_NUMBER+1,
-            "数量": SERIALS_NUMBER+2,
-            "金额": SERIALS_NUMBER+3,
-            "备注": f"备注{SERIALS_NUMBER}",
-            "公司": "聚鑫干调",
-            "单名": "扶贫主食入库",
-        }
-        """
+
         input_fields = {
             "日期": self.line1Right.text(),
             "品名": self.line3Right.text(),
@@ -616,21 +625,7 @@ class Ui_Form(object):
             "公司": self.line9Right.text(),
             "单名": self.line10Right.text(),
         }
-        """
-        input_fields = {
-            "日期": "2025-5-3",..
-            "品名": "大米",..
-            "类别": "主食",..
-            "单位": "kg",
-            "单价": "7",
-            "数量": "420",..
-            "金额": "2940.0",..
-            "备注": "备注",
-            "公司": "汉付科技",..
-            "单名": "扶贫主食出库",..
-        }
-        """
-        print("输入的", input_fields)
+        #print("输入的", input_fields)
 
         # 调用 manual_temp_storage 函数获取输入框内容
         manual_temp_storage(self,input_fields) # 传入self参数

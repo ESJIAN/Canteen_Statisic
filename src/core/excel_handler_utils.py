@@ -7,7 +7,9 @@
 
 import time
 import re
-
+from datetime import datetime
+import xlwings as xw
+import __main__
 
 KEYWORDS = ["过次页", "月计", "累计"]
 
@@ -70,5 +72,213 @@ def convert_number_to_chinese(num):
         int_tmp = int_tmp.rstrip('零').replace('零零零', '零').replace('零零', '零')
         result = ''+int_tmp+'圆' 
     return result
+
+def find_matching_month_rows(main_excel_file_path, sheet_name, columns = [2, 3]):
+    """
+    在主表中查找 B 列中等于本月月数的行数。
+    :param columns 月和日所在的列数, 主表为2、3列, 子表为1、2列
+    :param main_excel_file_path: 主表路径
+    :param sheet_name: 工作表名称
+    :return: 本月行数的列表
+    """
+    try:
+        # 获取当前月份
+        today = datetime.now()
+        current_month = today.month
+
+        # 打开 Excel 文件
+        with xw.App(visible=False) as app:
+            workbook = app.books.open(main_excel_file_path)
+            sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
+
+            # 查找 B 列中等于本月月数的行数
+            month_rows = [
+                row_index + 1
+                for row_index in range(sheet.used_range.rows.count)
+                if sheet.range((row_index + 1, 2)).value is not None and str(sheet.range((row_index + 1, columns[0])).value).lstrip("0") == str(current_month).lstrip("0")
+            ]
+
+            # 打印结果
+            print(f"B 列中等于本月月数的行数: {month_rows}")
+
+            # 关闭工作簿
+            workbook.close()
+            return month_rows
+
+    except Exception as e:
+        print(f"Error: 查找行数时出错: {e}")
+        return []
+        
+def find_matching_today_rows(main_excel_file_path, sheet_name, columns = [2, 3]):
+    """
+    在主表中查找 C 列中等于今天日数的行数和 B 列中等于本月月数的行数，
+    并对比两个列表中相同的行数。
+    :param columns 月和日所在的列数, 主表为2、3列, 子表为1、2列
+    :param main_excel_file_path: 主表路径
+    :return: 相同行数的列表
+    """
+    try:
+        # 获取当前日期和月份
+        today = datetime.now()
+        current_day = today.day
+        current_month = today.month
+
+        # 打开 Excel 文件
+        with xw.App(visible=False) as app:
+            workbook = app.books.open(main_excel_file_path)
+            sheet = workbook.sheets[sheet_name]  # 使用指定的工作表名称
+
+            # for row_index in range(sheet.used_range.rows.count):
+            #     print(sheet.range((row_index + 1, 3)).value, current_day)
+
+            # 查找 C 列中等于今天日数的行数
+            day_rows = [
+                row_index + 1
+                for row_index in range(sheet.used_range.rows.count)
+                if sheet.range((row_index + 1, 2)).value != None and str(sheet.range((row_index + 1, columns[1])).value).lstrip("0") == str(current_day).lstrip("0")
+            ]
+
+            # 查找 B 列中等于本月月数的行数
+            month_rows = [
+                row_index + 1
+                for row_index in range(sheet.used_range.rows.count)
+                if sheet.range((row_index + 1, 2)).value != None and str(sheet.range((row_index + 1, columns[0])).value).lstrip("0") == str(current_month).lstrip("0")
+            ]
+
+            # 找到两个列表中相同的行数
+            matching_rows = list(set(day_rows) & set(month_rows))
+
+            # 打印结果
+            # print(f"C 列中等于今天日数的行数: {day_rows}")
+            # print(f"B 列中等于本月月数的行数: {month_rows}")
+            print(f"相同的行数: {matching_rows}")
+
+            # 关闭工作簿
+            workbook.close()
+            return matching_rows
+
+    except Exception as e:
+        print(f"Error: 查找行数时出错: {e}")
+        return []
+
+
+def find_the_first_empty_line_in_main_excel(sheet):
+    """
+    在主表中找到第一空行
+    :param 已经打开的sheet
+    :return int行数
+    """
+    # 查找第一行空行，记录下空行行标（从表格的第二行开始）
+    for row_index in range(0, sheet.used_range.rows.count):
+        if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
+            # 检查前一行是否包含“领导”二字
+            if row_index > 0:
+                previous_row_values = [
+                str(sheet.range((row_index, col)).value).strip()
+                for col in range(1, sheet.used_range.columns.count + 1)
+                if sheet.range((row_index, col)).value is not None
+                ]
+                if any("领导" in value for value in previous_row_values):
+                    print(f"Notice: 第 {row_index} 行包含“领导”二字，继续查找下一行")
+                    continue
+            # 检查当前列的前几行是否包含“序号”二字
+            column_values = [
+                str(sheet.range((row, 1)).value).strip()
+                for row in range(1, row_index + 1)
+                if sheet.range((row, 1)).value is not None
+            ]
+            if not any("序号" in value for value in column_values):
+                print(f"Notice: 前 {row_index} 行未找到“序号”二字，继续查找下一行")
+                continue
+            break
+    return row_index
+
+def find_the_first_empty_line_in_sub_main_excel(sheet):
+    """
+    在子主食表中找到第一空行
+    :param 已经打开的sheet
+    :return int行数
+    """
+    # 查找第一行空行，记录下空行行标（从表格的第二行开始）
+    for row_index in range(0, sheet.used_range.rows.count):
+        if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
+            # 检查前一行是否包含“领导”二字
+            if row_index > 0:
+                previous_row_values = [
+                str(sheet.range((row_index, col)).value).strip()
+                for col in range(1, sheet.used_range.columns.count + 1)
+                if sheet.range((row_index, col)).value is not None
+                ]
+                if any("领导" in value for value in previous_row_values):
+                    print(f"Notice: 第 {row_index} 行包含“领导”二字，继续查找下一行")
+                    continue
+            # 检查当前列的前几行是否包含“序号”二字
+            column_values = [
+                str(sheet.range((row, 1)).value).strip()
+                for row in range(1, row_index + 1)
+                if sheet.range((row, 1)).value is not None
+            ]
+            if not any("序号" in value for value in column_values):
+                print(f"Notice: 前 {row_index} 行未找到“序号”二字，继续查找下一行")
+                continue
+            break
+    return row_index
+
+
+def get_all_sheets_todo_for_main_table():
+    sheets_to_add = set()
+
+    try:
+        with xw.App(visible=False) as app:
+            manual_workbook = app.books.open(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+            manual_sheet = manual_workbook.sheets[0]
+            values = manual_sheet.range("J2:J" + str(manual_sheet.used_range.rows.count)).value
+            if not isinstance(values, list):
+                values = [values]
+            sheets_to_add.update(filter(None, values))
+    except Exception as e:
+        print(f"Error: 无法读取手动模式: {e}")
+
+    try:
+        with xw.App(visible=False) as app:
+            photo_workbook = app.books.open(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
+            photo_sheet = photo_workbook.sheets[0]
+            values = photo_sheet.range("J2:J" + str(photo_sheet.used_range.rows.count)).value
+            if not isinstance(values, list):
+                values = [values]
+            sheets_to_add.update(filter(None, values))
+    except Exception as e:
+        print(f"Error: 无法读取图片模式: {e}")
+
+    return list(sheets_to_add)
+
+
+def get_all_sheets_todo_for_sub_table():
+    sheets_to_add = set()
+    try:
+        with xw.App(visible=False) as app:
+            manual_workbook = app.books.open(__main__.TEMP_SINGLE_STORAGE_EXCEL_PATH)
+            manual_sheet = manual_workbook.sheets[0]
+            values = manual_sheet.range("B2:B" + str(manual_sheet.used_range.rows.count)).value
+            if not isinstance(values, list):
+                values = [values]
+            sheets_to_add.update(filter(None, values))
+
+    except Exception as e:
+        print(f"Error: 读取手动模式临时表失败: {e}")
+
+    try:
+        with xw.App(visible=False) as app:
+            photo_workbook = app.books.open(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
+            photo_sheet = photo_workbook.sheets[0]
+            values = photo_sheet.range("J2:J" + str(photo_sheet.used_range.rows.count)).value  # ← J列
+            if not isinstance(values, list):
+                values = [values]
+            sheets_to_add.update(filter(None, values))
+
+    except Exception as e:
+        print(f"Error: 读取图片模式临时表失败: {e}")
+
+    return list(sheets_to_add)
 
 
