@@ -117,8 +117,20 @@ class Worker(QObject):
 class Ui_Form(object):
 
     def setupUi(self, Form):
+        # =========================
+        # 内部类分组归类管理
+        # =========================
+
+        # 工作线程类（用于处理存表结束弹窗等）
         self.worker = Worker()
         self.worker.done.connect(self.worker.show_message)  # 当信号发出时，执行 show_message()
+
+        # 可点击图片类（用于设置按钮）
+        # 已在全局声明 ClickableImage
+
+        # =========================
+        # UI组件初始化
+        # =========================
 
         if not Form.objectName():
             Form.setObjectName(u"Form")
@@ -338,8 +350,8 @@ class Ui_Form(object):
         self.spinBox = QSpinBox(self.widget_5)
         self.spinBox.setObjectName(u"spinBox")
         self.spinBox.valueChanged.connect(self.information_edition_rollback) # Learning5：将SpinBox的值变化与信息栏回滚函数连接
-                                                                             # Learning7：槽函数若有括号，则会立即执行，而不是在信号触发时执行
-                                                                             # Learning8：valueChanged时候去获取起变化的值是变化之后的值           
+                                             # Learning7：槽函数若有括号，则会立即执行，而不是在信号触发时执行
+                                             # Learning8：valueChanged时候去获取起变化的值是变化之后的值           
         self.horizontalLayout.addWidget(self.spinBox)
 
         self.label_2 = QLabel(self.widget_5)
@@ -421,11 +433,6 @@ class Ui_Form(object):
         self.tabWidget_2.addTab(self.tab_3, "")
         #点击切换入库/出库(测试中0504 16:40)(一行)
         self.tabWidget_2.tabBar().tabBarClicked.connect(self.on_tab_clicked)
-
-
-
-
-        
 
         self.horizontalLayout_2.addWidget(self.tabWidget_2)
 
