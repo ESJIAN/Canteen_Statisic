@@ -12,6 +12,9 @@ import sys
 import os
 import threading
 import shutil
+import multiprocessing
+import subprocess
+from PySide6.QtWidgets import QMessageBox
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
@@ -52,11 +55,8 @@ from configparser import ConfigParser
 from src.core.excel_handler import clear_temp_xls_excel, clear_temp_xlxs_excel, img_excel_after_process,store_single_entry_to_temple_excel # Fixed1:将项目包以绝对形式导入,解决了相对导入不支持父包的报错
 from src.core.image_handler import image_to_excel
 from src.gui.photo_preview_dialog import preview_image
-import multiprocessing
-import subprocess
-from PySide6.QtWidgets import QMessageBox
 
-
+from config.config import FIRST_START
 
 
 
@@ -89,6 +89,7 @@ DEBUG_SIGN = True
 
 #这个用来测试,wjwcj 0507 12:54, 13:08测试完毕
 from PySide6.QtCore import QObject, Signal
+
 
 class Worker(QObject):
     """
@@ -922,7 +923,6 @@ class ClickableImage(QLabel):
 
 
 if __name__ == "__main__":
-
     # 创建一个QApplication对象
     app = QApplication(sys.argv) 
     # 创建一个QWidget对象
@@ -935,8 +935,16 @@ if __name__ == "__main__":
     ui.setupUi(Form)
     # 设置窗口标题
     Form.show()
+
+    # 检查是否首次启动
+    if FIRST_START :
+        QMessageBox.information(Form, "提示", "首次启动应用，请点击重导表格", QMessageBox.Ok)
+    else:
+        print("非首次启动，正常进入应用")
+
     # 设置关闭事件
     Form.closeEvent = lambda event: (clear_temp_xls_excel(),clear_temp_xlxs_excel(), print("Notice:清空暂存表格成功"), close_setting_window(ui), event.accept())
+    
     sys.exit(app.exec())
 
 # Summerize:
