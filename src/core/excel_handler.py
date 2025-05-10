@@ -333,7 +333,7 @@ def summary_sub_main_table(self, sub_main_food_excel_file_path):
                     out_quantity += round(float(sheet.range((row, 8)).value), 2)  # H列
                     out_amount += round(float(sheet.range((row, 9)).value), 2)    # I列
                 # 求出总金额后加一行
-                row_index = 
+                row_index = 1
                 print(f"在{row_index + 1}写入日计")
                 #要不重新创建一个sheet?
                 sheet = main_workbook.sheets[sheet_name]  # 使用指定的工作表名称

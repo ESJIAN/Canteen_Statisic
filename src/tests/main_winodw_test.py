@@ -147,18 +147,33 @@ class Ui_Form(object):
 
         self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)  # 设置顶部间距为 0 像素(第二个0)
 
+        # 
         self.tab_3 = QWidget()
         self.tab_3.setObjectName(u"tab_3")
+
+        # 创建 gridLayout 组件
+        self.gridLayout_2 = QGridLayout(self.tab_3)
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
+
+
+
+        # 手动导入页QgroupWidget
         self.groupBox_3 = QGroupBox(self.tab_3)
         self.groupBox_3.setObjectName(u"groupBox_3")
         self.groupBox_3.setGeometry(QRect(20, 20, 309, 381))
+
+        # 录入信息QgroupBoxWidet
         self.groupBox = QGroupBox(self.groupBox_3)
         self.groupBox.setObjectName(u"groupBox")
         self.groupBox.setGeometry(QRect(10, 25, 208, 251))
+
+        # 为录入信息QgroupBoxWidet添加布局
         self.verticalLayout = QVBoxLayout(self.groupBox)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.formLayout = QFormLayout()
         self.formLayout.setObjectName(u"formLayout")
+
+        # 
 
         self.setting = ClickableImage("")  # Use the ClickableImage class for clickable functionality
         self.setting.setObjectName("settingLabel")
@@ -169,7 +184,7 @@ class Ui_Form(object):
         self.gridLayout_3.addWidget(self.setting, 0, 0, Qt.AlignRight | Qt.AlignTop)  # type: ignore # Add to the top-right corner of the main layout
         self.setting.mousePressEvent = lambda event: self.show_settings()  # Connect the click event to a function
 
-        # Learning4：标签-输入框组的开始
+        "Learning4：标签-输入框组的开始"
         # 日期输入行
         self.line1Left = QLabel(self.groupBox)
         self.line1Left.setObjectName(u"date")
@@ -369,20 +384,19 @@ class Ui_Form(object):
 
         self.horizontalLayout.addWidget(self.storageNum)
 
-
         self.label_4 = QLabel(self.widget_5)
         self.label_4.setObjectName(u"label_4")
 
         self.horizontalLayout.addWidget(self.label_4)
 
-
-
         self.horizontalLayout_3.addWidget(self.widget_5)
 
+        # 创建 groupBox_4 组件
         self.groupBox_4 = QGroupBox(self.tab_3)
         self.groupBox_4.setObjectName(u"groupBox_4")
         self.groupBox_4.setGeometry(QRect(390, 20, 291, 381))
         self.groupBox_2 = QGroupBox(self.groupBox_4)
+
         self.groupBox_2.setObjectName(u"groupBox_2")
         self.groupBox_2.setGeometry(QRect(10, 20, 191, 261))
         self.verticalLayout_2 = QVBoxLayout(self.groupBox_2)
@@ -399,34 +413,34 @@ class Ui_Form(object):
 
         "输入界面右侧按钮创建"
         # 导入文件按钮 
-        self.pushButton_3 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
-        self.pushButton_3.setObjectName(u"pushButton_3")                # 设置该按钮的ObjectName
-        self.pushButton_3.setGeometry(QRect(210, 30, 75, 24))           # 设置按钮位置
-        self.pushButton_3.clicked.connect(self.photo_import)            # 绑定槽函数
+        self.pushButton_3 = QPushButton(self.groupBox_4)                        # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_3.setObjectName(u"pushButton_3")                        # 设置该按钮的ObjectName
+        self.pushButton_3.setGeometry(QRect(210, 30, 75, 24))                   # 设置按钮位置
+        self.pushButton_3.clicked.connect(self.photo_import)                    # 绑定槽函数
         
         # 暂存该条按钮
-        self.pushButton_4 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
-        self.pushButton_4.setObjectName(u"pushButton_4")                # 设置该按钮的ObjectName
-        self.pushButton_4.setGeometry(QRect(210, 70, 75, 24))           # 设置按钮位置
-        self.pushButton_4.clicked.connect(self.temp_store_photo_inputs) # 绑定槽函数
-        
-        # 输入检查按钮
-        self.pushButton_8 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
-        self.pushButton_8.setObjectName(u"pushButton_8")                # 设置该按钮的ObjectName
-        self.pushButton_8.setGeometry(QRect(210, 110, 75, 24))          # 设置按钮位置
-        self.pushButton_8.clicked.connect(self.check_photo_input_data)  # 绑定槽函数
+        self.pushButton_4 = QPushButton(self.groupBox_4)                        # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_4.setObjectName(u"pushButton_4")                        # 设置该按钮的ObjectName
+        self.pushButton_4.setGeometry(QRect(210, 70, 75, 24))                   # 设置按钮位置
+        self.pushButton_4.clicked.connect(self.temp_store_photo_inputs)         # 绑定槽函数
+                
+        # 输入检查按钮      
+        self.pushButton_8 = QPushButton(self.groupBox_4)                        # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_8.setObjectName(u"pushButton_8")                        # 设置该按钮的ObjectName
+        self.pushButton_8.setGeometry(QRect(210, 110, 75, 24))                  # 设置按钮位置
+        self.pushButton_8.clicked.connect(self.check_photo_input_data)          # 绑定槽函数
 
         # 提交数据按钮
-        self.pushButton_9 = QPushButton(self.groupBox_4)                 # 创建按钮，设置其父组件为grounpBox_4
-        self.pushButton_9.setObjectName(u"pushButton_9")                 # 设置该按钮的ObjectName
-        self.pushButton_9.setGeometry(QRect(210, 150, 75, 24))           # 设置按钮位置
-        self.pushButton_9.clicked.connect(self.commit_photo_data)              # 绑定槽函数
+        self.pushButton_9 = QPushButton(self.groupBox_4)                        # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_9.setObjectName(u"pushButton_9")                        # 设置该按钮的ObjectName
+        self.pushButton_9.setGeometry(QRect(210, 150, 75, 24))                  # 设置按钮位置
+        self.pushButton_9.clicked.connect(self.commit_photo_data)               # 绑定槽函数
 
         # 导入清空按钮
-        self.pushButton_10 = QPushButton(self.groupBox_4)                # 创建按钮，设置其父组件为grounpBox_4
-        self.pushButton_10.setObjectName(u"pushButton_10")               # 设置该按钮的ObjectName
-        self.pushButton_10.setGeometry(QRect(210, 190, 75, 24))          # 设置按钮位置
-        self.pushButton_10.clicked.connect(self.clear_temp_photo_import_list)  # 绑定槽函数
+        self.pushButton_10 = QPushButton(self.groupBox_4)                       # 创建按钮，设置其父组件为grounpBox_4
+        self.pushButton_10.setObjectName(u"pushButton_10")                      # 设置该按钮的ObjectName
+        self.pushButton_10.setGeometry(QRect(210, 190, 75, 24))                 # 设置按钮位置
+        self.pushButton_10.clicked.connect(self.clear_temp_photo_import_list)   # 绑定槽函数
 
 
         self.tabWidget_2.addTab(self.tab_3, "")
@@ -434,9 +448,21 @@ class Ui_Form(object):
         self.tabWidget_2.tabBar().tabBarClicked.connect(self.on_tab_clicked)
 
 
+        "底部 重导表格、导出表格、立即备份、备份管理 四个按钮"
+        # # 创建重导表格按钮
+        #self.pushButton_114 = QPushButton(self.tab)
+        #self.pushButton_114 = QPushButton("reimport_table")
+        # # 创建导出表格按钮
+        self.pushButton_115 = QPushButton(self.tab)
+        self.pushButton_115.setObjectName("export_table_button")
+        # # 创建立即备份按钮
+        # self.pushButton_12 = QPushButton(self.tab)
+        # self.pushButton_12.setObjectName("backup_button")
+        # # 创建备份管理按钮
+        # self.pushButton_11 = QPushButton(self.tab)
+        # self.pushButton_11.setObjectName("backup_manager_button")
 
 
-        
 
         self.horizontalLayout_2.addWidget(self.tabWidget_2)
 
@@ -448,17 +474,26 @@ class Ui_Form(object):
         self.tab_6 = QWidget()
         self.tab_6.setObjectName(u"tab_6")
 
-
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
 
+        "TAB内 网格布局排布设置"
+
+        self.gridLayout_2.addWidget(self.groupBox_3   ,0,1,1,4) # 手动导入 Box 位置设置
+        self.gridLayout_2.addWidget(self.groupBox_4   ,0,5,1,4) # 图片导入 Box 位置设置
+
+        #self.gridLayout_2.addWidget(self.pushButton_114,1,2,1,1) # 添加重导表格按钮位置
+        self.gridLayout_2.addWidget(self.pushButton_115,1,3,1,1) # 添加导出表格按钮位置
+        # self.gridLayout_2.addWidget(self.pushButton_11,1,6,1,1) # 设置备份管理按钮位置
+        # self.gridLayout_2.addWidget(self.pushButton_12,1,7,1,1) # 设置立即备份按钮位置
+        
+        
         self.gridLayout_3.addLayout(self.gridLayout, 0, 0, 1, 1)
 
 
         self.retranslateUi(Form)
 
         self.tabWidget.setCurrentIndex(0)
-
 
         QMetaObject.connectSlotsByName(Form)
     # setupUi
@@ -510,39 +545,49 @@ class Ui_Form(object):
         self.groupBox_4.setTitle(QCoreApplication.translate("Form", "照片导入", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("Form", "照片列表", None))
         
+        "照片导入按钮命名"
         self.pushButton_3.setText(QCoreApplication.translate("Form", "导入文件", None))
         self.pushButton_4.setText(QCoreApplication.translate("Form", "暂存该条", None))
         self.pushButton_8.setText(QCoreApplication.translate("Form", "输入检查", None))
         self.pushButton_9.setText(QCoreApplication.translate("Form", "提交数据", None))
         self.pushButton_10.setText(QCoreApplication.translate("Form", "条目清空", None))
 
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", u"入库/切换", None))
+        "TAB底部按钮"
+        # self.pushButton_114.setText(QCoreApplication.translate("Form", "重导表格", None))
+        self.pushButton_115.setText(QCoreApplication.translate("Form", "导出表格", None))
+        # self.pushButton_11.setText(QCoreApplication.translate("Form", "立即备份", None))
+        # self.pushButton_12.setText(QCoreApplication.translate("Form", "备份管理", None))
+        
+
+        "TAB名称"        
+        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("Form", "入库/切换", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("Form", u"填写数据", None))
 
-        #自动填充日期
+
+
+            #自动填充日期
         if get_ini_setting("Settings", "auto_fill_date") == "True":
             self.show_current_date()
 
         #绑定单价和数量文本框变化触发自动计算
-        self.line7Right.textChanged.connect(self.auto_calc_amount)#单价数量绑定到一块儿
-        self.line6Right.textChanged.connect(self.auto_calc_amount)#数量
+        self.line7Right.textChanged.connect(self.auto_calc_amount)                             # 价数量绑定到一块儿
+        self.line6Right.textChanged.connect(self.auto_calc_amount)                             # 数量
 
         "开发测试数据，注释掉即取消开发模式"
         
-        self.line1Right.setText("2025-5-5")       # 日期
-        self.line2Right.setText("主食")           # 类别
-        self.line3Right.setText("大米")           # 品名
-        self.line4Right.setText("备注")           # 备注
-        self.line5Right.setText("420.0")         # 金额
-        self.line6Right.setText("420")            # 数量
-        self.line7Right.setText("1")              # 单价
-        self.line8Right.setText("斤")             # 单位
-        self.line9Right.setText("嘉亿格")       # 公司
+        self.line1Right.setText("2025-5-5")        # 日期
+        self.line2Right.setText("主食")            # 类别
+        self.line3Right.setText("大米")            # 品名
+        self.line4Right.setText("备注")            # 备注
+        self.line5Right.setText("420.0")           # 金额
+        self.line6Right.setText("420")             # 数量
+        self.line7Right.setText("1")               # 单价
+        self.line8Right.setText("斤")              # 单位
+        self.line9Right.setText("嘉亿格")          # 公司
         self.line10Right.setText("自购主食入库等")  # 单名
 
-
-
     # retranslateUi
+
     """
     下面是一些按钮的槽函数，但是核心的功能实现在detail_ui_button_utils.py中
     """
