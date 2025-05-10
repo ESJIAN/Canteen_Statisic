@@ -199,31 +199,63 @@ def find_the_first_empty_line_in_sub_main_excel(sheet):
     :param 已经打开的sheet
     :return int行数
     """
-    # 查找第一行空行，记录下空行行标（从表格的第二行开始）
-    for row_index in range(0, sheet.used_range.rows.count):
-        if sheet.range((row_index + 1, 1)).value is None and row_index != 0:
-            # 检查前一行是否包含“领导”二字
-            if row_index > 0:
-                previous_row_values = [
-                str(sheet.range((row_index, col)).value).strip()
-                for col in range(1, sheet.used_range.columns.count + 1)
-                if sheet.range((row_index, col)).value is not None
-                ]
-                if any("领导" in value for value in previous_row_values):
-                    print(f"Notice: 第 {row_index} 行包含“领导”二字，继续查找下一行")
-                    continue
-            # 检查当前列的前几行是否包含“序号”二字
-            column_values = [
-                str(sheet.range((row, 1)).value).strip()
-                for row in range(1, row_index + 1)
-                if sheet.range((row, 1)).value is not None
-            ]
-            if not any("序号" in value for value in column_values):
-                print(f"Notice: 前 {row_index} 行未找到“序号”二字，继续查找下一行")
-                continue
-            break
-    return row_index
+    #暂时感觉这个for循环没什么问题
+    #wjwcj: 2025/05/04 15:31
+    for sub_row_index in range(sheet.used_range.rows.count):
+        # 检查每行的1到11列是否都是空
+        if all(is_visually_empty(sheet.range((sub_row_index + 1, col))) for col in range(1, 12)):
 
+            # 向前检查是否是“过次页 + 空行 + 空行”的模式
+            if is_previous_rows_after_page_break(sheet, sub_row_index + 1):
+                print(f"忽略第 {sub_row_index + 1} 行（前面是‘过次页’+连续空行）")
+                continue
+
+            print("这里开始执行", str(sub_row_index + 1))   
+
+            # 检查前一行是否符合某些条件（仅包含空格或单个标点符号）
+            if sub_row_index > 0 and all(
+                ((sheet.range((sub_row_index, col)).value is None) or 
+                (is_single_punctuation(str(sheet.range((sub_row_index, col)).value).strip())))
+                for col in range(1, 12)
+            ):
+                print(f"Notice: 发现第 {sub_row_index + 1} 行可用(仅包含空格或单个标点)，开始写入数据")
+                break
+
+            print(f"Notice: 发现第 {sub_row_index + 1} 行为空行，开始写入数据")
+            break
+    return sub_row_index + 1
+
+def find_the_first_empty_line_in_sub_auxiliary_excel(sheet):
+    """
+    在子副食表中找到第一空行
+    :param 已经打开的sheet
+    :return int行数
+    """
+    #暂时感觉这个for循环没什么问题
+    #wjwcj: 2025/05/04 15:34
+    for sub_row_index in range(sheet.used_range.rows.count):
+        # 检查每行的1到11列是否都是空
+        if all(is_visually_empty(sheet.range((sub_row_index + 1, col))) for col in range(1, 12)):
+
+            # 向前检查是否是“过次页 + 空行 + 空行”的模式
+            if is_previous_rows_after_page_break(sheet, sub_row_index + 1):
+                print(f"Warning: 忽略第 {sub_row_index + 1} 行（前面是‘过次页’+连续空行）")
+                continue
+
+            print("Notice: 这里开始执行", str(sub_row_index + 1))   
+
+            # 检查前一行是否符合某些条件（仅包含空格或单个标点符号）
+            if sub_row_index > 0 and all(
+                ((sheet.range((sub_row_index, col)).value is None) or 
+                (is_single_punctuation(str(sheet.range((sub_row_index, col)).value).strip())))
+                for col in range(1, 12)
+            ):
+                print(f"Notice: 发现第 {sub_row_index + 1} 行可用(仅包含空格或单个标点)，开始写入数据")
+                break
+
+            print(f"Notice: 发现第 {sub_row_index + 1} 行为空行，开始写入数据")
+            break
+    return sub_row_index + 1
 
 def get_all_sheets_todo_for_main_table():
     sheets_to_add = set()
@@ -271,7 +303,8 @@ def get_all_sheets_todo_for_sub_table():
         with xw.App(visible=False) as app:
             photo_workbook = app.books.open(__main__.PHOTO_TEMP_SINGLE_STORAGE_EXCEL_PATH)
             photo_sheet = photo_workbook.sheets[0]
-            values = photo_sheet.range("J2:J" + str(photo_sheet.used_range.rows.count)).value  # ← J列
+            #图片导入的话品名在C列
+            values = photo_sheet.range("C2:C" + str(photo_sheet.used_range.rows.count)).value
             if not isinstance(values, list):
                 values = [values]
             sheets_to_add.update(filter(None, values))

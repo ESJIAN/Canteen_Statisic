@@ -575,15 +575,15 @@ class Ui_Form(object):
 
         "开发测试数据，注释掉即取消开发模式"
         
-        self.line1Right.setText("2025-5-5")        # 日期
-        self.line2Right.setText("主食")            # 类别
-        self.line3Right.setText("大米")            # 品名
-        self.line4Right.setText("备注")            # 备注
-        self.line5Right.setText("420.0")           # 金额
-        self.line6Right.setText("420")             # 数量
-        self.line7Right.setText("1")               # 单价
-        self.line8Right.setText("斤")              # 单位
-        self.line9Right.setText("嘉亿格")          # 公司
+        self.line1Right.setText("2025-5-5")       # 日期
+        self.line2Right.setText("副食")           # 类别
+        self.line3Right.setText("土豆")           # 品名
+        self.line4Right.setText("备注")           # 备注
+        self.line5Right.setText("420.0")         # 金额
+        self.line6Right.setText("420")            # 数量
+        self.line7Right.setText("1")              # 单价
+        self.line8Right.setText("斤")             # 单位
+        self.line9Right.setText("嘉亿格")       # 公司
         self.line10Right.setText("自购主食入库等")  # 单名
 
     # retranslateUi
