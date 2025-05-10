@@ -317,26 +317,26 @@ def show_setting_window(self):
     img_layout = QVBoxLayout(self.img_group_box)
 
     # Add toggle for "Auto-fill Date"
-    self.auto_fill_date_toggle = QPushButton("自动填充日期")
-    self.auto_fill_date_toggle.setCheckable(True)
-    self.auto_fill_date_toggle.setChecked(get_ini_setting("Settings", "auto_fill_date", file_path='../../config/config.ini') == 'True')
-    print(get_ini_setting("Settings", "auto_fill_date", file_path='../../config.ini') == 'True')
-    self.auto_fill_date_toggle.clicked.connect(lambda: modify_ini_setting("Settings", "auto_fill_date", self.auto_fill_date_toggle.isChecked()))
+    self.img_auto_fill_date_toggle = QPushButton("自动填充日期")
+    self.img_auto_fill_date_toggle.setCheckable(True)
+    self.img_auto_fill_date_toggle.setChecked(get_ini_setting("Settings", "img_auto_fill_date", file_path='../../config/config.ini') == 'True')
+    #print(get_ini_setting("Settings", "img_auto_fill_date", file_path='../../config.ini') == 'True')
+    self.img_auto_fill_date_toggle.clicked.connect(lambda: modify_ini_setting("Settings", "img_auto_fill_date", self.img_auto_fill_date_toggle.isChecked()))
     
 
     # Add toggle for "Auto-calculate Total Price"
-    self.auto_calc_price_toggle = QPushButton("自动根据单价数量计算总价")
-    self.auto_calc_price_toggle.setCheckable(True)
-    self.auto_calc_price_toggle.setChecked(get_ini_setting("Settings", "auto_calc_price", file_path='../../config/config.ini') == 'True')
-    self.auto_calc_price_toggle.clicked.connect(lambda: modify_ini_setting("Settings", "auto_calc_price", self.auto_calc_price_toggle.isChecked()))
+    self.img_auto_calc_price_toggle = QPushButton("自动根据单价数量计算总价")
+    self.img_auto_calc_price_toggle.setCheckable(True)
+    self.img_auto_calc_price_toggle.setChecked(get_ini_setting("Settings", "img_auto_calc_price", file_path='../../config/config.ini') == 'True')
+    self.img_auto_calc_price_toggle.clicked.connect(lambda: modify_ini_setting("Settings", "img_auto_calc_price", self.img_auto_calc_price_toggle.isChecked()))
     
 
     close_button = QPushButton("点击关闭")
     close_button.clicked.connect(self.settings_window.close)
 
     # 将子组件放入布局组件进行管理
-    img_layout.addWidget(self.auto_fill_date_toggle)
-    img_layout.addWidget(self.auto_calc_price_toggle)
+    img_layout.addWidget(self.img_auto_fill_date_toggle)
+    img_layout.addWidget(self.img_auto_calc_price_toggle)
     img_layout.addWidget(close_button)
 
     

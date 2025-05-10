@@ -676,6 +676,9 @@ class Ui_Form(object):
         :return: None
 
         """
+        for i in range(1, 11):
+            eval(f"self.line{i}Right.setText(\"\")")
+        print("清空输入项目成功")
         clear_temp_xls_excel()
 
 
@@ -835,6 +838,10 @@ class Ui_Form(object):
                 widget = item.widget()
                 if widget:
                     widget.deleteLater()
+        try:
+            clear_temp_xlxs_excel()
+        except Exception:
+            print("Error in clear_temp_photo_import_list: 清空图片的暂存表格出错")
         
 
 
