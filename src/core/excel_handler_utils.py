@@ -111,20 +111,33 @@ def find_matching_month_rows(self,app,year,month,day,main_excel_file_path, sheet
             print(f"Error: 在主表中查找 C 列中等于今天日数的行数和 B 列中等于本月月数的行数时出错, 错误信息 {e}")
             return None
 
+        # 优化: 批量读取B列以减少Excel API调用
         # 查找 B 列中等于本月月数的行数
+        used_rows_count = sheet.used_range.rows.count
+        b_col_values = sheet.range((1, columns[0]), (used_rows_count, columns[0])).value
+        if not isinstance(b_col_values, list):
+            b_col_values = [[b_col_values]]
+        elif b_col_values and not isinstance(b_col_values[0], list):
+            b_col_values = [[val] for val in b_col_values]
+        
         month_rows = [
             row_index + 1
-            for row_index in range(sheet.used_range.rows.count)
-            if sheet.range((row_index + 1, columns[0])).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, columns[0])).value))) and (str(sheet.range((row_index + 1, columns[0])).value).lstrip("0") == str(int(current_month)).lstrip("0"))
+            for row_index in range(used_rows_count)
+            if b_col_values[row_index][0] is not None 
+            and (not any(i not in "0123456789." for i in str(b_col_values[row_index][0]))) 
+            and (str(b_col_values[row_index][0]).lstrip("0") == str(int(current_month)).lstrip("0"))
         ]
         print(f"Notice: B 列中等于本月月数的行数: {month_rows}")
         
+        # 优化: 复用已读取的B列数据
         # [x]BUG:解决 row_index = 5 时候抛出的 ·unsupported operand type(s) for -: 'str' and 'int'· 问题
         # 查找 B 列中等于上月月数的行数
         last_month_rows = [
             row_index + 1
-            for row_index in range(sheet.used_range.rows.count)
-            if sheet.range((row_index + 1, columns[0])).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, columns[0])).value))) and (str(sheet.range((row_index + 1, columns[0])).value).lstrip("0") == str(int(current_month) - 1).lstrip("0"))
+            for row_index in range(used_rows_count)
+            if b_col_values[row_index][0] is not None 
+            and (not any(i not in "0123456789." for i in str(b_col_values[row_index][0]))) 
+            and (str(b_col_values[row_index][0]).lstrip("0") == str(int(current_month) - 1).lstrip("0"))
         ]
         print(f"Notice: B 列中等于上月月数的行数: {last_month_rows}")
         
@@ -210,21 +223,43 @@ def find_matching_today_rows(app,year,month,day,main_excel_file_path, sheet_name
             print(f"Error: 在主表中查找 C 列中等于今天日数的行数和 B 列中等于本月月数的行数时出错, 错误信息 {e}")
             return None
 
+        # 优化: 批量读取两列数据以减少Excel API调用
+        used_rows_count = sheet.used_range.rows.count
+        
+        # 批量读取B列和C列
+        b_col_values = sheet.range((1, columns[0]), (used_rows_count, columns[0])).value
+        c_col_values = sheet.range((1, columns[1]), (used_rows_count, columns[1])).value
+        
+        # 标准化为列表格式
+        if not isinstance(b_col_values, list):
+            b_col_values = [[b_col_values]]
+        elif b_col_values and not isinstance(b_col_values[0], list):
+            b_col_values = [[val] for val in b_col_values]
+            
+        if not isinstance(c_col_values, list):
+            c_col_values = [[c_col_values]]
+        elif c_col_values and not isinstance(c_col_values[0], list):
+            c_col_values = [[val] for val in c_col_values]
+        
         # 查找 C 列中等于今天日数的行数
         day_rows = [
             row_index + 1
-            for row_index in range(sheet.used_range.rows.count)
-            if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(sheet.range((row_index + 1, columns[1])).value).lstrip("0") == str(int(current_day)).lstrip("0"))
+            for row_index in range(used_rows_count)
+            if c_col_values[row_index][0] is not None 
+            and (not any(i not in "0123456789." for i in str(c_col_values[row_index][0]))) 
+            and (str(c_col_values[row_index][0]).lstrip("0") == str(int(current_day)).lstrip("0"))
         ]
 
         # 如果返回值为空，则
         print(f"Notice: C 列中等于今天日数的行数: {day_rows}")
 
-        # 查找 B 列中等于本月月数的行数
+        # 查找 B 列中等于本月月数的行数 (应该是month不是day)
         month_rows = [
             row_index + 1
-            for row_index in range(sheet.used_range.rows.count)
-            if sheet.range((row_index + 1, 2)).value != None and (not any(i not in "0123456789." for i in str(sheet.range((row_index + 1, 2)).value))) and (str(sheet.range((row_index + 1, columns[0])).value).lstrip("0") == str(int(current_day)).lstrip("0"))
+            for row_index in range(used_rows_count)
+            if b_col_values[row_index][0] is not None 
+            and (not any(i not in "0123456789." for i in str(b_col_values[row_index][0]))) 
+            and (str(b_col_values[row_index][0]).lstrip("0") == str(int(current_month)).lstrip("0"))
         ]
         print(f"Notice: B 列中等于本月月数的行数: {month_rows}")
 

@@ -284,6 +284,7 @@ def reindex_item_data(self):
                 worksheet = workbook.sheet_by_name(sheet_name)
                 price_group = []                                # 记录连续价格组的三维数组
 
+                # 优化: 减少日志打印频率，避免性能损失
                 "从头到尾记录有单价的行"
                 for row_idx in range(1, worksheet.nrows):           # 跳过表头，从第二行开始
                     
@@ -294,7 +295,8 @@ def reindex_item_data(self):
                         month = int(row[0].value) if row[0].value != '' else 0      # 月份
                         day = int(row[1].value) if row[1].value != '' else 0        # 日期
                         price_group.append([row_idx + 1, price,month,day])          # 记录该 [行号,单价,月份,日期]
-                        print(f"Notice:  {worksheet.name} 工作簿第 {row_idx + 1} 行 单价列值为{price} ")
+                        # 优化: 减少日志打印以提高性能
+                        # print(f"Notice:  {worksheet.name} 工作簿第 {row_idx + 1} 行 单价列值为{price} ")
 
                     except Exception as e:
                         print(f"Error: 处理文件 {file} 的 {worksheet.name} 工作簿第 {row_idx + 1} 行时出错: {e}")
